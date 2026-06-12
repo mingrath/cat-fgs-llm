@@ -1,8 +1,8 @@
 """Frozen DINOv2 ViT-S/14 backbone (IMPLEMENTATION_PLAN §5.1).
 
-CONCEDED PLUMBING (FINAL_DIRECTION §A); never claimed as novel. dinov2_vits14,
-hidden size 384, patch 14, forward-only. Frozen because the supervised set is
-~120-300 vet/VLM labels; only the ~5 light heads train.
+CONCEDED PLUMBING (FINAL_DIRECTION §A); never claimed as novel. dinov2_vits14_reg
+(register variant is field default), hidden size 384, patch 14, forward-only. Frozen
+because the supervised set is ~120-300 vet/VLM labels; only the ~5 light heads train.
 
 Patch/hidden are derived from the model (m.embed_dim), not hardcoded in
 load-bearing paths; the 14/384/518 constants in comments are for the reader only.
@@ -25,8 +25,10 @@ preprocess = transforms.Compose([
 
 
 def load_frozen_dinov2(device: str = DEVICE):
-    # torch.hub ViT-S/14; no registers variant for the v1 spine
-    m = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14")
+    # torch.hub ViT-S/14; dinov2_vits14_reg (with registers) is the field default
+    # to suppress attention artifacts; dinov2_vits14 is maintained for backwards compatibility.
+    # TODO(A/B): test reg variant before locking ViT-S/14.
+    m = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14_reg")
     m.requires_grad_(False)      # freeze ALL params
     m.eval()                     # disable dropout/BN-update; deterministic features
     m.to(device)

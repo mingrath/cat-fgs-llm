@@ -6,9 +6,10 @@ cache write); Batches give ~50% off and an async 24h window. Hosted-API only -- 
 local VLM -- so it runs identically from the M4/MPS box or a Colab T4.
 
 The full-corpus run is BLOCKED until Gate 1-B returns GO on orbital/ear/head; on
-NO-GO we pivot to the binary-plus-wrapper fallback (the kappa numbers ship as a
-method finding regardless). The VLM emits only the 5 atoms; sum/flag are computed
-in code at collect time (src.vlm.batch_collect via src.vlm.aggregate).
+NO-GO we pivot to the binary-plus-wrapper (the likely v1 ship); the kappa method
+(a protocol; result pending the independent per-AU vet anchor) ships regardless.
+The VLM emits only the 5 atoms; sum/flag are computed in code at collect time
+(src.vlm.batch_collect via src.vlm.aggregate).
 
 ``anthropic`` is imported lazily so importing this module is SDK-free.
 """

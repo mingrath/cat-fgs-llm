@@ -50,9 +50,12 @@ this is not another cat-pain detector because its headline deliverables are
 \textbf{two transportable methods that no prior feline-pain work produced} ---
 
 \begin{enumerate}
-  \item a \textbf{per-AU \mbox{VLM-as-AU-rater} agreement protocol}: a measurement
-  of whether a frozen vision--language model can weak-label FGS action units at
-  human-rater agreement, reported as five per-AU quadratic $\kappa$ values
+  \item a \textbf{per-AU \mbox{VLM-as-AU-rater} agreement protocol}: a protocol for
+  measuring whether a frozen vision--language model can weak-label FGS action units at
+  human-rater agreement (the result is pending an independent per-AU veterinary anchor,
+  and measures weak-labeling capability only if that anchor is independent and the VLM
+  rubric differs from the vet's --- otherwise it measures rubric-following), reported as
+  five per-AU quadratic $\kappa$ values
   \emph{gated on the confidence-interval lower bound} against a veterinary anchor,
   with released code that runs the same comparison on any face corpus; and
   \item a \textbf{capture-condition confound-attribution protocol}

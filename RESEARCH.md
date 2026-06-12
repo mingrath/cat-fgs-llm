@@ -1,7 +1,9 @@
 > **⚠️ SUPERSEDED where it conflicts with `FINAL_DIRECTION.md` (authoritative) and the code.**
 > Early-exploration notes: the QWK-primary framing and the convnext_tiny backbone here are
-> NOT what shipped. The engine is frozen DINOv2 ViT-S/14 + CORN heads; QWK-vs-VLM is a
-> labeler-agreement method finding, NEVER validation. Trust `FINAL_DIRECTION.md` + the code.
+> NOT what shipped. The engine is frozen DINOv2 + CORN heads (the `_reg` register variant
+> `dinov2_vits14_reg` is the field default; A/B it before locking plain ViT-S/14); the
+> kappa method is a protocol whose per-AU result is pending an independent vet anchor, and
+> QWK-vs-VLM is NEVER validation. Trust `FINAL_DIRECTION.md` + the code.
 
 # Cat FGS Pain Scoring — Research & Plan
 
@@ -33,7 +35,7 @@ Source: Evangelista et al., *Sci Rep* 9:19128 (2019) — https://pmc.ncbi.nlm.ni
 
 ## Best-practice modeling recipe
 - **Preprocessing is highest-leverage:** detect cat face → align by eyes → crop 224×224. Face alignment measurably improved every published model.
-- **Backbone (transfer learning):** `timm` — `convnext_tiny.fb_in22k_ft_in1k` (default) or frozen `vit_small_patch14_dinov2` linear probe (fast strong baseline).
+- **Backbone (transfer learning):** `timm` — `convnext_tiny.fb_in22k_ft_in1k` (default) or frozen `vit_small_patch14_dinov2` linear probe (fast strong baseline) — but default to the `_reg` register variant `dinov2_vits14_reg`, since registers suppress attention artifacts that hurt dense, localized per-AU features (orbital/ear/muzzle); A/B it before locking the plain variant.
 - **Target framing (for FGS, Phase B):** 5 multi-task **ordinal (CORN)** heads (each 0/1/2) → sum to 0–10 → apply 0.39 threshold. Interpretable per-AU. (`coral-pytorch`, CORN > CORAL.)
 - **Augmentation (Albumentations):** h-flip, mild affine/rotation ±15°, brightness/contrast, light noise/JPEG. **Avoid** heavy CoarseDropout, strong blur, vertical flip, grayscale — they destroy subtle AU cues.
 - **Small/imbalanced data:** stratified **5-fold CV grouped by individual cat** (no cat in train+val — #1 leakage trap), class-weight/focal loss, freeze→unfreeze, discriminative LRs, EMA, TTA.

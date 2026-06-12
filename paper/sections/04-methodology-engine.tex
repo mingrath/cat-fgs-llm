@@ -288,7 +288,11 @@ explicit, counted abstention channel rather than a silent drop.
 \label{sec:eng-backbone}
 
 The encoder is a frozen DINOv2 ViT-S/14 \citep{oquab2023dinov2}: hidden width
-$384$, patch size $14$, forward-only. We freeze it because the supervised set is
+$384$, patch size $14$, forward-only. The \emph{register} variant
+\texttt{dinov2\_vits14\_reg} is the field default, because registers suppress the
+attention artifacts that hurt dense, localized features --- exactly the per-AU
+regime (orbital, ear, muzzle); the reg variant is A/B'd against the plain variant
+(kept for backwards compatibility) before ViT-S/14 is locked. We freeze it because the supervised set is
 on the order of $120$--$300$ vet- and VLM-labelled faces, a regime in which
 full fine-tuning of a vision transformer would be malpractice; only the light
 ordinal heads are trained. Patch size and hidden width are derived from the

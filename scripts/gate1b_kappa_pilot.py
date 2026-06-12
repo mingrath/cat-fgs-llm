@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Gate 1-B — per-AU VLM-vs-vet quadratic kappa, GATED ON THE CI LOWER BOUND (§4.6.3).
+"""Gate 1-B — per-AU VLM-vs-vet quadratic kappa PROTOCOL, GATED ON THE CI LOWER BOUND (§4.6.3).
 
-HEADLINE METHOD #1. Reads per-AU kappa floors from the Gate-0 power manifest
-(data/manifests/power.json -> "au_kappa_floors"), falling back to the FINAL_DIRECTION
-defaults (orbital/ear/head 0.60, muzzle/whiskers 0.40) ONLY when Gate 0 has not yet
-committed them. Writes a JSON report.
+HEADLINE METHOD #1 PROTOCOL (result pending independent vet anchor). Reads per-AU kappa floors
+from the Gate-0 power manifest (data/manifests/power.json -> "au_kappa_floors"), falling back to
+the FINAL_DIRECTION defaults (orbital/ear/head 0.60, muzzle/whiskers 0.40) ONLY when Gate 0 has
+not yet committed them. Writes a JSON report measuring VLM-vs-vet agreement; interpretation guard
+(anchor independence + rubric divergence) must be stated in the report.
 
 GATE ON THE LOWER BOUND, NOT THE POINT (§4.6.3 / §6.1): at the pilot n a 0.60 floor is
 statistically indistinguishable from a true 0.47, so a point-estimate gate is not a gate.
@@ -12,7 +13,8 @@ graded_go requires orbital/ear/head LB >= floor. muzzle/whiskers below their flo
 flagged drop_head, not a hard fail.
 
 CIRCULARITY FIREWALL: this kappa is VLM-vs-VET agreement — a labeler-quality method
-finding. It is NEVER validation of the 0.39 flag (QWK-vs-VLM is never validation).
+(a protocol; result pending the independent vet anchor). It is NEVER validation of the
+0.39 flag (QWK-vs-VLM is never validation).
 
 Only VET-CONFIRMED rows enter the kappa. Augmented copies never enter the pilot N.
 Input merged CSV has one row PER IMAGE with columns {au}_vlm, {au}_vet (+ optional cat_id).
@@ -116,6 +118,11 @@ def run_gate(merged_csv: str, out_json: str, n_boot: int = 5000, alpha: float = 
             "overall": float(np.mean(list(noise_rates.values()))),
         },
         "decision": decision,
+        "interpretation_guard": {
+            "note": "A high kappa only measures capability if BOTH: (i) the vet anchor is independent, AND (ii) the VLM rubric differs from the vet rubric. Otherwise it measures rubric-following. See README section 1 Interpretation Guard.",
+            "anchor_independent": None,  # Document at runtime if anchor is independent (e.g., true/false/unknown)
+            "rubric_match": None,  # Document at runtime if VLM rubric matches vet rubric (e.g., true/false/unknown)
+        },
     }
     Path(out_json).parent.mkdir(parents=True, exist_ok=True)
     Path(out_json).write_text(json.dumps(out, indent=2))

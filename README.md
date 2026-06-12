@@ -1,13 +1,20 @@
 # cat-fgs-llm
 
 **This is not another cat-pain detector.** Its headline deliverables are two
-transportable methods no prior feline-pain work produced — a measurement of whether
-a frozen VLM can weak-label Feline Grimace Scale action units at human-rater agreement
-(per-AU VLM-vs-vet quadratic kappa, CI-lower-bound-gated), and a reusable
+transportable *methods* no prior feline-pain work produced — a protocol for measuring
+whether a frozen VLM can weak-label Feline Grimace Scale action units at human-rater
+agreement (per-AU VLM-vs-vet quadratic kappa, CI-lower-bound-gated), and a reusable
 capture-condition confound-attribution protocol — shipped on an explicitly-conceded
 DINOv2 + CORN engine, with an honest binary-plus-abstention floor (welfare-asymmetric
 operating point at pain-recall >= 0.90, one-sided 95% NPV defer-to-vet curve) that
 stands even though the 0-10 layer is reported as inspected-not-validated.
+
+**Status of the headline:** the kappa method is a *protocol with a result pending* —
+it cannot report a number until the per-AU vet anchor exists (see Gate 0). The current
+dataset is binary pain/no_pain and **cannot** yield 0/1/2 AU ground truth, so until the
+anchor is built, method #1 ships as a runnable protocol, not a finding. The
+binary-plus-abstention floor is what stands today; treat it as the likely v1 ship, not
+the fallback.
 
 ## The engine is conceded plumbing, not claimed novel
 
@@ -19,11 +26,24 @@ contribution. Its outputs feed only `src/wrapper/` (the welfare frame) and `src/
 0-10 layer is built, decoded, and **inspected-not-validated** — it never emits a
 validated-claim number, and QWK-vs-VLM is never validation.
 
+**Backbone note:** the `_reg` (register) DINOv2 variants are now the field default
+(`dinov2_vits14_reg`) because registers suppress attention artifacts that hurt dense,
+localized features — and per-AU FGS scoring is exactly localized (orbital, ear, muzzle
+sub-regions). A/B the reg variant before locking ViT-S/14. Expect orbital/ear/head to
+be where the Gate 1-B kill-switch fires: a small frozen backbone with no fine-tuning on
+a tiny corpus is most likely to miss those AUs, so budget for binary-plus-abstention
+being the v1 ship rather than the fallback.
+
 ## The three portable artifacts (all dataset-agnostic)
 
-1. **VLM-as-AU-rater kappa protocol + result** (`src/vlm/`, `src/eval/kappa.py`) —
-   scores any face corpus's per-AU VLM labels against a vet anchor; reports 5
-   quadratic kappa with CI lower bounds. Fires on the CI lower bound (Gate 1-B).
+1. **VLM-as-AU-rater kappa protocol** (`src/vlm/`, `src/eval/kappa.py`) — scores any
+   face corpus's per-AU VLM labels against a vet anchor; reports 5 quadratic kappa with
+   CI lower bounds. Fires on the CI lower bound (Gate 1-B). **A result requires an
+   independent vet anchor that does not yet exist**; the artifact shipped today is the
+   protocol. **Interpretation guard:** a high kappa only measures capability if the
+   anchor is independent and the rubric handed to the VLM is not the same rubric the vet
+   scored from — otherwise it measures rubric-following, not weak-labeling skill. State
+   which one a given run measures.
 2. **FGS-BG-Gap + per-AU EBPG confound-attribution protocol** (`src/eval/confound.py`)
    — a one-directional audit ("no confound detected at this power") any future
    facial-pain-scorer corpus can run.

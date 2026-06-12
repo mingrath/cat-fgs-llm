@@ -32,7 +32,8 @@ Legend: `[ ]` = you do it · `[me]` = I do it (once unblocked) · `<FILL>` = pas
 - [me] Fork `lia-k4jkv/cat-pain-ul7lu` → `mingraths-workspace` + regenerate a **Fit (reflect) 640**
       version (the shipped Stretch version distorts AU geometry) + export COCO/YOLO.
       *(I may surface one Roboflow UI link for you to click if the MCP fork needs confirmation.)*
-- [me] Download assets: `facebook/dinov2-small` (cached ✓), horse-grimace fixture, Haar cat-face cascade.
+- [me] Download assets: `facebook/dinov2-small` (cached ✓; the `_reg`/register variant `dinov2_vits14_reg`
+      is the field default — A/B it before locking ViT-S/14, plain stays as compat), horse-grimace fixture, Haar cat-face cascade.
 - [me] **Gate 0** power calc → writes `data/manifests/power.json` = the vet-budget integer + κ floors
       (this fixes **how many images you label** in section C).
 - [me] **Gate 1** per-CAT merge → folds.csv · **Gate 2** confound audit · **Gate 3** freeze hold-out.
@@ -52,7 +53,13 @@ rationale**. You **accept or correct**, you do NOT score from scratch.
 - [ ] (Optional) Where the VLM and you disagree, a one-line note helps the datasheet.
 
 When that CSV comes back, **Gate 1-B** fires: per-AU VLM-vs-vet quadratic κ on the CI lower bound →
-GO (build graded layer) or PIVOT (binary-plus-wrapper only). Either outcome is publishable.
+GO (add the graded 0-10 layer as upside on top of the floor) or HOLD at the floor (the binary-plus-abstention spine that ships today either way). Either outcome is publishable.
+
+> **Interpretation guard:** a high κ here measures weak-labeling *capability* only if the
+> vet anchor is independent **and** the rubric handed to the VLM is not the same rubric the
+> vet scored from. Note that accept-or-correct over the VLM pre-fills makes the anchor
+> *non-independent* unless the vet scores blind — read such a κ as rubric-following, not
+> weak-labeling skill.
 
 > Review-UI preference (pick one — I'll wire the export to match):
 > `[ ]` plain CSV/spreadsheet  ·  `[ ]` Roboflow review  ·  `[ ]` CVAT / Label Studio  ·  `[ ]` other: `<FILL>`

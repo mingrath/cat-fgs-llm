@@ -57,7 +57,7 @@
 
 Concretely, one vertical:
 
-1. **Engine (modeling novelty):** frozen **DINOv2 ViT-S** + **5 rank-consistent CORN ordinal heads** → per-AU 0/1/2 → 0–10 → 0.39 decision.
+1. **Engine (modeling novelty):** frozen **DINOv2 ViT-S/14** (the `_reg` register variant, `dinov2_vits14_reg`, is the field default — registers suppress attention artifacts that hurt the localized orbital/ear/muzzle features per-AU FGS needs; A/B it before locking ViT-S/14) + **5 rank-consistent CORN ordinal heads** → per-AU 0/1/2 → 0–10 → 0.39 decision.
 2. **Supervision (never attempted):** **VLM weak-labels the 5 AUs**; a vet reviews a small calibration anchor; active-learning prioritizes uncertain/severe cases. This is the *only* path from binary/web data to graded FGS without a closed expert corpus.
 3. **Honesty wrapper (the actual headline):** VLM-as-rater per-AU **quadratic κ vs vet**; **calibration** (reliability diagram, Brier/ECE); **pain-recall-at-fixed-sensitivity with bootstrap 95% CIs (half-width stated first)**; **decision-curve under undertreatment≫overtreatment**; **defer-to-vet abstention curve**; **capture-condition confound audit** (trivial brightness/blur/aspect classifier); face-quality/morphology input gate.
 4. **Artifact:** released weak-labeled AU annotations + frozen-backbone+CORN code/weights + frozen clip-grouped test split + **datasheet** documenting pseudo-label provenance and the confound audit.
@@ -81,7 +81,7 @@ Concretely, one vertical:
 **The claim we could make (and defend).** *"The first learned graded FGS scorer reported as a trustworthy clinical decision: we measure our own weak-label reliability (VLM-vs-vet per-AU κ), calibrate the 0.39 analgesia decision (reliability diagram, Brier/ECE), report pain-recall with bootstrap CIs and a defer-to-vet abstention policy, and audit the acquisition/morphology confound — none of which the 8 prior cat-pain works did, and which the COSMIN review named as the field's open need but could not assess for automated scorers."*
 
 **Minimal validation to support it (the GO/NO-GO gates):**
-- **Gate 1 — Label reliability:** ~120-image VLM-vs-vet per-AU quadratic κ pilot with CI. If κ is too low, AUs that fail are reported as such (honest), not hidden.
+- **Gate 1 — Label reliability:** ~120-image VLM-vs-vet per-AU quadratic κ pilot with CI. A high κ only measures weak-labeling *capability* if the vet anchor is independent and the rubric handed to the VLM differs from the vet's rubric; otherwise it measures rubric-following — state which a given run measures. If κ is too low, AUs that fail are reported as such (honest), not hidden.
 - **Gate 2 — Confound audit:** trivial classifier (brightness/blur/box-aspect/CLIP) on the binary label. If it beats chance, report pain as entangled with acquisition context and condition all downstream claims on it.
 - **Gate 3 — Decision layer:** calibration + pain-recall-at-fixed-sensitivity with bootstrap 95% CI half-width stated up front (~±0.13 on ~50-positive folds); 0.39 decision estimated **only on vet-confirmed labels** to break VLM-label circularity; abstention accuracy-vs-coverage curve.
 - Splits: **clip-grouped StratifiedGroupKFold** (no same-cat leakage); frozen hashed test split.
@@ -95,7 +95,7 @@ Concretely, one vertical:
 
 ## 6. Honest risks
 
-- **Label reliability could fail Gate 1.** If VLM-vs-vet κ is poor on muzzle/whiskers (exactly where Steagall and Marangoni both report low inter-rater reliability), graded per-AU output may be untrustworthy. *Mitigation:* report κ honestly per-AU; fall back to a calibrated **binary** decision layer with abstention — the validity-wrapper contribution survives even if graded AUs don't.
+- **Label reliability could fail Gate 1.** If VLM-vs-vet κ is poor on muzzle/whiskers (exactly where Steagall and Marangoni both report low inter-rater reliability), graded per-AU output may be untrustworthy. *Mitigation:* report κ honestly per-AU; ship the calibrated **binary** decision layer with abstention as the v1 floor — the likely v1 ship that stands today, with the graded 0-10 layer as upside conditional on Gate 1-B passing; the validity-wrapper contribution stands either way.
 - **Confound audit could be damning (Gate 2).** If pain is largely predicted by brightness/blur/morphology, our labels are mostly shortcut. *This is still a publishable finding* (the first measured confound audit), but it kills any accuracy claim — which is why we don't headline accuracy.
 - **"Novel" calibration could be seen as routine ML hygiene.** Calibration/abstention are standard elsewhere; a reviewer may say "applying known methods." *Mitigation:* the novelty is the *combination on graded FGS + the measured weak-label-reliability conditioning + the confound audit*, which is genuinely unowned in this research line, plus the COSMIN-named gap framing.
 - **Open-benchmark trap.** Releasing a dataset whose pain labels we ourselves distrust is a liability, and CatFLW (best alignment asset) is **CC BY-NC** — contaminating a clean open release and blocking commercial use. *Mitigation:* release the **audit + datasheet + protocol + code/weights**, not a "trustworthy-labels leaderboard."

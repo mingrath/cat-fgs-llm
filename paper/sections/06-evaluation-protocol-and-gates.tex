@@ -152,16 +152,21 @@ five cat-grouped folds, plus pooled bootstrap intervals.
 \label{sec:phaseB-metrics}
 
 Phase~B evaluates the AU-level engine output and the trustworthiness wrapper. Exactly one
-Phase~B number is a \emph{gated, validated} quantity --- the per-AU VLM-vs-vet agreement
-$\kappa$; everything concerning the graded $0\text{--}10$ sum is computed and reported as
+Phase~B quantity is governed by a \emph{gated, validated} protocol --- the per-AU VLM-vs-vet
+agreement $\kappa$ --- but that protocol yields no number until an independent per-AU vet anchor
+exists ($G0$); until then method~1 ships as a runnable protocol with its result pending, not as a
+delivered measurement. Everything concerning the graded $0\text{--}10$ sum is computed and reported as
 inspection-only.
 
 \subsection{Per-AU VLM-as-rater quadratic kappa (headline method~1)}
 
 The first portable method asks whether a frozen vision-language model can weak-label the five
-FGS action units at human-rater agreement. For each AU we compute the quadratic-weighted
+FGS action units at human-rater agreement. It is a protocol, and its result is pending: no per-AU
+$\kappa$ can be reported until an independent per-AU veterinary anchor exists ($G0$), which the
+current binary corpus does not supply, so what ships today is the runnable protocol rather than a
+number. For each AU the protocol computes the quadratic-weighted
 agreement \cite{cohen1968kappa} between the model's $\{0,1,2\}$ rating and a veterinary
-anchor, \emph{bootstrap its confidence interval, and gate and report on the CI lower bound}
+anchor, \emph{bootstraps its confidence interval, and gates and reports on the CI lower bound}
 rather than the point estimate. This lower-bound discipline is forced by the sample size: at
 the budgeted anchor count, a point estimate of $0.6$ is statistically indistinguishable from a
 true value of $0.47$, so a point-estimate gate would not be a gate at all. The pre-registered
@@ -171,7 +176,11 @@ absolute error, adjacent accuracy ($|\hat{y}-y|\leq 1$), and per-AU three-class 
 reported as descriptive support only and never as the gate. Where multiple repeated model votes
 are available, their internal consistency is summarised with an ordinal Krippendorff
 $\alpha$~\cite{krippendorff2004}; this measures rater self-consistency and is explicitly
-\emph{not} validation against the vet.
+\emph{not} validation against the vet. An interpretation guard governs any eventual number: a
+high $\kappa$ measures weak-labeling \emph{capability} only if both (i) the vet anchor is
+independent and (ii) the rubric handed to the VLM differs from the rubric the vet scored from;
+if either fails, the same $\kappa$ measures only rubric-following, and each run must state which
+of the two it measures.
 
 \subsection{Distributional calibration of the graded sum (inspection-only)}
 
@@ -349,8 +358,8 @@ follows $G5$ because it needs aligned crops.}
 \begin{table}[t]
 \centering
 \caption{Gate-by-gate exit artifact, blocking condition, and compute. Each gate writes
-\texttt{artifacts/gateN/PASS}. ``Pivot'' rows can redirect the spine to the binary fallback
-without killing the project; ``Blocking'' rows must turn green before any downstream number is
+\texttt{artifacts/gateN/PASS}. ``Pivot'' rows can redirect the spine to the binary-plus-abstention
+spine without killing the project; ``Blocking'' rows must turn green before any downstream number is
 believed.}
 \label{tab:gate-matrix}
 \footnotesize
@@ -407,7 +416,7 @@ Expected to fire $\Rightarrow$ collapse; do \emph{not} print a per-cell severe n
 \paragraph{Cross-cutting kill triggers.} Two triggers cut across the gate order. First, the
 Monte-Carlo robustness check of the cross-AU error correlation is run under both $\rho=0$ and a
 pinned $\rho=0.3$; a GO under $\rho=0$ that becomes a NO-GO under $\rho=0.3$ declares the gate
-\emph{fragile}, which is reported as such, and the build defaults to the binary fallback rather
+\emph{fragile}, which is reported as such, and the build defaults to the binary-plus-abstention spine rather
 than claim a GO that the correlation assumption could flip. Second, $G4$ or $G5$ failing is
 absolutely blocking: no metric computed downstream of a silently-wrong MPS logit or a
 misaligned crop is believed, because in that regime ``calibration'' would measure crop quality
@@ -415,7 +424,7 @@ rather than pain.
 
 \paragraph{The modal product.} The gate system is designed so that the most probable outcome is
 not a failure but a well-characterised \emph{binary-plus-wrapper} instrument:
-binary pain decision $+$ the $\kappa$-as-method finding $+$ the confound-attribution protocol
+binary pain decision $+$ the $\kappa$-as-method protocol (result pending the independent vet anchor) $+$ the confound-attribution protocol
 $+$ the welfare decision curve $+$ the lower-bound abstention curve, with graded-CORN shipped as
 an inspected-not-validated artifact. Every gate either advances this product or pivots cleanly
 onto it.

@@ -19,7 +19,7 @@ What HF *does* offer splits cleanly into one cross-species label set and a set o
 | id | what it gives us | role | license |
 |---|---|---|---|
 | `facebook/dinov3-vits16-pretrain-lvd1689m` | Strongest small SSL backbone; drop-in upgrade to planned DINOv2 ViT-S | Frozen Phase-B encoder under 5 CORN heads | (HF gated/research) |
-| `facebook/dinov2-small` / `timm/vit_small_patch14_dinov2.lvd142m` | Original-plan ViT-S; transformers-native (`pooler_output` 384-d) or timm | Frozen encoder fallback; MPS-friendly | apache-2.0 |
+| `facebook/dinov2-small` / `timm/vit_small_patch14_dinov2.lvd142m` | Original-plan ViT-S (prefer the `_reg` register variant as the field default for localized per-AU features; A/B before locking ViT-S/14); transformers-native (`pooler_output` 384-d) or timm | Frozen encoder fallback; MPS-friendly | apache-2.0 |
 | `mwmathis/DeepLabCutModelZoo-SuperAnimal-Quadruped` | Real `.pt` weights (Faster-RCNN/SSDLite + HRNet/RTMPose) zero-shot quadruped detect+head pose | Detect → crop → head ROI | (DLC zoo) |
 | `AlexEMG/DeepLabCutModelZoo-cat` | Only real cat keypoint weights on HF (ResNet-50, DLC runtime) | Cat face/body keypoints for ROI | (DLC zoo) |
 | `d-v-18/cat-face-detector` | Stock OpenCV `haarcascade_frontalcatface.xml` | Dependency-light face-crop detector | mit |
@@ -44,7 +44,7 @@ The gap is therefore a **data-acquisition-and-labeling problem, not a modeling/t
 
 | approach | yields real FGS labels? | cost | payoff | verdict |
 |---|---|---|---|---|
-| **1. VLM weak-label (Claude Opus 4.8, 5-AU enum 0/1/2) + cleanlab/boundary triage → vet review → frozen DINOv2 + 5 CORN heads + active learning** | **Silver only**, not gold; trust comes from the vet layer it feeds | ~$12 (single batched+cached Opus pass over ~2,040 crops); $0 GPU; **binding cost = ~4–5 vet hrs** to clear the 120–150 kappa-CI floor | Complete 5-AU silver layer over all images **this week**, zero external permission; concentrates scarce vet hours on boundary/disagreement cases (prefill accept/correct); first measured per-AU VLM kappa for cats | **pursue-now (critical path / spine)** |
+| **1. VLM weak-label (Claude Opus 4.8, 5-AU enum 0/1/2) + cleanlab/boundary triage → vet review → frozen DINOv2 + 5 CORN heads + active learning** | **Silver only**, not gold; trust comes from the vet layer it feeds | ~$12 (single batched+cached Opus pass over ~2,040 crops); $0 GPU; **binding cost = ~4–5 vet hrs** to clear the 120–150 kappa-CI floor | Complete 5-AU silver layer over all images **this week**, zero external permission; concentrates scarce vet hours on boundary/disagreement cases (prefill accept/correct); first per-AU VLM-vs-vet kappa protocol for cats (result pending the independent vet anchor) | **pursue-now (critical path / spine)** |
 | **5. Data acquisition: email Steagall (1,188-img per-AU) + Evangelista (110) + Zamansky/Martvel; CatFLW today; vet-clinic later** | **YES — the only route to vet-grade gold**, covers all 5 AUs incl. whiskers/head | ~$0 + 1–2 hrs for emails; CatFLW free; vet-clinic = 20–60 vet hrs + ethics | Highest single-action EV (the email). But 30–50% share odds, often partial, weeks–months latency, outside our control; CatFLW/request sets are **CC BY-NC** (non-commercial) | **pursue-now but PARALLEL — never gates the timeline** |
 | **2/4. Cross-species (horse) curriculum + SSL/few-shot, frozen DINOv2 + CORN** *(same engine, merged)* | **No** — label-efficiency engine, not a label source; covers 3/5 AUs | ~$0, **zero vet hrs**, ~1 day | De-risks the entire DINOv2+5-CORN+sum+0.39 pipeline on **real** graded data before any cat is scored; warm-starts 3/5 heads | **pursue-now as scaffolding** (promote from "later"); merge into spine |
 | **4 (pseudo-label leg specifically)** | No | low | Stretches each vet label via active learning | **gated** — only after Gate-2 confound audit; under co-teaching with vet anchor; **never on the unaudited Flickr base** (amplifies confound) |
@@ -56,7 +56,7 @@ The gap is therefore a **data-acquisition-and-labeling problem, not a modeling/t
 
 A single integrated pipeline, sequenced so nothing blocks on anything outside our control.
 
-**Spine:** Claude Opus 4.8 structured-output weak-labeling → cleanlab + decision-boundary triage → vet accept/correct → frozen DINOv2/v3 ViT-S + 5 CORN ordinal heads, with code-side sum→0.39 and an active-learning loop.
+**Spine:** Claude Opus 4.8 structured-output weak-labeling → cleanlab + decision-boundary triage → vet accept/correct → frozen DINOv2/v3 ViT-S (register variant `dinov2_vits14_reg` as the field default — registers suppress attention artifacts that hurt the localized per-AU features; A/B the reg variant before locking ViT-S/14, plain stays backwards-compatible) + 5 CORN ordinal heads, with code-side sum→0.39 and an active-learning loop.
 **Scaffolding (parallel, zero vet hrs):** horse-grimace curriculum warm-starts 3/5 heads and validates the whole pipeline on real graded data first.
 **Insurance (parallel, never gating):** Steagall/Evangelista/Zamansky data-request emails + CatFLW download — the only route to true gold and to all-5-AU coverage.
 

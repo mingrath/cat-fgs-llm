@@ -134,7 +134,7 @@ Lay out the repo for the **modal outcome**, not the optimistic one. The shippabl
 | # | Component | What it is | Where it lives | Validated? |
 |---|---|---|---|---|
 | 1 | **Calibrated binary pain decision** | RF-DETR/YOLO detector → per-image pain decision at a **fixed pain-recall ≥0.90** operating point (Evangelista anchor), **never** Youden-J/F1 | `src/detect/`, `src/wrapper/operating_point.py` | YES — vet-confirmed labels only (circularity firewall) |
-| 2 | **κ-as-method** | Per-AU VLM-vs-vet quadratic weighted kappa with **CI lower bound**; the *protocol* is the deliverable, CAT_01 numbers instantiate it. QWK-vs-VLM is **never** validation of the decision | `src/vlm/`, `src/eval/kappa.py` | YES (headline #1) |
+| 2 | **κ-as-method** | Per-AU VLM-vs-vet quadratic weighted kappa with **CI lower bound**; the *protocol* is the deliverable; **a result is pending the independent per-AU vet anchor** (Gate 0 — the current binary dataset cannot yield 0/1/2 ground truth, so no κ number is reported yet). QWK-vs-VLM is **never** validation of the decision | `src/vlm/`, `src/eval/kappa.py` | YES (headline #1) |
 | 3 | **Confound-attribution protocol** | FGS-BG-Gap + per-AU EBPG, **one-directional** ("no confound detected at this power") | `src/eval/confound.py` | YES (headline #2) |
 | 4 | **Welfare-asymmetric decision curve** | dcurves net-benefit, sweeping undertreat:overtreat as a **range** (no vet-elicited point ratio) — the **headline wrapper artifact, not ECE** | `src/wrapper/decision_curve.py` | YES |
 | 5 | **LB-abstention curve** | One-sided **95% NPV lower bound** at each abstention rate; the word **"guaranteed" is banned**. Demoted to exploratory if the G0 power budget for the NPV-LB is not met | `src/wrapper/abstention.py` | YES (exploratory if G0 budget unmet) |
@@ -146,7 +146,7 @@ Component 6 is gated, labeled, and walled out of every validated results table. 
 
 These are the only claimed contributions; both are **dataset-agnostic** and ship as released, runnable code:
 
-1. **VLM-as-AU-rater κ protocol + result** (`src/vlm/` + `src/eval/kappa.py`): scores any face corpus's per-AU VLM labels against a vet anchor, reports 5 quadratic κ with **CI lower bounds**. Forward-looking method finding ("can a frozen VLM weak-label feline FGS AUs at human-rater agreement"), **not** an audit of CAT_01's specific labels. Fires on the **CI lower bound** (Gate 1-B). The labeler choice is **self-justified by this pilot**; no external weak-label citation is invoked to justify it.
+1. **VLM-as-AU-rater κ protocol (result pending the independent vet anchor)** (`src/vlm/` + `src/eval/kappa.py`): scores any face corpus's per-AU VLM labels against a vet anchor, reports 5 quadratic κ with **CI lower bounds**. Forward-looking method finding ("can a frozen VLM weak-label feline FGS AUs at human-rater agreement"), **not** an audit of CAT_01's specific labels. Fires on the **CI lower bound** (Gate 1-B). The labeler choice is **self-justified by this pilot**; no external weak-label citation is invoked to justify it.
 2. **Capture-condition confound-attribution protocol** (`src/eval/confound.py`): FGS-BG-Gap + per-AU EBPG, a **one-directional** audit any future facial-pain-scorer corpus can run. Deliverable is the *protocol*, not "CAT_01 is confounded."
 
 Calibration / RPS / ClasswiseECE / MAPIE are **supporting evidence**, never headlines. There is **no binned reliability diagram on the 11-atom 0–10 sum** anywhere in the repo (distributional path uses RPS-on-sum + per-AU ClasswiseECE only).
@@ -1091,7 +1091,7 @@ This section builds the **supervision layer** and the **headline-#1 measurement*
 
 > **The VLM NEVER emits the sum or the decision.** It emits 5 atoms in `{0,1,2}`. The 0–10 sum and the `>=0.39` analgesia flag are computed **in code** (§4.3, §4.6). This keeps the engine's decode path (Gate 4 unit test) the single source of truth for the threshold and prevents the labeler from leaking a clinical decision it was never validated to make.
 
-**Run-order placement.** Gate 1-B fires **after Gate 0** (the vet-budget integer + power calcs must exist first — the pilot's `n` and the per-AU kappa floors are read from Gate 0, not hardcoded here) and runs alongside the §3.4 Monte-Carlo. The bulk ~2040-image weak-labeling run (§4.4) is *blocked* until Gate 1-B returns GO on orbital/ear/head; on NO-GO we pivot to the binary-plus-wrapper fallback and the kappa numbers ship as a method finding anyway.
+**Run-order placement.** Gate 1-B fires **after Gate 0** (the vet-budget integer + power calcs must exist first — the pilot's `n` and the per-AU kappa floors are read from Gate 0, not hardcoded here) and runs alongside the §3.4 Monte-Carlo. The bulk ~2040-image weak-labeling run (§4.4) is *blocked* until Gate 1-B returns GO on orbital/ear/head; on NO-GO the binary-plus-abstention spine — the likely v1 ship / the floor that stands today — carries the release, and the kappa **protocol** ships as a runnable method (its result still pending the independent vet anchor).
 
 ### 4.0 Files, env, deps
 
@@ -1486,7 +1486,7 @@ def run_gate(merged_csv, out_json):
 
 | AU | Floor (gate on CI lower bound) | On failure |
 |---|---|---|
-| orbital | LB >= 0.60 | **Drop graded entirely** -> binary-plus-wrapper fallback (kappa-as-method + confound + welfare curve still stand) |
+| orbital | LB >= 0.60 | **Drop graded entirely** -> ship the binary-plus-wrapper spine, the likely v1 ship / the floor that stands today (kappa-as-method + confound + welfare curve still stand) |
 | ear | LB >= 0.60 | same |
 | head | LB >= 0.60 | same |
 | muzzle | 0.40–0.60 acceptable-with-caveat; LB < 0.40 -> drop this head | proceed on surviving AUs; state how dropping a head shifts the reachable 0–10 range and whether 0.39 (~4/10) is even reachable |
@@ -1504,7 +1504,7 @@ def run_gate(merged_csv, out_json):
 
 ### 4.8 Anti-benchmark / reporting discipline
 
-Always print the **distinct-pain-CAT denominator** next to every kappa (the pilot's positives may concentrate in few individuals, e.g. CAT_01); report **bootstrap CI lower bounds**, never bare point kappas; **augmented copies never enter the pilot N**. Never frame any number as "we beat 77/79/95%", and never carry a horse-grimace figure as a headline — horse AUs are decode scaffolding only. Frame every output as decision-support triage, never an autonomous analgesia trigger. On NO-GO, the honest paper is binary-plus-wrapper + kappa-as-method (a mediocre-but-first per-AU kappa is still a publishable measurement) + the confound protocol + the welfare decision curve + the one-sided NPV lower-bound abstention curve (the word "guaranteed" is banned).
+Always print the **distinct-pain-CAT denominator** next to every kappa (the pilot's positives may concentrate in few individuals, e.g. CAT_01); report **bootstrap CI lower bounds**, never bare point kappas; **augmented copies never enter the pilot N**. Never frame any number as "we beat 77/79/95%", and never carry a horse-grimace figure as a headline — horse AUs are decode scaffolding only. Frame every output as decision-support triage, never an autonomous analgesia trigger. On NO-GO, the honest paper is binary-plus-wrapper + kappa-as-method (the per-AU kappa protocol is still a publishable runnable method, its result pending the independent vet anchor) + the confound protocol + the welfare decision curve + the one-sided NPV lower-bound abstention curve (the word "guaranteed" is banned).
 
 ---
 
@@ -1528,7 +1528,7 @@ Engine work order inside §5: **(1)** install + freeze backbone (§5.1) → **(2
 
 ### 5.1 Frozen DINOv2 ViT-S/14 backbone
 
-**Choice (conceded plumbing):** `dinov2_vits14` — hidden size **384**, patch 14, forward-only. Frozen because the supervised set is ~120–300 vet/VLM labels; full fine-tune at this n is not viable. Only the ~5 light heads train.
+**Choice (conceded plumbing):** `dinov2_vits14_reg` (register variant, the field default — registers suppress attention artifacts that hurt the dense, localized per-AU features FGS needs: orbital/ear/muzzle), with plain `dinov2_vits14` kept as backwards-compatible; A/B the reg variant before locking ViT-S/14 — hidden size **384**, patch 14, forward-only. Frozen because the supervised set is ~120–300 vet/VLM labels; full fine-tune at this n is not viable. Only the ~5 light heads train.
 
 > **MPS/Python caveat (BLOCKING precheck):** the project venv is **Python 3.9.6**. Confirm `torch>=2.2` with a working MPS backend installs *and* `torch.backends.mps.is_available()` returns `True` on this interpreter before proceeding. If the wheel resolves but MPS is unavailable, bump the venv to 3.11+ (assumption flagged below) — do not silently fall back to CPU for training-correctness checks.
 
@@ -1550,8 +1550,8 @@ Install into the project venv:
 import torch, torch.nn as nn
 
 def load_frozen_dinov2(device: str = "mps"):
-    # torch.hub ViT-S/14; no registers variant for the v1 spine
-    m = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14")
+    # torch.hub ViT-S/14; reg variant is the field default — A/B reg vs plain before locking (orbital/ear/head are where the Gate 1-B kill-switch is likeliest to fire)
+    m = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14_reg")  # reg = field default (registers suppress attention artifacts on localized AUs); A/B vs plain dinov2_vits14 before locking
     m.requires_grad_(False)      # freeze ALL params
     m.eval()                     # disable dropout/BN-update; deterministic features
     m.to(device)
@@ -1985,7 +1985,7 @@ All wrapper scripts live in `scripts/wrapper/`. Decode helpers (the soft-prob pa
 
 ### 6.1 Pillar 1 — VLM-as-AU-rater κ (HEADLINE METHOD #1)
 
-**Claim:** *a frozen VLM can weak-label feline FGS action units at human-rater agreement* — a forward-looking, portable method result, not an audit of CAT_01's labels. Per-AU **quadratic-weighted Cohen κ** of VLM-vs-vet, with a **bootstrap CI**, **reported and gated on the LOWER BOUND**.
+**Claim:** *a frozen VLM can weak-label feline FGS action units at human-rater agreement* — a forward-looking, portable method result, not an audit of CAT_01's labels. **Interpretation guard:** this κ measures weak-labeling *capability* only if the vet anchor is independent AND the rubric handed to the VLM is not the same rubric the vet scored from; otherwise it measures rubric-following. State which a given run measures. Per-AU **quadratic-weighted Cohen κ** of VLM-vs-vet, with a **bootstrap CI**, **reported and gated on the LOWER BOUND**.
 
 **Metric & library.** `sklearn.metrics.cohen_kappa_score(weights="quadratic", labels=[0,1,2])`. The `labels=` arg fixes the class set; `weights="quadratic"` is what makes it **ordinal** — this is the `m-rewardbench` bug-to-avoid (their code is nominal). Bootstrap the CI ourselves (sklearn gives none): paired resample of *images* (not AU-rows) with `n_boot=10000`, percentile 2.5/97.5.
 
@@ -2013,7 +2013,7 @@ Also emit, vet-free, the **ordinal Krippendorff α** over N≥3 repeated VLM run
 
 **Gate / kill (Gate 1-B, fires on CI LOWER BOUND):**
 - Pre-registered, kappaSize-power-backed floors: orbital/ear/head **LB ≥ 0.60**; muzzle/whiskers **LB 0.40–0.60** (caveat band).
-- **orbital OR ear OR head LB < floor → PIVOT to binary spine** (drop the 0–10 layer entirely). The κ-as-method headline *still stands* — a mediocre but honest first measurement is publishable.
+- **orbital OR ear OR head LB < floor → PIVOT to binary spine** (drop the 0–10 layer entirely). The κ-as-method headline *still stands* — the protocol is publishable as a runnable method, its result pending the independent vet anchor.
 - orbital/ear/head pass, muzzle/whiskers fail → proceed on surviving AUs; state how dropping 2/5 heads shifts the reachable 0–10 range and whether 0.39 (≈4/10) is reachable.
 
 ---
@@ -2249,7 +2249,7 @@ Run order is **strict and total**: `G0 → G1 → G2 → G3 → G4 → G5 → G1
 | **G6 — Severity-cell collapse** (after the anchor; pure counting) | Count vet-confirmed **AU=2 (severe)** cells per AU. Exit: if any AU's =2 cell is **single-digit → collapse the high end** (merge AU 1+2, or report only painful/not-above-threshold). **Pre-committed structural decision, not a caveat.** | CPU | Expected to **fire** given base rate → collapse; **do NOT print a per-cell severe sens/calibration number** (its CI spans ~[0.35,0.97] at single-digit n). |
 
 **Cross-cutting kill triggers (FINAL_DIRECTION §7):**
-- §3.4 Monte-Carlo **GO under ρ=0 but NO-GO under ρ=0.3** → declare the gate **fragile**, say so, default to the binary fallback.
+- §3.4 Monte-Carlo **GO under ρ=0 but NO-GO under ρ=0.3** → declare the gate **fragile**, say so, default to the binary spine — the floor that stands today.
 - **G4 or G5 fail** → BLOCKING; fix before any metric is believed.
 
 **Modal product the build plans for:** binary-plus-wrapper + κ-as-method + confound-protocol + welfare decision curve + LB-abstention, with graded-CORN shipped as an inspected-not-validated artifact.
@@ -2390,7 +2390,7 @@ Ordered so the **cheapest project-killers fire first** and the **vet's time is s
 1. **Weak-labeled AU annotations** (VLM 5-AU 0/1/2 + rationale + confidence), with provenance flags marking vet-confirmed vs VLM-only rows.
 2. **Frozen-backbone + CORN head weights** + the decode→sum→0.39 reference implementation; engine explicitly stated **not novel**.
 3. **Frozen, hashed, cat-disjoint test split** (`test_ids.sha256` + fold CSV) so any re-run is provably leak-free.
-4. **VLM-as-AU-rater κ protocol + result** — code that scores any face corpus's per-AU VLM labels against a vet anchor and reports 5 quadratic κ with CI lower bounds.
+4. **VLM-as-AU-rater κ protocol (result pending the independent vet anchor)** — code that scores any face corpus's per-AU VLM labels against a vet anchor and reports 5 quadratic κ with CI lower bounds.
 5. **FGS-BG-Gap + per-AU EBPG confound-attribution protocol** — one-directional audit any future facial-pain corpus can run.
 6. **Welfare-asymmetric decision-curve + one-sided-95%-NPV abstention-curve** code.
 7. **Minimal HF Space demo** as a delivery vehicle (not the contribution).
@@ -2413,4 +2413,4 @@ Ordered so the **cheapest project-killers fire first** and the **vet's time is s
 
 ## Definition of done for v1
 
-v1 is **done** when the modal product ships end-to-end and survives its own gates: Gates G0→G6 + G1-B have each written their `PASS` sentinel (or recorded the pre-registered pivot), and the released bundle contains (1) the calibrated binary pain decision at a fixed pain-recall ≥0.90 operating point with sens/spec estimated on vet-confirmed labels only, (2) the per-AU VLM-as-AU-rater quadratic-κ protocol + result reported on its CI lower bound, (3) the one-directional capture-condition confound-attribution protocol, (4) the welfare-asymmetric decision curve, and (5) the one-sided 95% NPV lower-bound abstention curve (or its documented exploratory demotion) — with the graded 0–10 CORN layer present strictly as an inspected-not-validated artifact, the frozen hashed cat-disjoint test split and `uv.lock` committed, every reported N carrying its distinct-pain-CAT denominator and bootstrap/Clopper-Pearson CIs, and the datasheet filed. The bar is explicitly met **even if Gate 1-B pivots to the binary spine**: the abstract must hold with the word "graded" struck and component 6 dropped, and the engine is never claimed novel.
+v1 is **done** when the modal product ships end-to-end and survives its own gates: Gates G0→G6 + G1-B have each written their `PASS` sentinel (or recorded the pre-registered pivot), and the released bundle contains (1) the calibrated binary pain decision at a fixed pain-recall ≥0.90 operating point with sens/spec estimated on vet-confirmed labels only, (2) the per-AU VLM-as-AU-rater quadratic-κ protocol (gated on the CI lower bound; its result pending the independent vet anchor), (3) the one-directional capture-condition confound-attribution protocol, (4) the welfare-asymmetric decision curve, and (5) the one-sided 95% NPV lower-bound abstention curve (or its documented exploratory demotion) — with the graded 0–10 CORN layer present strictly as an inspected-not-validated artifact, the frozen hashed cat-disjoint test split and `uv.lock` committed, every reported N carrying its distinct-pain-CAT denominator and bootstrap/Clopper-Pearson CIs, and the datasheet filed. The bar is explicitly met **even if Gate 1-B pivots to the binary spine**: the abstract must hold with the word "graded" struck and component 6 dropped, and the engine is never claimed novel.

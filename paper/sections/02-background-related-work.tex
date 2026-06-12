@@ -143,7 +143,11 @@ the five per-AU PMFs into a distribution over the $0$--$10$ sum is the
 DINOv2 \cite{oquab2023dinov2} is a self-supervised vision transformer trained
 without labels on a large curated image corpus, producing general-purpose
 features that transfer to downstream tasks without fine-tuning. We use a frozen
-DINOv2 ViT-S/14 encoder purely as a fixed feature extractor: the backbone is
+DINOv2 ViT-S/14 encoder purely as a fixed feature extractor---the register
+variant (\texttt{dinov2\_vits14\_reg}) as the field default, because registers
+suppress attention artifacts that hurt the dense, localized features per-AU FGS
+scoring depends on (orbital, ear, muzzle sub-regions), A/B'd against the plain
+variant before locking ViT-S/14: the backbone is
 never updated, its pooled features are cached to disk once, and only the shallow
 CORN heads are trained on the cache. This is the appropriate low-data choice on
 the available hardware---fully fine-tuning a transformer on a few hundred faces
@@ -162,8 +166,11 @@ VLM is therefore a \emph{weak labeller} that proposes per-AU FGS scores at
 scale and cheaply, which a veterinarian then accepts or corrects. The central
 empirical question this raises---and the first headline of this work---is
 whether such a frozen VLM can weak-label feline FGS action units at
-human-rater agreement, measured against a veterinary anchor. That measurement,
-not the act of prompting a VLM, is the contribution; the rater is selected by
+human-rater agreement, measured against a veterinary anchor---a measurement that
+reflects weak-labelling capability only when the anchor is independent and the
+rubric handed to the VLM differs from the one the vet scored from, and otherwise
+reflects rubric-following, so each run must state which it measures. That
+measurement, not the act of prompting a VLM, is the contribution; the rater is selected by
 its measured agreement rather than asserted to be adequate.
 
 \subsection{Calibration and the expected calibration error}
@@ -222,9 +229,10 @@ Agreement between two raters on an ordinal scale is measured with the
 quadratically weighted kappa \cite{cohen1968kappa}, which penalises
 disagreements by the squared distance between levels and is therefore the
 correct statistic for the three-level AUs (a nominal kappa over
-$\{0,1,2\}$ without weights is a bug to avoid). The headline measurement of this
+$\{0,1,2\}$ without weights is a bug to avoid). The headline method of this
 project is exactly such a per-AU quadratic weighted kappa between the VLM and
-the veterinary anchor, gated on its confidence-interval \emph{lower bound}
+the veterinary anchor---shipped as a runnable protocol, with the number itself
+pending the independent per-AU vet anchor (Gate 0)---gated on its confidence-interval \emph{lower bound}
 rather than the point estimate, because at the small anchor sizes available a
 point estimate of $0.6$ is statistically indistinguishable from a true value of
 $0.47$. Separately, Krippendorff's alpha \cite{krippendorff2004} in its ordinal
@@ -350,8 +358,8 @@ accuracy figure on their own corpus
 that frames them \cite{evangelista2019,leesteagall2026,chavoshi2025} plus the
 landmark scaffolding \cite{martvel2024catflw}. Our contribution is deliberately
 \emph{not} a better detector. It is two transportable measurement protocols that
-no prior feline-pain study produced: (i) a measurement of whether a frozen VLM
-can weak-label FGS action units at human-rater agreement, expressed as five
+no prior feline-pain study produced: (i) a protocol for measuring whether a
+frozen VLM can weak-label FGS action units at human-rater agreement, expressed as five
 per-AU quadratic weighted kappas against a veterinary anchor and gated on the
 confidence-interval lower bound; and (ii) a reusable capture-condition
 confound-attribution protocol (FGS-BG-Gap plus per-AU EBPG), one-directional by
@@ -453,6 +461,7 @@ methods chapter can be read as a list of deliberate avoidances:
 
 Avoiding these eight traps is what converts a single-corpus study into a
 contribution that survives the obvious \enquote{swap the backbone and add
-metrics} critique: the two surviving claims are facts about the world (a
-measured VLM-vs-vet agreement) and a reusable audit protocol, both portable to
+metrics} critique: the two surviving claims are a reusable VLM-vs-vet
+kappa protocol (whose result is pending the independent per-AU vet anchor) and a
+reusable audit protocol, both portable to
 the next dataset, riding on an explicitly conceded engine.

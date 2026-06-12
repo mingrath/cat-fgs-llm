@@ -1,15 +1,26 @@
 """HEADLINE METHOD #1 — VLM-as-AU-rater per-AU quadratic kappa (IMPLEMENTATION_PLAN §4.6 / §6.1).
 
 Claim: a frozen VLM can weak-label feline FGS action units at human-rater agreement.
-This is a forward-looking, PORTABLE method result — per-AU quadratic-weighted Cohen
-kappa of VLM-vs-vet, reported and GATED on the bootstrap CI LOWER BOUND.
+This is a PROTOCOL WITH A RESULT PENDING — per-AU quadratic-weighted Cohen kappa of
+VLM-vs-vet, gated on the bootstrap CI LOWER BOUND. A result requires an independent
+vet anchor that does not yet exist; the artifact shipped today is the protocol.
 
 CIRCULARITY FIREWALL (THE LAW, §4.7):
   - QWK-vs-VLM is NEVER validation. The kappa here measures VLM-vs-VET agreement, a
-    method finding about the labeler. It is NOT evidence that the 0.39 flag is correct.
+    labeler-agreement measurement, not a graded-instrument claim. It is NOT evidence
+    that the 0.39 flag is correct.
   - A QWK computed against VLM-derived labels would only measure the model re-learning
     the VLM heuristic — forbidden as a validation metric.
   - sens/spec at 0.39 live elsewhere and are estimated on VET-CONFIRMED labels only.
+
+INTERPRETATION GUARD (README §1):
+  - A high kappa ONLY measures weak-labeling capability if BOTH conditions hold:
+    (i) the vet anchor is independent (not authored by the same rater who scored
+        the target data), AND (ii) the rubric handed to the VLM is different from
+        the rubric the vet used to score the anchor.
+  - If both conditions hold: kappa measures capability (can the VLM learn FGS?).
+  - If the VLM's rubric matches the vet's rubric: kappa measures rubric-following,
+    not weak-labeling skill. State which one a given run measures in the report.
 
 The `m-rewardbench` row-paired pattern is NOMINAL (labels=[0,1,2] only fixes the class
 set); adding weights="quadratic" makes it ORDINAL — that addition is the contribution.

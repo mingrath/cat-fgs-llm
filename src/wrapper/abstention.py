@@ -25,7 +25,7 @@ OPTIONAL / NOT WIRED INTO THE CURVE:
 
 Gate 0: the sample-size power calc runs BEFORE any vet spend. If the budget cannot
 certify NPV >= target at <= the max abstention rate, the curve is EXPLORATORY-ONLY
-(flag set) and relocates to the §6.3 decision curve. Not a kill.
+(flag set) and the decision curve (§6.3) provides the operating point. Not a kill.
 """
 
 from __future__ import annotations
@@ -159,8 +159,8 @@ def gate0_exploratory_flag(
     """True => EXPLORATORY-ONLY framing (Gate 0 power budget unmet).
 
     If no abstention rate <= the configured maximum clears the target NPV lower bound,
-    the abstention deliverable is exploratory-only and relocates to the §6.3 decision
-    curve. The word "guaranteed" never appears. Not a kill.
+    the abstention deliverable is exploratory-only and the decision curve (§6.3)
+    provides the operating point. The word "guaranteed" never appears. Not a kill.
     """
     # Reuse the curve's own clears_target column (computed against the same config
     # in npv_lb_curve) instead of re-deriving 'lb >= target' from a second config

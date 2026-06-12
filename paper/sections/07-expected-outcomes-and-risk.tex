@@ -97,7 +97,10 @@ The two \emph{portable methods} --- Component~2 (VLM-as-AU-rater $\kappa$) and
 Component~3 (the confound-attribution protocol) --- are the only claimed
 contributions, and both ship as released, runnable, dataset-agnostic code. The
 calibration, RPS, ClasswiseECE, and conformal machinery are \emph{supporting
-evidence}, never headlines. The engine (frozen DINOv2 ViT-S/14
+evidence}, never headlines. The engine (frozen DINOv2 ViT-S/14 --- with the \texttt{\_reg}
+register variant (\texttt{dinov2\_vits14\_reg}) the field default, A/B'd before
+locking ViT-S/14 because registers suppress attention artifacts that hurt the
+dense, localized per-AU features
 \citep{oquab2023dinov2} feeding the CORN ordinal heads \citep{shi2023corn}) is
 conceded as plumbing and is never presented as novel.
 
@@ -202,7 +205,8 @@ G1-B &
   $\kappa$ CI lower bound below floor on orbital/ear/head &
   \textsc{pivot} to binary spine: \emph{drop graded entirely}; ship calibrated
   binary $+$ abstention $+$ confound audit. $\kappa$-as-method and the wrapper
-  still stand (a mediocre but real first $\kappa$ measurement is publishable). \\[2pt]
+  still stand (a real first per-AU $\kappa$ protocol is publishable, with its result
+pending the independent vet anchor). \\[2pt]
 G1-B &
   Passes orbital/ear/head; fails muzzle/whiskers &
   \textsc{proceed} on the surviving AUs; state how dropping $2$ of $5$ heads
@@ -219,7 +223,7 @@ G6 &
   \S\ref{sec:severity-collapse}). \\[2pt]
 $\rho$-band &
   Monte-Carlo \textsc{go} under $\rho=0$ but \textsc{no-go} under $\rho=0.3$ &
-  Declare the gate \emph{fragile}; default to the binary fallback rather than
+  Declare the gate \emph{fragile}; default to the binary spine rather than
   claim a \textsc{go} the correlation could flip (\S\ref{sec:rho-band}). \\
 \bottomrule
 \end{tabular}
@@ -227,12 +231,16 @@ $\rho$-band &
 
 The structural property we want from Table~\ref{tab:kill-crosswalk} is that
 \emph{no branch is a project-killing null}. The two portable methods are designed
-to be independently publishable: a mediocre per-AU $\kappa$ is still the first
-measurement of whether a frozen vision-language model can weak-label feline FGS
-action units at human-rater agreement, and a confounding signal detected as a
+to be independently publishable: a runnable per-AU $\kappa$ protocol is still the
+first protocol for measuring whether a frozen vision-language model can weak-label
+feline FGS action units at human-rater agreement (the result is pending an
+independent per-AU vet anchor, and is only a weak-labeling-capability measurement
+if that anchor is independent and the VLM's rubric differs from the vet's ---
+otherwise it measures rubric-following), and a confounding signal detected as a
 transportable protocol is a publishable co-headline regardless of downstream
-outcomes. The binary-plus-wrapper spine survives the loss of the graded layer by
-construction.
+outcomes. The binary-plus-wrapper spine is the floor that stands today --- the
+likely v1 ship --- with the graded layer as upside conditional on the Gate-1-B
+$\kappa$ pilot passing.
 
 %====================================================================
 \section{Power-Calculation-Conditioned Framing of Abstention}
@@ -304,7 +312,7 @@ and once under a pinned uniform correlation ($\rho = 0.3$), and the gate returns
 The decision rule is pre-registered (Table~\ref{tab:kill-crosswalk}, final row):
 if the Monte-Carlo is \textsc{go} under $\rho = 0$ but \textsc{no-go} under
 $\rho = 0.3$, we declare the gate \emph{fragile}, say so explicitly, and default to
-the binary fallback rather than claim a \textsc{go} that a plausible correlation
+the binary spine rather than claim a \textsc{go} that a plausible correlation
 could flip. A pinned $\rho$ is an honest sensitivity analysis; a noisily-fit
 matrix would be a false claim of empirical precision. The two-point band is the
 conservative substitute that we can defend at this sample size; the full matrix is

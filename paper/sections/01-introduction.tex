@@ -165,7 +165,10 @@ The thesis pursues four numbered objectives, ordered from the two headline
 \begin{enumerate}
   \item \textbf{Measure VLM--vet agreement on FGS action units.} Determine whether
     a frozen vision--language model (VLM) can weak-label the five FGS action units
-    at \emph{human-rater agreement}, quantified as a per-AU quadratic-weighted
+    at \emph{human-rater agreement}---a $\kappa$ that measures weak-labelling
+    capability only when the vet anchor is independent and the rubric handed to
+    the VLM differs from the rubric the vet scored from, and otherwise measures
+    rubric-following, so each run must state which it measures---quantified as a per-AU quadratic-weighted
     Cohen's $\kappa$ against a veterinary anchor, reported with a confidence-interval
     lower bound. This is a forward-looking method finding---\emph{can} a frozen
     VLM weak-label feline FGS AUs at rater agreement---not an audit of one
@@ -222,7 +225,8 @@ summarised in Figure~\ref{fig:contribution-map}.
     % conceded engine at the base, centred under the two wrapper frames
     \node[engine, below=1.5cm of op.south east, anchor=north, text width=8.4cm] (eng)
       {\textbf{Conceded engine (plumbing --- never claimed novel):}
-       frozen DINOv2 ViT-S/14 $\rightarrow$ 5 per-AU CORN heads $\rightarrow$
+       frozen DINOv2 ViT-S/14 (register variant \texttt{dinov2\_vits14\_reg} the
+       field default) $\rightarrow$ 5 per-AU CORN heads $\rightarrow$
        $0/1/2 \rightarrow$ sum $0$--$10 \rightarrow$ distributional decode.
        Graded layer ships \emph{inspected-not-validated}.};
     % connectors
@@ -370,8 +374,9 @@ A kill/pivot rule is attached to the gate order: if the orbital, ear, or head
 $\kappa$ lower bound at G1-B falls below its pre-registered floor, the graded
 layer is dropped entirely and the project ships the calibrated
 binary-plus-abstention floor with the confound protocol; the two portable-method
-headlines still stand, because a mediocre $\kappa$ is itself a real first
-measurement.
+headlines still stand, because the $\kappa$ protocol---once the independent
+per-AU vet anchor exists---measures a real fact whether the result is strong or
+mediocre.
 
 \section{Expected benefits and contributions}
 \label{sec:intro-contributions}
@@ -382,13 +387,16 @@ artefacts, each of which stands as a portable method rather than a corpus-bound
 number:
 
 \begin{enumerate}
-  \item \textbf{A VLM-as-AU-rater $\kappa$ protocol and result.} Released code that
+  \item \textbf{A VLM-as-AU-rater $\kappa$ protocol (result pending the
+    independent vet anchor).} Released code that
     scores any face corpus's per-AU VLM labels against a veterinary anchor and
     reports five quadratic-weighted $\kappa$ values with confidence-interval lower
     bounds. The forked corpus's numbers merely \emph{instantiate} the protocol;
-    the deliverable is the reusable measurement and the one fact-about-the-world
-    it produces---whether a frozen VLM weak-labels feline FGS action units at
-    human-rater agreement.
+    the deliverable is the reusable measurement protocol; the number it will
+    eventually produce---whether a frozen VLM weak-labels feline FGS action
+    units at human-rater agreement---remains pending the independent per-AU
+    vet anchor (Gate 0), since the current binary corpus cannot yield $0/1/2$
+    AU ground truth.
   \item \textbf{A capture-condition confound-attribution protocol.} The
     one-directional FGS--BG--Gap plus per-AU EBPG audit, runnable on any future
     facial-pain-scorer corpus, whose deliverable is the protocol itself rather
