@@ -1,0 +1,21 @@
+# GATE 0 — power calcs + vet-budget pre-registration (blocks all quantitative work).
+#
+# PLACEHOLDERS owned by Gate 0 / the clinician (replace before any quantitative claim):
+#   - vet_budget_integer : the single committed integer — how many faces the vet scores.
+#     ~120 is an UNCONFIRMED placeholder; Gate 0 writes the frozen value. TODO(Gate 0).
+#   - min_pain_pos       : minimum pain-positive faces inside the budget (>= 50). TODO(Gate 0).
+# Until Gate 0 commits these, no downstream kappa / NPV-LB / 0.39 number is believed.
+
+kappa:
+  ci_half_width_max: 0.15  # per-AU quadratic kappa CI half-width target (kappaSize); G0 gate
+
+npv_lb:
+  target: 0.90             # NPV lower-bound target (MAPIE / LTT) for the abstention curve
+  max_abstention: 0.40     # certified at <= 40% abstention
+
+# The 0.39 point-decision threshold is deliberately NOT a key here: gate0_power.py
+# imports the single definition (src.vlm.aggregate.POINT_DECISION_THRESHOLD), so the
+# pre-registered power calc can never drift from the operating threshold.
+
+vet_budget_integer: 120    # PLACEHOLDER ~120 — TODO(Gate 0): commit the frozen integer
+min_pain_pos: 50           # PLACEHOLDER >= 50 pain-positive faces — TODO(Gate 0)

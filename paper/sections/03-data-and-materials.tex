@@ -1,0 +1,357 @@
+% !TEX root = ../main.tex
+% Chapter 3 --- Data and Materials
+% Self-contained section file: no preamble, no \documentclass.
+% Requires the document preamble to load: booktabs, tikz, biblatex/natbib.
+% TikZ libraries assumed available: positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc.
+
+\chapter{Data and Materials}
+\label{ch:data}
+
+This chapter documents every data source the project touches, the role each
+plays, and the data-hygiene facts that constrain what can honestly be claimed
+from them. It deliberately mirrors the template's data-acquisition chapter
+(collection flow, inclusion/exclusion, expert re-check) but adapts that
+structure to a \emph{multi-source} reality in which a single in-domain binary
+corpus is surrounded by scaffolding, preprocessing, and unit-test fixtures that
+must never be allowed to co-mingle. Two framing rules govern the entire
+chapter and are stated once here so that they need not be re-litigated at every
+table. First, the only source of trustworthy graded (per-action-unit, $0/1/2$)
+labels is a vet anchor that is \emph{produced}, not downloaded
+(Section~\ref{sec:vet-anchor}); every other source is scaffolding and
+\emph{never} produces a headline number. Second, no dataset statistic appears
+below that is not already fixed by the repository's data-hygiene audit: this is
+a methodology document and we have run no experiments, so the chapter reports
+the data \emph{contract} and the audited counts, never invented results.
+
+\section{The forked Roboflow cat-pain corpus --- the binary spine}
+\label{sec:roboflow-spine}
+
+\subsection{Purpose and provenance}
+
+The single in-domain corpus is a fork of a public Roboflow detection project
+(\texttt{lia-k4jkv/cat-pain-ul7lu}), re-hosted in the project workspace as
+\texttt{mingraths-workspace/cat-pain-ul7lu-p3rtl}. It is the only set that lives
+in the cat-pain namespace, and it carries the full weight of the binary spine:
+it trains the binary pain detector and supplies the tight head crops that feed
+the frozen image encoder. The corpus comprises roughly $2040$ records that
+resolve to approximately $1547$ distinct images after de-duplication
+(Section~\ref{subsec:hygiene}). Its upstream provenance is the Zhang/Sun/Tang
+2008 Flickr cat-head family of photographs; this is an important honesty point,
+because the negative class is therefore a heterogeneous collection of generic
+internet cat photographs rather than a clinically curated control group. The
+corpus is released under CC~BY~4.0 according to its project metadata, which
+makes a derived release possible \emph{provided} it is kept walled from the
+non-commercial CatFLW images discussed in
+Section~\ref{subsec:catflw} (the license-co-mingling firewall of
+Section~\ref{sec:datasheet}).
+
+\subsection{What labels it carries, and what it does not}
+
+The corpus carries binary \texttt{pain}\,/\,\texttt{no\_pain} bounding boxes and
+nothing else: there are \emph{zero} per-action-unit, $0$--$10$, or
+Feline Grimace Scale (FGS) labels anywhere in it. This is the structural reason
+the project cannot derive a graded FGS instrument from this corpus alone, and
+it motivates the validated framework of the published FGS literature
+\citep{evangelista2019} being used only as background rather than as a label
+source. Equally load-bearing is the composition of the negative class: it is an
+\emph{unknown mixture} that may include sedated or post-operative animals, and
+it is documented as such throughout. The pain labels themselves are best read as
+\emph{unvalidated pseudo-labels on generic photographs} until the downstream
+confound audit and weak-label reliability pilot have run; nothing in this
+chapter treats them as ground truth.
+
+\subsection{Load-bearing data-hygiene facts}
+\label{subsec:hygiene}
+
+Table~\ref{tab:hygiene} records the audited facts that constrain every
+downstream split, count, and claim. Each is reproduced from the repository's
+fact-check audit and must not regress. The prevalence figure deserves special
+care: it is pinned to the metadata basis of $264$ pain boxes in $1819$
+dataset-wide \texttt{no\_pain} records ($\approx 12.7\%$), with the
+live-annotation discrepancy of $246/1811$ ($\approx 12.0\%$) logged rather than
+hidden. Critically, the count $264$ is a pain-\emph{box} metadata count and
+\emph{not} a count of distinct individuals: the number of distinct painful cats
+is not computable without re-identification, which is not performed (the
+denominator we report honestly is the distinct-pain-cat count discussed in
+Section~\ref{sec:datasheet}). The lone known camera identifier, \texttt{CAT\_01}
+(some $84$ clips), is the only handle on individual identity in the entire
+corpus.
+
+\begin{table}[t]
+\centering
+\caption[Load-bearing data-hygiene facts]{Load-bearing data-hygiene facts for
+the forked Roboflow cat-pain corpus. Every figure is an audited count, not an
+experimental result; each constrains a downstream gate.}
+\label{tab:hygiene}
+\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.40\linewidth}p{0.22\linewidth}@{}}
+\toprule
+\textbf{Fact} & \textbf{What it means} & \textbf{Consequence} \\
+\midrule
+$2040$ records, $\approx 1547$ distinct &
+$493$ exact-duplicate filenames present in the export &
+De-duplicate before splitting (no duplicate may straddle the split) \\
+\addlinespace
+Prevalence $\approx 12.7\%$ &
+$264/1819$ metadata basis; $246/1811$ ($\approx 12.0\%$) live-annotation
+discrepancy logged; $1819$ is dataset-wide, not train-split &
+$\approx 6.9{:}1$ imbalance; class-weighted loss and oversampling \\
+\addlinespace
+Leaky shipped split &
+$191$ of $336$ source clips ($56.8\%$) appear in both train and valid &
+Discard the shipped split entirely; re-split from scratch \\
+\addlinespace
+$135$ of $336$ clips class-mixed &
+A clip cannot be collapsed to a single label &
+Stratify at the \emph{image} level, with grouping \\
+\addlinespace
+\texttt{CAT\_01} lone camera id ($84$ clips) &
+The only individual-identity handle in the corpus &
+Per-CAT merge validated against \texttt{CAT\_} ids, not pHash/CLIP \\
+\addlinespace
+Stretch-to-$640$ geometry &
+v1 export horizontally inflates $\sim 4{:}3$ faces, distorting AU geometry &
+Re-export with Fit (reflect/white edges), augmentation empty \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The geometry caveat is consequential for a facial-action instrument: the
+orbital, muzzle, and whisker action units are geometry-sensitive, and horizontal
+stretching of $\sim\!4{:}3$ faces corrupts exactly the signal the ordinal heads
+must read. The corpus is therefore re-exported as a fresh immutable version
+using a \emph{Fit} (reflect/white edges) resize with no stored augmentation;
+augmentation is applied only inside the training loop so that augmented copies
+can never enter a reported count. Group identity for cross-validation is parsed
+from the filename stem rather than from any parent folder, which neutralises a
+phantom collision with an archival cat-head folder; the single numeric
+filename collision (clip \texttt{00000100} resolving to two distinct groups) is
+asserted explicitly during the parse.
+
+\section{The vet anchor --- the only graded-label source}
+\label{sec:vet-anchor}
+
+\subsection{Role and why it is produced, not downloaded}
+
+The vet anchor is the single source of trustworthy per-action-unit $0/1/2$
+labels, and it is \emph{produced} rather than downloaded because no open graded
+cat-FGS dataset exists. It powers three downstream quantities and nothing else:
+the headline per-AU quadratic weighted kappa of the VLM-as-AU-rater protocol
+(measured against this anchor); the sensitivity and specificity of the binary
+decision at the literature-anchored $0.39$ operating point of the validated FGS
+\citep{evangelista2019}, estimated on \emph{these labels only}; and the
+defer-to-vet abstention curve's one-sided net-predictive-value lower bound. The
+size of the anchor is not a guess and not a fixed quantity in this document: it
+is the \emph{single integer} fixed by the upstream power-calculation gate before
+any veterinary hour is spent. The pre-gate placeholder is on the order of
+$120$--$150$ confirmed images with at least $50$ pain-positive, which is the
+sample the kappa confidence-interval half-width, the abstention net-predictive-
+value band, and the $0.39$ confidence-interval reportability must all certify;
+the committed integer replaces this placeholder.
+
+\subsection{What it carries and how it is produced}
+
+The anchor carries five action units --- ear, orbital, muzzle, whiskers, and
+head --- each scored $0/1/2$ (absent / moderate-or-uncertain / obvious, in the
+validated-instrument wording of \citealp{evangelista2019}) and confirmed by a
+veterinarian. The $0$--$10$ sum and the $0.39$ decision ratio are computed in
+code and are \emph{never} elicited from the labeler. The anchor is produced by a
+review loop: a vision-language model pre-fills a forced-enumeration structured
+output (rationale before score, one $0/1/2$ field per AU); cases are triaged to
+the vet by value-per-hour (pain-positive, near-threshold, the weakest AUs, and
+confident-learning flags); the vet accepts or corrects prefilled scores in a
+review interface rather than labelling from scratch; and the per-AU kappa is then
+computed row-paired with quadratic weights. Because correction is faster than
+from-scratch labelling, the anchor is the project's binding cost in vet hours
+rather than in money or compute.
+
+\subsection{The circularity firewall}
+\label{subsec:firewall}
+
+A non-negotiable firewall governs how the anchor is used. Sensitivity and
+specificity at the $0.39$ operating point are estimated \emph{only} on these
+vet-confirmed labels. The kappa of the model's predictions against the VLM is
+\emph{never} reported as validation, because it would measure the model
+re-learning the VLM's heuristic rather than agreement with clinical ground
+truth. The VLM-versus-vet kappa is a \emph{method finding} --- whether a frozen
+VLM can weak-label feline FGS action units at human-rater agreement --- and not
+a validation of the decision. The graded $0$--$10$ layer ships
+\emph{inspected-not-validated}: the word ``graded'' is struck from every
+validated-claim sentence, and the headline holds with that layer dropped.
+
+\section{Scaffolding-only sources}
+\label{sec:scaffolding}
+
+The remaining sources are scaffolding, preprocessing, or unit-test fixtures.
+None of them produces a headline number; each is walled in its own namespace so
+that a non-cat or non-commercial image can never reach a cat-pain loader. Their
+inventory and namespacing are summarised in Table~\ref{tab:inventory} at the end
+of the chapter.
+
+\subsection{Horse-grimace --- decode unit-test fixture only}
+\label{subsec:horse}
+
+The horse-grimace region set
+(\texttt{oliveirabruno01/openfarm-horse-grimace-region}, CC~BY~4.0) is the only
+open AU-graded grimace set in the required $0/1/2$ shape, and it is used
+\emph{exclusively} to unit-validate the decode path
+(CORN-decode $\rightarrow$ per-AU $0$--$2$ $\rightarrow$ $0$--$10$ sum
+$\rightarrow$ $0.39$ threshold) on real graded labels, and optionally to
+warm-start three of the five heads. Its caveats are baked in: only five unique
+horses and three of five AUs (no whiskers, no head), which makes it a coarse
+ordinal-direction prior and \emph{never} calibrated transfer. No horse number
+appears in the abstract, results, or any transfer table; the only permissible
+sentence is the methods-appendix note that the decode path was unit-validated on
+five-horse genuine $0/1/2$ labels.
+
+\subsection{CatFLW --- eye-alignment landmarks only}
+\label{subsec:catflw}
+
+The CatFLW landmark set (\texttt{georgemartvel/catflw}; some $2079$ cat faces
+with $48$ CatFACS-aligned landmarks and a bounding box, but no pain or AU
+scores) is used solely for the alignment / normalised-mean-error audit that
+decides whether a detector box crop is geometrically clean enough to feed the
+ordinal heads, and to supply a two-point eye-similarity transform when it is not
+\citep{martvel2024catflw}. Using it as a graded anchor would be a category
+error, and it is explicitly cut from the critical path. Its license is the
+binding constraint: CatFLW is CC~BY-NC~4.0, so any aligner trained on it inherits
+the non-commercial restriction, and these images \emph{must not} leak into the
+CC~BY release built from the spine corpus.
+
+\subsection{Frozen encoder, fallback cropper, and archival aligner}
+
+Three further assets are conceded plumbing. The frozen image encoder
+(\texttt{facebook/dinov2-small}, Apache-2.0) is a foundation-feature backbone
+\citep{oquab2023dinov2} that is never domain-adapted; its features are cached to
+disk once and the ordinal heads are trained off the cache. A Haar
+\texttt{frontalcatface} cascade (MIT) is a zero-training fallback cropper used
+only when a detector box is missing, and a detection failure is logged as an
+abstention signal rather than promoted into a landmark pipeline. The Zhang-2008
+archive (CC0) is namespaced \emph{outside} the cat-pain directory and serves only
+as a fallback two-point eye-aligner if CatFLW access stalls. None of these
+assets is claimed as a contribution, consistent with the project's standing
+concession that the encoder-plus-ordinal-head engine is plumbing. This framing
+also keeps the project distinct from prior landmark-and-classifier feline-pain
+work that this corpus could otherwise be made to replicate
+\citep{feighelstein2023}.
+
+\section{Data-provenance datasheet and the license firewall}
+\label{sec:datasheet}
+
+The released artifact carries a provenance datasheet that is the project's
+honesty layer; its co-mingling firewall and namespacing flow are shown in
+Figure~\ref{fig:provenance}, and the full source inventory in
+Table~\ref{tab:inventory}. The firewall has two jobs. First, it keeps each
+license in its own namespace, so that the CC~BY-NC CatFLW images and any aligner
+derived from them never reach a CC~BY release built from the spine corpus, and
+so that horse, mouse, or archival cat-head images can never enter a cat-pain
+loader. Second, it enforces the per-CAT provenance discipline: clips are merged
+toward true individuals \emph{only} to assert fold disjointness and to print the
+honest distinct-pain-cat denominator, never to fuse the lone \texttt{CAT\_01}
+camera into a single degenerate cross-validation group. Anti-benchmark
+discipline is part of the same layer: augmented copies never enter a reported
+count, every reported proportion is accompanied by a distinct-pain-cat
+denominator and Clopper--Pearson or bootstrap confidence intervals, and the
+framing is decision-support triage --- never an autonomous analgesia trigger.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=8mm and 12mm,
+  box/.style={draw, rounded corners, align=center, font=\small,
+              minimum height=8mm, inner sep=4pt, fill=black!3},
+  spine/.style={box, fill=blue!6},
+  anchorbox/.style={box, fill=green!8},
+  scaffold/.style={box, fill=orange!7},
+  flow/.style={-{Latex}, thick},
+  note/.style={font=\scriptsize\itshape, align=center}
+]
+% spine pipeline (top row)
+\node[spine] (fork)   {Forked Roboflow\\cat-pain (CC BY 4.0)\\$\approx 2040$ records};
+\node[spine, right=of fork] (dedup) {De-dup\\($493$ dup names)\\$\rightarrow \approx 1547$};
+\node[spine, right=of dedup] (merge) {Per-CAT merge\\(vs \texttt{CAT\_} ids)\\disjointness only};
+\node[spine, right=of merge] (holdout) {Frozen, hashed\\cat-disjoint\\hold-out};
+% vet anchor branch (bottom)
+\node[anchorbox, below=14mm of merge] (vlm) {VLM pre-fill\\(5 AUs, enum $0/1/2$)};
+\node[anchorbox, left=of vlm] (vet) {Vet accept/correct\\$=$ \textbf{vet anchor}\\(only graded source)};
+\node[anchorbox, right=of vlm] (kappa) {$\kappa$ vs vet\\+ $0.39$ sens/spec\\(firewalled)};
+% scaffolding (far left, walled off)
+\node[scaffold, below=10mm of fork] (scaff) {Scaffolding namespaces\\
+  horse (CC BY) $\cdot$ CatFLW (CC BY-NC)\\
+  DINOv2 (Apache) $\cdot$ Haar (MIT) $\cdot$ Zhang (CC0)};
+% spine flow
+\draw[flow] (fork) -- (dedup);
+\draw[flow] (dedup) -- (merge);
+\draw[flow] (merge) -- (holdout);
+% anchor flow
+\draw[flow] (vet) -- (vlm);
+\draw[flow] (vlm) -- (kappa);
+\draw[flow] (merge) -- node[note, right] {crops} (vlm);
+% firewall: scaffolding cannot reach spine
+\draw[red, very thick, dashed] ($(scaff.north west)+(-0.2,0.35)$)
+   -- ($(scaff.north east)+(2.6,0.35)$)
+   node[midway, above, note, text=red] {license / namespace firewall (no co-mingling)};
+\end{tikzpicture}
+\caption[Data-provenance and namespacing firewall]{Data-provenance and
+namespacing firewall. The spine corpus (blue) is de-duplicated, merged per CAT
+\emph{only} to assert disjointness, and frozen into a hashed cat-disjoint
+hold-out; the vet-anchor branch (green) is the only graded-label source and its
+kappa-versus-vet and sensitivity/specificity outputs are firewalled per
+Section~\ref{subsec:firewall}; scaffolding sources (orange) are walled in their
+own namespaces and never reach a cat-pain loader or a CC~BY release.}
+\label{fig:provenance}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption[Source inventory and namespacing]{Source inventory: directory, role,
+license, and whether the source carries AU labels. Only the vet anchor carries
+graded ($0/1/2$) AU labels; only the spine and vet anchor are in the cat-pain
+namespace.}
+\label{tab:inventory}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.21\linewidth}p{0.27\linewidth}p{0.20\linewidth}@{}}
+\toprule
+\textbf{Source} & \textbf{Role} & \textbf{License} & \textbf{Carries AU labels?} \\
+\midrule
+Forked Roboflow cat-pain & Binary spine (detector + crop source) & CC~BY~4.0 &
+No (binary boxes only) \\
+\addlinespace
+Vet anchor (size fixed by power gate) & Only graded source ($\kappa$ pilot, $0.39$ validation) &
+Project-original (derived) & \textbf{Yes} (per-AU $0/1/2$) \\
+\addlinespace
+Horse-grimace & Decode unit-test fixture & CC~BY~4.0 &
+$3/5$ AUs, $5$ horses (fixture only) \\
+\addlinespace
+CatFLW & Eye-alignment / NME audit & CC~BY-NC~4.0 &
+No ($48$ landmarks, no pain) \\
+\addlinespace
+\texttt{dinov2-small} & Frozen encoder (plumbing) & Apache-2.0 & n/a \\
+\addlinespace
+Haar \texttt{frontalcatface} & Fallback cropper / abstention signal & MIT & n/a \\
+\addlinespace
+Zhang-2008 archive & Fallback aligner (if CatFLW blocked) & CC0 &
+No ($9$ coarse landmarks) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Finally, Figure~\ref{fig:crops} is a captioned placeholder for the qualitative
+crop-acceptance illustration to be produced once the alignment audit has run; no
+example images are fabricated here, consistent with the honesty rule that
+governs this document.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox[c][0.16\textheight][c]{0.86\linewidth}{\centering
+\emph{Placeholder --- figure to be produced.}\\[2pt]
+Example acceptable (frontal, eye-aligned, sufficient face-pixel resolution)
+versus excluded (profile, eyes-closed, occluded, or below the
+normalised-mean-error threshold) crops, drawn from the alignment / NME audit of
+Section~\ref{subsec:catflw}. Excluded crops are routed to the vet and logged as
+abstention signals; no crop images are fabricated in this methodology document.}}
+\caption[Acceptable versus excluded crops (placeholder)]{Acceptable versus
+excluded face crops (to be produced). The acceptance criterion is the geometric
+quality gate of the alignment audit, not pain content.}
+\label{fig:crops}
+\end{figure}

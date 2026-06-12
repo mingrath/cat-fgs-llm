@@ -1,0 +1,48 @@
+[project]
+name = "cat-fgs-llm"
+version = "0.1.0"
+description = "Binary-plus-wrapper feline pain decision support; VLM-as-AU-rater kappa + confound-attribution portable methods on a conceded DINOv2+CORN engine."
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  # --- engine (conceded plumbing) ---
+  "torch>=2.4",                 # arm64 wheel -> MPS; NO cuda extras locally
+  "torchvision>=0.19",
+  "transformers>=4.44",         # DINOv2 ViT-S/14 (384-d) + timm fallback
+  "timm>=1.0",
+  "coral-pytorch>=1.4",         # corn_loss / corn_label_from_logits (5 per-AU heads)
+  # --- supervision (VLM weak-label) ---
+  "anthropic>=0.40",            # Claude 5-AU rater, Message Batches API, prompt caching
+  "pydantic>=2.7",              # structured-output schema (enum [0,1,2])
+  # --- wrapper + eval (THE HEADLINE FRAME) ---
+  "scikit-learn>=1.5",          # StratifiedGroupKFold, PR-AUC
+  "krippendorff>=0.6",          # inter-rater agreement (alongside QWK)
+  "netcal>=1.3",                # ClasswiseECE (per-AU); NO binned diagram on the 0-10 sum
+  "dcurves>=1.0",               # welfare-asymmetric decision curve (headline artifact)
+  "mapie>=1.4,<2",              # risk-control NPV lower-bound (abstention); API pinned in src/wrapper/abstention.py
+  "cleanlab>=2.7",              # confident-learning vet-triage
+  "imagehash>=4.3",             # near-duplicate detector (NOT cat re-ID — G1)
+  "opencv-python-headless>=4.10",
+  "numpy>=1.26",
+  "scipy>=1.13",
+  "pandas>=2.2",
+  "pyyaml>=6.0",
+  # --- MLOps spine ---
+  "wandb>=0.17",
+  "roboflow>=1.1",
+  "inference-sdk>=0.20",
+  "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+detect = ["rfdetr>=1.6.0", "ultralytics>=8.3"]   # RF-DETR accepts device="mps"; YOLOv11s runner-up
+dev    = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.uv]
+default-groups = ["dev"]       # `uv sync` installs dev; detect is opt-in (heavier)
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

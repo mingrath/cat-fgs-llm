@@ -1,0 +1,43 @@
+# Secrets
+.env
+.env.local
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Data & model artifacts
+datasets/
+# Ignore data/ contents with data/* (NOT data/) so a subdir can be re-included;
+# git cannot re-include a child of a fully-excluded directory.
+data/*
+# COMMITTED exception: small reproducibility-critical manifests (fold CSVs,
+# hashed test ids, cat_id map, vet-budget integer).
+!data/manifests/
+models/
+artifacts/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+runs/
+wandb/
+lightning_logs/
+outputs/
+reports/          # Gate-5 NME audit json/csv (scripts/gate5_nme.py)
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Built paper PDF (tectonic builds paper/main.pdf from the .tex sources)
+paper/*.pdf

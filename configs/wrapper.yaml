@@ -1,0 +1,25 @@
+# THE FRAME — operating point / decision curve / abstention.
+#
+# PLACEHOLDERS owned by Gate 0 / the clinician (replace before any validated claim):
+#   - harm_ratio_sweep.range : undertreat:overtreat ratio is a RANGE; no vet-elicited
+#     point ratio exists. The clinician/Gate 0 confirms the endpoints. PLACEHOLDER.
+#   - abstention.grid        : abstention-rate grid; confirm against the Gate-0 NPV-LB budget.
+#
+# Operating point = FIXED pain-recall >= 0.90 (Evangelista anchor), NEVER Youden-J/F1.
+# Sens/spec at 0.39 estimated on VET-CONFIRMED labels ONLY (circularity firewall).
+# Abstention = one-sided 95% NPV LOWER BOUND. The word "guaranteed" is BANNED.
+
+operating_point:
+  metric: pain_recall
+  target: 0.90              # fixed pain-recall operating point (Evangelista anchor)
+  circularity_firewall: vet_confirmed_only
+
+harm_ratio_sweep:
+  # undertreat:overtreat harm ratio swept as a RANGE (welfare-asymmetric decision curve).
+  range: [1.0, 10.0]        # PLACEHOLDER endpoints — Gate 0 / clinician to confirm
+  num: 19                   # PLACEHOLDER sweep granularity
+
+abstention:
+  grid: [0.0, 0.1, 0.2, 0.3, 0.4]   # PLACEHOLDER abstention-rate grid — confirm vs Gate-0 NPV-LB budget
+  npv_target: 0.90         # one-sided 95% NPV LOWER BOUND target (not a "guarantee")
+  ltt_delta: 0.05          # Learn-Then-Test / conformal error level

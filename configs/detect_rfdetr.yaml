@@ -1,0 +1,26 @@
+# Phase A detector — RF-DETR-Nano (champion). device="mps" supported; full training on Colab T4.
+# Sweep/selection metric is PAIN RECALL, never mAP. Operating point = FIXED pain-recall >= 0.90.
+model: RF-DETR-Nano
+resolution: 512              # 576 if the T4 holds it at batch 4; must be in {384,512,576,704}
+lr: 1.0e-4
+lr_encoder: 1.5e-4           # backbone/encoder LR; drop to 7.5e-5 if unstable
+epochs: 100                  # expect earlier convergence (early stopping below)
+batch_size: 4
+grad_accum_steps: 4          # effective batch = 16
+weight_decay: 1.0e-4
+use_ema: true
+early_stopping: true
+early_stopping_patience: 10
+early_stopping_min_delta: 0.005   # 0.5% mAP; 0.001 is noise on this tiny val
+early_stopping_use_ema: true
+num_workers: 2
+progress_bar: rich
+tensorboard: true
+seed: 42
+# Class imbalance (metadata basis 264/1819, ratio ~2.6): rfdetr's train() exposes
+# no per-class loss weight, so OVERSAMPLING (§2.6 rung 2) is the lever — there is
+# deliberately no pos_weight knob here (an unwired knob invites a wasted sweep).
+# Operating point: fixed pain-recall >= 0.90 (Evangelista anchor, NOT Youden-J/F1),
+# hardcoded in src/detect/decision.py select_threshold — not configurable here.
+
+resize: Fit                 # Roboflow export: Fit (reflect/white edges), NOT Stretch (distorts AU geometry)

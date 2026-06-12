@@ -1,0 +1,88 @@
+% !TeX root = ../main.tex
+% Chapter 10 — References
+% Self-contained section file: no preamble, no \documentclass.
+% Mirrors the template's บรรณานุกรม (Bibliography) divider + numbered reference list.
+%
+% PURPOSE: this file is the BIBLIOGRAPHY SLOT only. It emits the reference list via
+% biblatex's \printbibliography (preferred) with a natbib/bibtex fallback shown in a
+% commented block. The companion bib agent populates references.bib with every \cite
+% key used across the document — the canonical 17 keys enumerated below plus any reused
+% template author+year keys (e.g. Finka, Brondani, Shipley) extracted by that agent.
+%
+% PREAMBLE REQUIREMENTS (main.tex must load EXACTLY ONE bibliography backend):
+%   biblatex path (preferred, numeric/IEEE-style to mirror the template's numbered list):
+%       \usepackage[backend=biber,style=numeric-comp,sorting=nyt,maxbibnames=99]{biblatex}
+%       \addbibresource{references.bib}
+%   --- OR natbib path (uncomment the fallback block below and load in main.tex):
+%       \usepackage[numbers,sort&compress]{natbib}
+%       \bibliographystyle{plainnat}
+%
+% HONESTY RULE: a bibliography contains no results and no prose claims; nothing to fabricate.
+% Numbers attributed to the literature live in the citing chapters, never here.
+
+\chapter{References}
+\label{ch:references}
+
+% The reference list below is generated automatically from references.bib. Entries are
+% sorted name–year–title and rendered as a numbered list to mirror the template's
+% บรรณานุกรม slot. The \cite keys exercised across this document are catalogued in the
+% comment block that follows so the bibliography agent can verify coverage; do NOT add
+% prose to this chapter.
+
+% ---------------------------------------------------------------------------
+% biblatex backend (preferred). Heading is suppressed because the \chapter title
+% above already provides the divider; switch heading=bibintoc if a separate
+% table-of-contents entry independent of the chapter line is desired.
+% ---------------------------------------------------------------------------
+\printbibliography[heading=none]
+
+% ---------------------------------------------------------------------------
+% natbib/bibtex fallback. If main.tex uses natbib instead of biblatex, comment
+% out the \printbibliography line above and uncomment the two lines below.
+% ---------------------------------------------------------------------------
+% \renewcommand{\bibname}{References}
+% \bibliography{references}
+
+% ===========================================================================
+% CITE-KEY MANIFEST (for the bibliography agent — these keys MUST resolve in
+% references.bib). Canonical project keys, grouped by role:
+%
+%   Feline-pain instruments & validation studies:
+%     evangelista2019     -- Feline Grimace Scale validation (Sci Rep); AUC 0.94,
+%                            sens 90.7 / spec 86.6, >0.39 threshold anchor.
+%     steagall2023        -- Automated FGS, landmark->geometry->XGBoost 95.5%
+%                            (Sci Rep s41598-023-49031-2); Min-aggregation note.
+%     feighelstein2023    -- Binary cat-pain, landmark 77% vs DL 65%
+%                            (Sci Rep s41598-023-35846-6); mouth>eyes>ears XAI;
+%                            two-source pain rule (CMPS>=5 + charted reason).
+%     martvel2024catflw   -- CatFLW facial-landmark dataset; NME 9-26%, ~7pt cost.
+%     leesteagall2026     -- COSMIN scoping review of HUMAN-RATER feline pain
+%                            instruments (JVIM); AI scoring out of its topic scope.
+%
+%   Measurement-error / low-prevalence statistics:
+%     chavoshi2025        -- Low-prevalence measurement-error propagation
+%                            (arXiv 2506.07273); 10% prevalence -> ~53% sens example.
+%
+%   Engine & ordinal modelling (conceded-as-plumbing stack):
+%     oquab2023dinov2     -- DINOv2 self-supervised foundation features.
+%     shi2023corn         -- CORN rank-consistent ordinal regression
+%                            (Shi/Cao/Raschka, arXiv 2111.08851).
+%     cao2020coral        -- CORAL ordinal regression (baseline contrast).
+%
+%   Decision theory, risk control & calibration (the wrapper):
+%     vickers2006dca      -- Decision curve analysis / net benefit.
+%     angelopoulos2021ltt -- Learn-Then-Test distribution-free risk control.
+%     guo2017calibration  -- Temperature scaling / ECE.
+%
+%   Confound / faithfulness / label-noise auditing:
+%     xiao2021background  -- Background/foreground robustness challenge.
+%     wang2020scorecam    -- Score-CAM / energy pointing-game faithfulness.
+%     cleanlab2021        -- Confident learning (label-noise estimation).
+%
+%   Inter-rater agreement metrics:
+%     krippendorff2004    -- Krippendorff's alpha.
+%     cohen1968kappa      -- Weighted (quadratic) kappa.
+%
+% Any additional keys are template-reused author+year references harvested by the
+% bibliography agent from the source template's บรรณานุกรม and must also resolve here.
+% ===========================================================================

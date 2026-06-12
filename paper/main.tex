@@ -1,0 +1,160 @@
+% =====================================================================
+% main.tex — cat-fgs-llm
+% A trustworthiness-first feline pain scoring proposal (methodology / research proposal).
+%
+% BUILD COMMAND (requires a TeX toolchain to be installed):
+%     tectonic main.tex
+%   --- OR (TeX Live / MacTeX with biber on PATH) ---
+%     latexmk -pdf main.tex
+%
+% NOTE: A TeX toolchain MUST be installed. Neither tectonic, latexmk, nor biber
+% is present in this environment at authoring time; the file is written to compile
+% once a toolchain is available. This document uses biblatex with the biber backend,
+% so a plain `pdflatex main.tex` alone is NOT sufficient — use tectonic (which runs
+% biber automatically) or latexmk -pdf (configured for biber, see latexmkrc note below).
+%
+% HONESTY: This is a research proposal / methodology document. It reports NO
+% experimental results of our own. Literature numbers are attributed to their authors.
+% =====================================================================
+
+\documentclass[11pt,a4paper]{report}
+
+% ---------------------------------------------------------------------
+% Encoding / fonts. Engine-agnostic note: under a modern Unicode engine
+% (XeLaTeX/LuaLaTeX, as tectonic uses) inputenc/fontenc are unnecessary and
+% harmless to omit; under pdfLaTeX they are required. We load them guarded so
+% the file compiles under either engine.
+% ---------------------------------------------------------------------
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+\fi
+
+% ---------------------------------------------------------------------
+% Geometry / layout
+% ---------------------------------------------------------------------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{microtype}
+\setlength{\parskip}{0.4em}
+
+% ---------------------------------------------------------------------
+% Math, tables, graphics
+% ---------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+% ---------------------------------------------------------------------
+% TikZ + libraries required by the section files
+%   (positioning, arrows.meta, fit, backgrounds, calc, shapes.geometric)
+% ---------------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc,shapes.geometric}
+
+% ---------------------------------------------------------------------
+% Quotation marks (\enquote, used by the section files); load before biblatex
+% so biblatex picks up its quoting style.
+% ---------------------------------------------------------------------
+\usepackage{csquotes}
+
+% ---------------------------------------------------------------------
+% Bibliography: biblatex + biber, IEEE-style numeric with bracketed [n]
+% and a single global figure/table sequence (set below) to mirror the template.
+% ---------------------------------------------------------------------
+% backend=bibtex (not biber): tectonic runs bibtex internally, avoiding the
+% biber<->biblatex version coupling. \textcite/\autocite/\citep still work.
+\usepackage[backend=bibtex,style=numeric-comp,sorting=nyt,maxbibnames=99,natbib=true]{biblatex}
+\addbibresource{references.bib}
+
+% ---------------------------------------------------------------------
+% Single global, continuous figure/table numbering (drop the chapter prefix)
+% so the document reads like the template's one-sequence numbered floats.
+% ---------------------------------------------------------------------
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+% ---------------------------------------------------------------------
+% Hyperref last (after most packages). Numeric/IEEE bracketed cites.
+% ---------------------------------------------------------------------
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue,
+            pdftitle={A Trustworthiness-First Feline Pain Scorer},
+            pdfauthor={Mingrath Mekavichai}]{hyperref}
+
+% =====================================================================
+% Title page metadata
+% =====================================================================
+\title{%
+  \textbf{A Trustworthiness-First Feline Pain Scorer}\\[0.4em]
+  \large Two Portable Methods on a Binary-plus-Wrapper Spine ---\\
+  A Methodology and Research Proposal}
+\author{Mingrath Mekavichai}
+\date{June 2026}
+
+% =====================================================================
+\begin{document}
+
+% --------------------------- Title page ------------------------------
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\LARGE\bfseries A Trustworthiness-First Feline Pain Scorer\par}
+\vspace{0.8em}
+{\large Two Portable Methods on a Binary-plus-Wrapper Spine\par}
+\vspace{0.4em}
+{\large\itshape A Methodology and Research Proposal\par}
+
+\vfill
+
+{\large Mingrath Mekavichai\par}
+\vspace{0.6em}
+{\normalsize \texttt{mingrath@gmail.com}\par}
+
+\vfill
+
+{\normalsize
+\begin{minipage}{0.82\textwidth}
+\centering\itshape
+This document is a research proposal and methodology specification. No
+experiments have yet been conducted; it reports no empirical results of its own.
+Numbers attributed to the literature are background only and are never restated
+as ours.
+\end{minipage}\par}
+
+\vfill
+
+{\large June 2026\par}
+\end{titlepage}
+
+% --------------------------- Front matter ----------------------------
+\pagenumbering{roman}
+
+\input{sections/00-abstract}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\clearpage
+\pagenumbering{arabic}
+
+% --------------------------- Body ------------------------------------
+\input{sections/01-introduction}
+\input{sections/02-background-related-work}
+\input{sections/03-data-and-materials}
+\input{sections/04-methodology-engine}
+\input{sections/05-methodology-vlm-and-wrapper}
+\input{sections/06-evaluation-protocol-and-gates}
+\input{sections/07-expected-outcomes-and-risk}
+\input{sections/08-ethics-welfare-limitations}
+\input{sections/09-conclusion}
+
+% --------------------------- Back matter -----------------------------
+% 10-references.tex provides \chapter{References} and \printbibliography[heading=none].
+\input{sections/10-references}
+
+\end{document}

@@ -1,0 +1,26 @@
+# VLM 5-AU weak-labeler (Gate 1-B). The VLM emits ONLY the 5 AU atoms in {0,1,2}.
+# The 0-10 sum and the 0.39 flag are computed in code, never by the VLM.
+model_id: claude-opus-4-8       # placeholder model id; pin exact id at run time
+use_batch_api: true             # Message Batches API
+enum: [0, 1, 2]                 # per-AU structured-output schema (pydantic enum)
+
+rubric_hash: PLACEHOLDER_RUBRIC_SHA256   # byte-frozen rubric; any change invalidates prompt cache
+prompt_caching: true            # log cache_read_input_tokens > 0
+
+# AU order is fixed (the 5 Feline Grimace Scale action units)
+au_order:
+  - ear
+  - orbital
+  - muzzle
+  - whiskers
+  - head
+
+# Gate 1-B fires on the CI LOWER BOUND of each per-AU quadratic kappa, not the point estimate.
+# SINGLE SOURCE for the floors: gate0_power.py reads them from HERE and commits them
+# into data/manifests/power.json, which gate1b_kappa_pilot.py enforces. Edit here only.
+kappa_floors:
+  orbital: 0.60
+  ear: 0.60
+  head: 0.60
+  muzzle: 0.40
+  whiskers: 0.40

@@ -1,0 +1,560 @@
+% Chapter 4 -- Methodology I: Detector, Crop Pipeline, and the Conceded Ordinal Engine
+% Self-contained section file: no preamble, no \documentclass.
+% Mirrors the template's Chapter 3 (Sec 3.2 Data Preprocessing + Sec 3.3 Modeling).
+% HONESTY: no experimental results are reported here. This chapter specifies the
+% engineering of the engine and its expected/gate-conditioned behaviour only.
+
+\chapter{Methodology~I: Detector, Crop Pipeline, and the Conceded Ordinal Engine}
+\label{ch:methodology-engine}
+
+\section{Scope and a standing concession}
+\label{sec:eng-scope}
+
+This chapter specifies the perception \emph{engine} of our system: the binary
+pain detector (Phase~A), the face-crop and eye-alignment preprocessing that
+feeds it forward, the frozen DINOv2 backbone, the five per-action-unit (per-AU)
+ordinal heads, the distributional decode, and the training procedure that fits
+the heads. It mirrors the modelling and preprocessing chapter of the reference
+template, but it does so under a concession that governs every subsection below
+and that we restate without euphemism: \emph{the engine is plumbing, not a
+contribution}. The frozen-backbone-plus-ordinal-heads design is a standard,
+defensible low-data transfer-learning recipe; we adopt it because it is correct
+for our regime, not because it is novel, and we never claim otherwise. The
+contributions of this work live entirely in the trustworthiness wrapper and the
+two portable methods built on top of the engine's outputs (the VLM-as-AU-rater
+$\kappa$ protocol and the capture-condition confound-attribution protocol),
+which are developed in later chapters. Everything specified here exists only to
+produce calibrated scores for those methods to interrogate.
+
+Two framing commitments follow directly from that concession and recur
+throughout the chapter. First, the \emph{validated spine of v1 is binary}: the
+per-image pain decision (Section~\ref{sec:eng-detector}) is the only output of
+this chapter that is later subjected to a validated sensitivity/specificity
+claim, and it is validated on vet-confirmed labels only. Second, the
+\emph{graded $0$--$10$ layer ships inspected-not-validated}: the five ordinal
+heads, their summed score, and the distributional pmf over that sum
+(Sections~\ref{sec:eng-corn}--\ref{sec:eng-decode}) are built, inspected, and
+reported qualitatively, but they never enter a validated-claim sentence. The
+word ``graded'' is struck from every such sentence by construction, and the
+project's headline must hold with the graded layer dropped. We flag the
+engineering hooks for this discipline as we reach them.
+
+No numerical results appear in this chapter. Where we state a quantity --- an
+expansion margin, an alignment tolerance, an operating point --- it is a
+\emph{design value} or a \emph{gate threshold} to be confirmed against
+pilot output before freezing, not a measured outcome. Literature figures
+(e.g.\ the Feline Grimace Scale validation anchors) are attributed to their
+sources and used only to motivate design choices.
+
+Figure~\ref{fig:eng-pipeline} gives the end-to-end view that the remaining
+sections fill in.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=6mm and 9mm,
+  box/.style={draw, rounded corners, align=center, minimum height=9mm,
+              inner sep=3pt, font=\footnotesize, text width=20mm},
+  conc/.style={box, fill=black!6},      % conceded plumbing
+  val/.style={box, draw=black, very thick},
+  arr/.style={-{Latex[length=2mm]}, thick},
+  lbl/.style={font=\scriptsize\itshape, text=black!55}
+]
+\node[box] (img) {Frame\\(image)};
+\node[conc, right=of img] (det) {RF-DETR\\pain box\\(Phase A)};
+\node[conc, right=of det] (crop) {margin-expand\\+ eye-align\\crop $518^2$};
+\node[conc, right=of crop] (bb) {frozen\\DINOv2\\ViT-S/14\\\textbf{(cached)}};
+\node[conc, below=12mm of bb] (heads) {5 per-AU\\CORN heads};
+\node[conc, left=of heads] (pmf) {per-AU\\pmf $\{0,1,2\}$};
+\node[conc, left=of pmf] (conv) {convolve\\$\rightarrow$ 0--10\\sum pmf};
+\node[val, left=of conv] (dec) {$\geq 0.39$\\point\\decision};
+
+\draw[arr] (img) -- (det);
+\draw[arr] (det) -- (crop);
+\draw[arr] (crop) -- (bb);
+\draw[arr] (bb) -- (heads);
+\draw[arr] (heads) -- (pmf);
+\draw[arr] (pmf) -- (conv);
+\draw[arr] (conv) -- (dec);
+
+\node[lbl, below=1mm of det.south] {Gate 1/3 folds};
+\node[lbl, below=1mm of crop.south] {Gate 5 (NME)};
+\node[lbl, above=1mm of heads.north] {Gate 4 (decode)};
+\node[lbl, below=1mm of dec.south, text width=24mm, align=center]
+   {\emph{inspected-not-validated}};
+\end{tikzpicture}
+\caption[End-to-end engine pipeline]{End-to-end engine pipeline. A frame is
+localised by the Phase~A detector, the box is margin-expanded and (if Gate~5
+requires) eye-aligned into a fixed $518\times518$ crop, encoded once by the
+frozen DINOv2 backbone (features cached to disk), and read by five per-AU CORN
+heads. Soft per-AU probability mass functions are convolved into a distribution
+over the $0$--$10$ sum; a hard decode at the $0.39$ ratio yields the point
+decision. Shaded blocks are \emph{conceded plumbing}; the heavy-bordered
+decision block and the binary pain decision in Section~\ref{sec:eng-detector}
+are the only validated outputs. The $0$--$10$ sum and its pmf ship
+inspected-not-validated. Letters in italics mark the gate that governs each
+stage.}
+\label{fig:eng-pipeline}
+\end{figure}
+
+\section{Phase A: the binary pain detector}
+\label{sec:eng-detector}
+
+Phase~A is the binary spine of the system and the only stage that produces a
+validated number. Its job is twofold: to emit a per-image \emph{pain /
+no-pain} decision, and to supply a tight head box that becomes a
+\emph{candidate} face crop for the rest of the engine. The decision is the
+contribution-bearing output; the crop hand-off is conditional on the alignment
+audit of Section~\ref{sec:eng-crop} and is treated as a risk until that audit
+passes.
+
+\subsection{Architecture choice}
+\label{sec:eng-detector-arch}
+
+We adopt an object-detection formulation rather than a crop-then-classify
+pipeline, because the detector doubles as the downstream face cropper and a
+separate localiser would be wasted work. The primary architecture is
+\textbf{RF-DETR-Nano}, stepping up to RF-DETR-Small only if pain recall
+plateaus below target; the runner-up, used as a fallback if RF-DETR training is
+unstable on this small, imbalanced corpus, is \textbf{YOLOv11s}. Both are
+fine-tuned from COCO-pretrained weights --- the COCO ``cat'' category makes
+transfer expected, and we present it as such rather than as a benchmarked
+result. The per-image binary decision is the maximum-confidence pain-box score
+compared against a tuned threshold (Section~\ref{sec:eng-detector-imbalance});
+the DETR-internal transformer backbone is, like the rest of the engine,
+conceded plumbing.
+
+\subsection{FGS-safe augmentation}
+\label{sec:eng-detector-aug}
+
+The subtle orbital, muzzle, and whisker cues that the Feline Grimace Scale
+reads are the entire signal, and any augmentation that distorts facial geometry
+poisons both the detector and the crop it produces. We therefore restrict
+augmentation to label- and geometry-preserving transforms. Horizontal flip is
+permitted (the face is left/right symmetric); small translation and scale and
+rotations up to $\sim 10^{\circ}$ are permitted; modest saturation/value jitter
+is permitted. Vertical flip is banned outright, because it inverts grimace
+geometry; large rotations, heavy colour distortion, and aggressive
+mixup/copy-paste \emph{blends} are banned for the same reason. Hue jitter is
+held near zero, since coat colour is a capture-condition confound we do not wish
+to amplify (the confound itself is audited in a later chapter). Mosaic is
+enabled early and disabled for the final epochs so that the last training views
+match the real distribution.
+
+\subsection{Imbalance ladder and operating point}
+\label{sec:eng-detector-imbalance}
+
+The corpus is heavily imbalanced toward the no-pain class. On the metadata
+basis we report throughout --- $264$ pain boxes against $1{,}819$ no-pain boxes,
+a prevalence of $\approx 12.7\%$ and an imbalance of $\approx 6.9{:}1$ --- we
+note explicitly that these are \emph{box counts, not individual cats}, and that
+the live-annotation basis ($246/1{,}811$, $\approx 12.0\%$) is logged as a
+discrepancy rather than silently reconciled. We address imbalance with data and
+loss before architecture, climbing a fixed ladder and changing one lever per
+run, with the decision threshold tuned \emph{last}
+(Table~\ref{tab:eng-imbalance}).
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption[Imbalance ladder for the Phase~A detector]{Imbalance ladder, climbed
+cheapest-first; one lever changed per run; the decision threshold moved only
+after the data/loss rungs are exhausted. The $\mathrm{pos\_weight}\approx 2.6$
+basis is the metadata box ratio $\sqrt{1819/264}$ (box counts, not
+individuals); the live-annotation alternative ($\approx 2.7$) is acceptable when
+labelled by basis. Values are design defaults, not measured results.}
+\label{tab:eng-imbalance}
+\begin{tabular}{@{}clll@{}}
+\toprule
+Rung & Lever & Setting & Fires when \\
+\midrule
+1 & Class weight / $\mathrm{pos\_weight}$
+  & $\sqrt{1819/264}\approx 2.6$ (cap $\sim 3$)
+  & always (baseline) \\
+2 & Oversample + object copy-paste
+  & duplicate pain images; paste pain crops
+  & rung-1 recall below target \\
+3 & Focal loss
+  & $\gamma=1.5,\ \alpha=0.25$
+  & rungs 1--2 insufficient \\
+4 & Threshold tuning (last)
+  & lowest threshold meeting recall $\geq 0.90$
+  & only after 1--3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The operating point is fixed at \textbf{pain recall $\geq 0.90$}, selected
+inside training folds on the validation precision--recall curve --- explicitly
+\emph{not} a Youden-$J$ or $F_1$ knee. A symmetric-cost operating point is the
+wrong loss for a welfare instrument in which undertreatment is far costlier than
+overtreatment; the welfare-asymmetric decision curve that exploits this choice
+is the wrapper's headline artifact and is developed later. The $\geq 0.90$ floor
+is justified against the $90.7\%$ reference sensitivity of the Feline Grimace
+Scale validation \citep{evangelista2019}, not against prior automated work, and
+the specificity it buys is reported with bootstrap confidence intervals across
+the five cat-grouped folds. Throughout, augmented and oversampled copies never
+enter any reported $N$; every rate is accompanied by the distinct-pain-cat
+denominator and Clopper--Pearson or bootstrap intervals, and accuracy and
+ROC-AUC are never used as the ranking metric. The primary detection metric is
+the precision--recall AUC (average precision) with pain as the positive class.
+
+\subsection{The circularity firewall at the operating point}
+\label{sec:eng-detector-firewall}
+
+Phase~A is where the project's central methodological guard first bites. The
+sensitivity and specificity reported at the operating point are estimated
+\emph{only} on vet-confirmed binary labels. Agreement of any model output
+against the VLM-derived weak labels is never treated as validation, because it
+would measure the model re-learning the VLM's heuristic rather than tracking
+ground truth. This firewall is implemented as a structural constraint on which
+label column the evaluation code may read, and it is the reason the binary
+decision --- and not the graded sum --- carries the validated claim.
+
+\section{Face-crop and eye-alignment preprocessing (Gate~5)}
+\label{sec:eng-crop}
+
+The detector box is a face-crop \emph{candidate}, not a validated cropper. This
+section specifies the detect $\rightarrow$ quality-gate $\rightarrow$ expand
+$\rightarrow$ align $\rightarrow$ resize pipeline that turns a candidate box
+into the fixed crop tensor the backbone consumes, and the blocking Gate~5 audit
+that decides whether the cheap box crop suffices or whether a two-point
+eye-similarity aligner must be switched on. The motivation is defensive: a
+misaligned crop makes any downstream ``calibration'' number a measure of crop
+quality rather than of pain, so this stage exists to stop us mistaking one for
+the other.
+
+\subsection{Margin expansion}
+\label{sec:eng-crop-expand}
+
+The ear AU is read from ear tips and the whisker AU from whisker splay, both of
+which sit \emph{outside} a tight head box. We therefore \emph{expand} the box
+before cropping rather than shrink it: a $\sim 13.5\%$ margin (midpoint of a
+$12$--$15\%$ band), applied asymmetrically with extra room above the head to
+recover ear tips. A box already abutting the frame edge cannot be expanded to
+recover a clipped ear or whisker; such cases are flagged and routed to the vet
+queue as an abstention signal rather than scored on a silently-truncated AU.
+
+\subsection{Frontal-pose and quality gate}
+\label{sec:eng-crop-quality}
+
+The Feline Grimace Scale assumes a near-frontal view. Profile, tilted,
+occluded, and eyes-closed faces are not scored; they are routed to the vet
+queue and never enter the feature cache or any reported denominator. The gate is
+a deterministic, training-free, CPU-only filter over the expanded crop: a
+yaw/frontality check from the eye-pair geometry, an in-plane tilt check from the
+inter-ocular line (the aligner can correct up to $\sim 25^{\circ}$ of roll;
+beyond that is a pose problem, not an alignment problem), an eye-aspect-ratio
+check for closed eyes, a variance-of-Laplacian blur check, and a coarse Haar
+\texttt{frontalcatface} detector whose failure to find a face is itself an
+abstention signal. The Haar cascade is used only as a zero-training fallback
+localiser and abstention signal --- never as a landmark pipeline, an explicit
+avoidance of the landmark-then-geometry trap of prior automated work
+\citep{steagall2023}. Each decision and its reasons are written to the crop
+manifest; all thresholds are tuned once on the audit set and then frozen, so the
+gate cannot be re-tuned to inflate apparent prevalence.
+
+\subsection{The Gate~5 NME audit and the eye-alignment fallback}
+\label{sec:eng-crop-gate5}
+
+Gate~5 is blocking: no ordinal head is trained and no vet hour is spent until it
+passes. On a small audit set ($30$--$50$ images) it answers two yes/no
+questions, using the $48$ CatFLW facial landmarks \citep{martvel2024catflw} as
+ground truth. First, is the interocular-normalised mean landmark error (NME)
+inside the box crop low enough, and is the box-vs-aligned NME gap small enough,
+that the box crop can feed the backbone directly? Second, is the median face
+resolution after resize to the backbone's patch grid high enough that AU detail
+survives? Design thresholds are a median NME $\leq 0.08$ with a box-vs-aligned
+gap $\leq 0.02$, and a median interocular distance $\geq 40$\,px after resize;
+these are proposed operating values calibrated to the automated-landmark NME
+range of $9$--$26\%$ reported across morphologies by \citet{martvel2024catflw},
+to be confirmed against the audit output before freezing. The same work reports
+a roughly seven-point pain-accuracy cost from automated versus manual landmarks,
+which is precisely the failure mode this gate is built to detect.
+
+If the audit fails, a closed-form \emph{two-point eye-similarity} transform is
+switched on as the production crop step: a rotate-plus-uniform-scale-plus-%
+translate map taking the two detected eye centres onto fixed canonical targets.
+It is a similarity transform with no learned warp and no per-image optimisation,
+computed on CPU. Whichever transform Gate~5 certifies --- raw box crop or
+eye-aligned crop --- is then frozen and applied once to the full corpus,
+producing $518\times518$ RGB crops (with $518 = 14\times 37$ divisible by the
+backbone patch size). Crops flagged for the vet queue are excluded from the
+feature cache and from every sensitivity/specificity/$\kappa$ denominator,
+turning ``detector or quality failure $\rightarrow$ defer to vet'' into an
+explicit, counted abstention channel rather than a silent drop.
+
+\section{The frozen DINOv2 ViT-S/14 backbone and feature caching}
+\label{sec:eng-backbone}
+
+The encoder is a frozen DINOv2 ViT-S/14 \citep{oquab2023dinov2}: hidden width
+$384$, patch size $14$, forward-only. We freeze it because the supervised set is
+on the order of $120$--$300$ vet- and VLM-labelled faces, a regime in which
+full fine-tuning of a vision transformer would be malpractice; only the light
+ordinal heads are trained. Patch size and hidden width are derived from the
+loaded model rather than hard-coded in load-bearing code. The default pooled
+representation for the heads is the class token; the mean of the patch tokens is
+cached as a second column so that the class-token-versus-mean-patch comparison
+is a configuration flag rather than a re-cache.
+
+The single most important engineering decision in this section is
+\emph{feature caching}, and it is the decision that makes the whole engine
+tractable on an Apple~M4 / MPS machine with no CUDA. Because the backbone is
+frozen, its output for a given crop never changes; we therefore run exactly one
+forward pass over every crop, write the pooled features to disk, and train the
+heads off the cache with \emph{zero} backbone forwards per epoch. This turns
+each head epoch from minutes into milliseconds and makes the head sweep
+(pooling $\times$ loss $\times$ seeds) a matter of minutes rather than hours.
+The DINOv2 commit hash, the preprocessing parameters, the device, and the torch
+version are recorded alongside the cache, because the cache is an input to every
+reported number. We do \emph{not} domain-adapt the backbone on any external
+archive: at this label budget the risk of degrading the features for near-zero
+gain is real, and the backbone's generality is what we are relying on.
+
+\section{The five per-AU CORN ordinal heads}
+\label{sec:eng-corn}
+
+Each of the five FGS action units --- ear, orbital tightening, muzzle, whiskers,
+and head position --- is an ordinal variable on the levels $\{0,1,2\}$. We model
+each with a \emph{rank-consistent} ordinal regression head trained with the CORN
+(Conditional Ordinal Regression for Neural networks) loss
+\citep{shi2023corn}. CORN is chosen over a plain softmax classifier because the
+levels are ordered, and over CORAL \citep{cao2020coral} because CORN attains
+rank consistency without CORAL's shared-bias capacity restriction. With three
+levels per AU, each head emits $K-1 = 2$ conditional logits, so the five AUs
+together require a single $384 \rightarrow 10$ linear projection whose output is
+split into five two-logit chunks --- one matmul, then a \texttt{split}. The head
+is a dropout-regularised linear probe with small-variance truncated-normal
+initialisation appropriate to the tiny-data linear-probe regime. The CORN loss
+itself is vendored as roughly forty auditable lines (torch and functional only,
+no pip dependency) so that the datasheet shows exactly what trained the heads;
+it is cross-checked once against a reference implementation in the Gate~4 unit
+test (Section~\ref{sec:eng-decode-gate4}) and the reference dependency is then
+dropped.
+
+A sibling binary pain head --- a $384 \rightarrow 1$ linear layer trained with a
+weighted binary cross-entropy on the pain label --- shares the same cache, is
+independent of the CORN heads, and is the v1 spine that the trustworthiness
+wrapper actually operates on. The five-AU sum is the inspected path.
+
+The decode contract that turns logits into a level, a sum, and a decision is the
+same in this chapter, in the VLM weak-labelling pipeline, and in the wrapper:
+the hard level is $\sum_k \mathbb{1}[\operatorname{cumprod}(\sigma(\text{logits}))_k > 0.5]$,
+the sum is the sum of the five AU levels in $\{0,\dots,10\}$, and the decision
+fires when the ratio $\text{sum}/10$ reaches the clinical cut of $0.39$
+(approximately $4/10$) reported by the FGS validation \citep{evangelista2019}.
+Crucially the \emph{VLM never emits the sum or the decision}: it emits the five
+ordinal atoms, and the sum and the $0.39$ flag are computed in code, so that
+there is a single threshold definition in the repository. Figure~\ref{fig:eng-corn}
+shows the head and its two decode paths.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=5mm and 8mm,
+  box/.style={draw, rounded corners, align=center, minimum height=8mm,
+              inner sep=3pt, font=\footnotesize, text width=22mm},
+  soft/.style={box, fill=black!4},
+  hard/.style={box, draw, very thick},
+  arr/.style={-{Latex[length=2mm]}, thick},
+  lbl/.style={font=\scriptsize\itshape, text=black!55}
+]
+\node[box] (feat) {cached feature\\$\mathbf{z}\in\mathbb{R}^{384}$};
+\node[box, right=of feat] (proj) {linear\\$384\!\to\!10$};
+\node[box, right=of proj] (split) {split\\$5\times[\,\cdot\,,2]$};
+\node[box, right=of split] (cum) {$\operatorname{cumprod}\sigma$\\$=P(\text{rank}>k)$};
+
+\node[soft, below=10mm of cum] (pmf) {per-AU pmf\\$(p_0,p_1,p_2)$};
+\node[soft, left=14mm of pmf] (conv) {convolve 5\\$\to$ 0--10 pmf};
+\node[soft, left=of conv] (rps) {RPS-on-sum\\+ ClasswiseECE\\\emph{(inspect)}};
+
+\node[hard, above=10mm of cum] (thr) {$>0.5 \Rightarrow$\\level $\in\{0,1,2\}$};
+\node[hard, left=14mm of thr] (sum) {sum 0--10\\$\geq 0.39$};
+
+\draw[arr] (feat) -- (proj);
+\draw[arr] (proj) -- (split);
+\draw[arr] (split) -- (cum);
+\draw[arr] (cum) -- (pmf);
+\draw[arr] (pmf) -- (conv);
+\draw[arr] (conv) -- (rps);
+\draw[arr] (cum) -- (thr);
+\draw[arr] (thr) -- (sum);
+
+\node[lbl, above=0.5mm of thr.north] {point-decision path (decision only)};
+\node[lbl, below=0.5mm of rps.south, text width=30mm, align=center]
+  {distributional path (default; inspected-not-validated)};
+\end{tikzpicture}
+\caption[CORN head and distributional decode]{The rank-consistent CORN head and
+its two decode paths. A cached feature is projected to five two-logit chunks;
+the cumulative product of the sigmoids gives, per AU, $P(\text{rank}>k)$. The
+\emph{soft} path (lower, default) turns these into a per-AU pmf and convolves
+the five into a distribution over the $0$--$10$ sum, scored by the ranked
+probability score and per-AU classwise ECE; this path is inspected, not
+validated. The \emph{hard} path (upper) thresholds the cumulative products at
+$0.5$ to a level, sums to $0$--$10$, and fires the decision at the $0.39$ ratio.
+The hard path is used for the point decision only.}
+\label{fig:eng-corn}
+\end{figure}
+
+\section{Distributional decode}
+\label{sec:eng-decode}
+
+The default scoring path is distributional, not argmax. From each AU's soft
+cumulative probabilities $P(\text{rank}>k) = \operatorname{cumprod}(\sigma(\text{logits}))$
+we form a proper probability mass function over $\{0,1,2\}$ via
+$p_0 = 1 - P(\text{rank}>0)$, $p_1 = P(\text{rank}>0) - P(\text{rank}>1)$, and
+$p_2 = P(\text{rank}>1)$, clamping tiny negative values from floating-point
+error. The five per-AU pmfs are then \emph{convolved} into a single pmf over the
+$0$--$10$ sum. From that distribution we report two things: the ranked
+probability score on the sum, as a single scalar with a bootstrap confidence
+interval, and a per-AU classwise expected calibration error
+\citep{guo2017calibration}. The argmax / hard decode is reserved for the $0.39$
+point decision alone.
+
+One reporting decision in this path is load-bearing and we state it explicitly:
+\emph{we do not draw a binned reliability diagram on the eleven-atom $0$--$10$
+sum}. With only eleven atoms and the label budget we have, per-bin standard
+errors are large enough ($\pm 0.18$--$0.26$) that such a diagram would launder
+noise as evidence. The ranked probability score on the sum plus per-AU classwise
+ECE is the statistically coherent substitute, and it is reported as
+inspected-not-validated evidence about the graded layer, never as a validated
+calibration claim.
+
+\subsection{Gate~4: blocking decode correctness}
+\label{sec:eng-decode-gate4}
+
+Before any score from the engine is believed, two correctness checks must pass,
+and they are blocking in continuous integration. The first is a synthetic
+decode unit test: hand-verified logit configurations are asserted to decode to
+known levels, the decode is asserted monotone in the logits (raising any logit
+cannot lower the decoded level, the rank-consistency property), the per-AU pmf
+is asserted to sum to one with no negative atoms, the convolved sum pmf is
+asserted to be a distribution over $0$--$10$, and the $0.39$ point decision is
+asserted at its boundary (a sum of $4$ fires, a sum of $3$ does not). The second
+is an MPS-versus-CPU logit-parity check on a real aligned crop, guarding against
+silently-wrong accelerator arithmetic --- a leak-proof metric computed from
+wrong logits is worthless. A red Gate~4 blocks the entire engine; the vendored
+decode is additionally cross-checked once against a reference CORN implementation,
+and on disagreement the vendoring is fixed rather than the expected value
+adjusted to match a broken decode.
+
+\section{Training: co-teaching small-loss on VLM mass plus a clean vet anchor}
+\label{sec:eng-training}
+
+The heads are trained on a mixture of two label sources of very different
+quality: a large mass of VLM weak labels covering all scored crops, and a small
+clean anchor of vet-confirmed labels (on the order of $120$--$300$ faces, at
+least $50$ pain-positive, with the exact integer fixed by the project's power
+calculation before any vet hour is spent). Training on the clean anchor alone
+gives too few examples; training naively on all labels bakes in the VLM's
+under-estimation bias. We therefore use \emph{co-teaching with small-loss
+selection}: two heads are trained in parallel, each selecting the small-loss
+subset of each mini-batch for its partner, following the canonical Co-teaching
+schedule $R(T)=1-\tau\cdot\min(T/T_k,1)$~\cite{han2018coteaching}: the keep-rate
+ramps from inclusive toward selective over the first $T_k$ epochs, starting at
+$1.0$ (keep all) and descending to $1-\tau$, where $\tau$ is the estimated label
+noise rate --- exploiting the memorization effect, whereby networks fit clean
+patterns before noisy ones, so noisy examples are pruned late rather than early.
+Vet-clean rows are never
+dropped from either head's selection --- they are protected anchor points that
+the noisy mass is filtered against. AUs left unscored on a given image carry a
+sentinel and are skipped in that image's loss, and the weakest AUs (muzzle and
+whiskers) may optionally be upweighted. Figure~\ref{fig:eng-coteach} sketches the
+scheme.
+
+\begin{figure}[t]
+\centering
+\fbox{\begin{minipage}{0.92\linewidth}
+\centering\footnotesize
+\vspace{2mm}
+\begin{tikzpicture}[
+  node distance=5mm and 10mm,
+  blk/.style={draw, rounded corners, align=center, font=\footnotesize,
+              minimum height=8mm, inner sep=3pt, text width=24mm},
+  arr/.style={-{Latex[length=2mm]}, thick},
+  dasharr/.style={-{Latex[length=2mm]}, thick, dashed}
+]
+\node[blk] (mass) {VLM weak mass\\(noisy, all crops)};
+\node[blk, below=4mm of mass] (anchor) {vet-clean anchor\\(protected)};
+\node[blk, right=20mm of mass] (A) {head A};
+\node[blk, right=20mm of anchor] (B) {head B};
+\draw[arr] (mass) -- (A);
+\draw[arr] (mass) -- (B);
+\draw[arr] (anchor.east) -- ($(A.west)+(0,-2mm)$);
+\draw[arr] (anchor.east) -- ($(B.west)+(0,2mm)$);
+\draw[dasharr] (A.south) to[bend left=18] node[midway, right, font=\scriptsize\itshape]
+   {A's small-loss subset trains B} (B.north);
+\draw[dasharr] (B.north) to[bend left=18] node[midway, left, font=\scriptsize\itshape]
+   {B's small-loss subset trains A} (A.south);
+\end{tikzpicture}
+\vspace{1mm}
+
+\emph{Placeholder schematic --- to be replaced by the produced training-loss /
+keep-rate figure once runs exist.}
+\vspace{2mm}
+\end{minipage}}
+\caption[Co-teaching small-loss training]{Co-teaching small-loss training. Two
+heads consume the same noisy VLM mass; each selects the small-loss subset of a
+mini-batch to train its partner, so each head is shielded from the other's
+memorised label noise. The vet-clean anchor rows are protected and never
+filtered out. Captioned placeholder; no loss curve is shown because no training
+run has been performed.}
+\label{fig:eng-coteach}
+\end{figure}
+
+Folds are cat-disjoint, read from the per-individual merge and the frozen,
+hashed hold-out manifest, so that no individual straddles a fold and augmented
+copies never enter a reported $N$. The head sweep --- class-token versus
+mean-patch pooling, CORN versus CORAL loss, five seeds with mean and bootstrap
+CI --- runs in minutes precisely because the backbone never re-runs.
+
+\section{What the engine outputs, and what is and is not claimed}
+\label{sec:eng-outputs}
+
+The engine emits the artifacts in Table~\ref{tab:eng-outputs}: cached features,
+trained CORN heads, a trained binary pain head, per-AU soft cumulative
+probabilities on the hold-out, a convolved $0$--$10$ sum pmf, and the blocking
+Gate~4 report. The claim discipline attached to each is the point of this
+chapter. The binary pain decision plus abstention is the validated spine, with
+sensitivity and specificity estimated downstream on vet-confirmed labels only.
+The $0$--$10$ sum is inspected-not-validated: its agreement against the VLM is
+never reported as validation, it is discussed qualitatively with the circularity
+stated, and the project's abstract holds with it dropped. The engine is never
+claimed novel --- a reviewer applying the ``swap the backbone, add some
+metrics'' filing finds nothing here to kill, by design. And the kill/pivot rule
+is wired in: if the per-AU agreement of the orbital, ear, and head heads against
+the vet anchor (gated in a later chapter on the confidence-interval lower bound,
+not the point estimate) falls below its pre-registered floor, the graded layer
+is dropped entirely and the system ships as a calibrated binary detector with
+abstention and the confound audit; the engine's heads still train and ship as
+the inspected artifact, but no graded claim is made.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption[Phase~B engine outputs and claim status]{Engine outputs and their claim
+status. The binary spine is the only validated output; the graded sum and its
+pmf are inspected-not-validated; everything else is intermediate plumbing. No
+output in this table carries a measured result in this document.}
+\label{tab:eng-outputs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Artifact & Role & Claim status \\
+\midrule
+Cached frozen features        & input to all heads      & input only \\
+Trained CORN heads (5 seeds)  & per-AU ordinal scores   & conceded plumbing \\
+Binary pain head              & v1 spine                & \textbf{validated} (vet labels only) \\
+Per-AU soft cumulative probs  & feeds wrapper           & intermediate \\
+Convolved $0$--$10$ sum pmf   & graded layer            & \emph{inspected-not-validated} \\
+Gate~4 decode/parity report   & correctness            & blocking pass/fail \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In sum, this chapter has specified a deliberately unremarkable engine ---
+detector, alignment-gated crop, frozen backbone with cached features,
+rank-consistent ordinal heads, distributional decode, and noise-robust training
+--- whose every design choice is the conservative one for a low-data,
+single-machine, single-vet regime. Its outputs feed the trustworthiness wrapper
+and the two portable methods that carry this work's contribution. Nothing here
+is offered as novel, and nothing here is reported as a result.

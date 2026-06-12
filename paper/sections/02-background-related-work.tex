@@ -1,0 +1,458 @@
+%====================================================================
+% Chapter 2 — Background and Related Work
+% Self-contained section file: no preamble, no \documentclass.
+% Requires (provided by main.tex preamble): booktabs, tikz, amsmath,
+% biblatex/natbib. TikZ libraries used: positioning, arrows.meta, fit.
+%====================================================================
+\chapter{Background and Related Work}
+\label{ch:background}
+
+This chapter follows the two-part recipe of a conventional literature review: a
+concise technical primer that fixes the vocabulary used throughout the rest of
+this document (Section~\ref{sec:bg-primer}), and a per-paper survey of the
+feline and animal facial-pain literature that situates our work
+(Section~\ref{sec:bg-related}). It closes with a synthesis
+(Section~\ref{sec:bg-synthesis}) that contrasts prior work against the two
+\emph{portable methods} this project headlines, and makes the
+\enquote{not-a-replicate} argument explicit by enumerating the replication
+traps a single-corpus cat-pain study must avoid.
+
+A framing rule governs the whole chapter and is stated once here so it need not
+be repeated: the modelling \emph{engine} of this project---a frozen DINOv2
+backbone feeding rank-consistent ordinal heads---is treated as conceded
+\emph{plumbing} and is never claimed as a novel contribution. The primer
+therefore describes these components only to the depth needed to read the
+method, not as from-scratch tutorials, and the synthesis is careful to locate
+novelty exclusively in the two measurement protocols, not in the architecture.
+
+\section{Technical background}
+\label{sec:bg-primer}
+
+\subsection{The Feline Grimace Scale and its action-unit rubric}
+\label{subsec:bg-fgs}
+
+The Feline Grimace Scale (FGS) is an observational pain instrument that scores a
+cat's facial expression along five \emph{action units} (AUs): ear position,
+orbital tightening, muzzle tension, whisker change, and head position. Each AU
+is scored on a three-point ordinal scale ($0$~=~action unit absent,
+$1$~=~moderately present or uncertain, $2$~=~obviously present), and the five
+scores are summed and rescaled to a $0$--$10$ index; a normalised ratio
+$\geq 0.39$ is the published decision boundary indicating that analgesia should
+be considered \cite{evangelista2019}. The rubric wording adopted by the VLM
+weak-labeller in this project is taken verbatim from this scale, so that the
+labelling target is the same construct the validation study certified rather
+than a paraphrase. Figure~\ref{fig:fgs-schematic} shows the AU-to-score
+schematic that the rest of this document refers to.
+
+Two properties of the scale matter for the methods that follow. First, the AU
+scores are \emph{ordinal, not nominal}: a confusion of $0$ with $2$ is a larger
+error than a confusion of $0$ with $1$, which is why every agreement and
+calibration metric in this work is ordinal-aware rather than treating the three
+levels as unordered classes. Second, the summed index is a
+\emph{convolution of five low-cardinality variables}; the resulting $0$--$10$
+sum has only eleven atoms, a fact that later forbids drawing a binned
+reliability diagram over the sum (Section~\ref{subsec:bg-calibration}).
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      au/.style={draw, rounded corners, minimum width=2.4cm,
+                 minimum height=0.8cm, align=center, fill=gray!8},
+      lvl/.style={draw, circle, minimum size=0.55cm, inner sep=0pt,
+                  font=\scriptsize},
+      node distance=0.35cm and 1.4cm,
+      >={Stealth[length=2mm]}
+    ]
+    % five AUs
+    \node[au] (ear)  {Ear\\position};
+    \node[au, below=of ear]    (orb) {Orbital\\tightening};
+    \node[au, below=of orb]    (muz) {Muzzle\\tension};
+    \node[au, below=of muz]    (whk) {Whisker\\change};
+    \node[au, below=of whk]    (hed) {Head\\position};
+
+    % per-AU ordinal levels
+    \foreach \n/\y in {ear/0, orb/-1.15, muz/-2.3, whk/-3.45, hed/-4.6} {
+      \node[lvl] (\n0) at (3.2,\y) {0};
+      \node[lvl, right=0.25cm of \n0] (\n1) {1};
+      \node[lvl, right=0.25cm of \n1] (\n2) {2};
+      \draw[->] (\n.east) -- (\n0.west);
+    }
+
+    % aggregation node
+    \node[au, fill=blue!8, minimum height=2.2cm, right=2.6cm of muz]
+      (sum) {Sum and\\rescale\\$\sum_{i=1}^{5}\!\mathrm{AU}_i \to [0,10]$};
+    \foreach \n in {ear,orb,muz,whk,hed} {
+      \draw[->, gray] (\n2.east) -- (sum.west);
+    }
+
+    % decision
+    \node[au, fill=red!8, right=1.4cm of sum] (dec)
+      {Index $\geq 0.39$\\$\Rightarrow$ consider\\analgesia};
+    \draw[->] (sum.east) -- (dec.west);
+  \end{tikzpicture}
+  \caption[FGS action-unit to score schematic]{The Feline Grimace Scale maps
+    five facial action units, each scored ordinally on $\{0,1,2\}$, to a summed
+    $0$--$10$ index, with a published decision threshold at the normalised ratio
+    $0.39$ \cite{evangelista2019}. In this project the per-AU rubric is the
+    weak-labelling target; summation and the $0.39$ flag are computed in code,
+    never elicited from the rater.}
+  \label{fig:fgs-schematic}
+\end{figure}
+
+\subsection{Ordinal regression and rank consistency}
+\label{subsec:bg-ordinal}
+
+Because each AU is an ordered three-level variable, predicting it with a plain
+softmax classifier discards the ordering and admits rank-inconsistent
+probability estimates (e.g.\ assigning high mass to $\Pr(\mathrm{AU}\geq 2)$
+while assigning low mass to $\Pr(\mathrm{AU}\geq 1)$). The CORAL framework
+\cite{cao2020coral} reformulates a $K$-level ordinal problem as $K-1$ binary
+\enquote{is the label greater than rank $k$?} sub-tasks that share a single
+feature projection plus per-rank biases, which guarantees the predicted
+cumulative probabilities are monotone and hence rank-consistent. CORN
+\cite{shi2023corn} relaxes the weight-sharing constraint of CORAL by conditioning
+each rank's probability on the previous one through the chain rule, recovering
+rank consistency without sacrificing the flexibility of independent rank
+classifiers; it is the head we adopt for each AU. The relevant output is the set
+of soft cumulative probabilities $\Pr(\mathrm{rank} > k)$, from which a per-AU
+probability mass function over $\{0,1,2\}$ is read off. A captioned placeholder
+for this head is shown in Figure~\ref{fig:corn-placeholder}; the convolution of
+the five per-AU PMFs into a distribution over the $0$--$10$ sum is the
+\emph{distributional decode} used for the calibration metrics below.
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.86\linewidth}{\centering\vspace{0.4cm}
+    \textbf{[Schematic placeholder --- to be produced]}\\[0.3cm]
+    \small CORN rank-consistent ordinal head: a frozen feature vector feeds a
+    shallow projection producing $K-1=2$ conditional rank logits per action
+    unit; $\Pr(\mathrm{rank}>0)$ and $\Pr(\mathrm{rank}>1)$ are chained into a
+    monotone cumulative profile and decoded to a PMF over $\{0,1,2\}$. Five such
+    heads are convolved into a PMF over the $0$--$10$ sum.\vspace{0.4cm}}}
+  \caption[CORN ordinal head schematic (placeholder)]{Captioned placeholder for
+    the per-AU CORN head \cite{shi2023corn,cao2020coral}. No results are
+    depicted; this is a structural diagram to be rendered in the methods
+    chapter.}
+  \label{fig:corn-placeholder}
+\end{figure}
+
+\subsection{Self-supervised frozen vision features}
+\label{subsec:bg-dinov2}
+
+DINOv2 \cite{oquab2023dinov2} is a self-supervised vision transformer trained
+without labels on a large curated image corpus, producing general-purpose
+features that transfer to downstream tasks without fine-tuning. We use a frozen
+DINOv2 ViT-S/14 encoder purely as a fixed feature extractor: the backbone is
+never updated, its pooled features are cached to disk once, and only the shallow
+CORN heads are trained on the cache. This is the appropriate low-data choice on
+the available hardware---fully fine-tuning a transformer on a few hundred faces
+would overfit catastrophically---and it is deliberately unremarkable. The
+backbone is part of the conceded engine; we make no claim that the choice of
+self-supervised features is itself a contribution.
+
+\subsection{Vision--language models as structured raters}
+\label{subsec:bg-vlm}
+
+A vision--language model (VLM) can be prompted to read an image and emit a
+structured answer. We use this capability narrowly: the VLM is constrained by a
+forced tool-use schema to return five ordinal AU scores, each a closed
+enumeration over $\{0,1,2\}$, with a rationale produced before each score. The
+VLM is therefore a \emph{weak labeller} that proposes per-AU FGS scores at
+scale and cheaply, which a veterinarian then accepts or corrects. The central
+empirical question this raises---and the first headline of this work---is
+whether such a frozen VLM can weak-label feline FGS action units at
+human-rater agreement, measured against a veterinary anchor. That measurement,
+not the act of prompting a VLM, is the contribution; the rater is selected by
+its measured agreement rather than asserted to be adequate.
+
+\subsection{Calibration and the expected calibration error}
+\label{subsec:bg-calibration}
+
+A model is \emph{calibrated} when its stated probabilities match empirical
+frequencies. The expected calibration error (ECE) summarises miscalibration by
+binning predictions and comparing confidence to accuracy within each bin;
+temperature scaling \cite{guo2017calibration} is a one-parameter post-hoc fix
+that rescales logits to reduce ECE without changing the ranking of predictions.
+For the ordinal AUs we report a \emph{per-AU classwise} ECE so that
+miscalibration is attributable to a specific action unit, and we calibrate each
+CORN head with a single temperature scalar fit on training folds. A deliberate
+restriction follows from Section~\ref{subsec:bg-fgs}: because the $0$--$10$ sum
+has only eleven atoms, a binned reliability diagram on the sum is degenerate at
+this sample size, so the distributional path reports a ranked probability score
+on the sum plus per-AU classwise ECE, and \emph{no} binned reliability diagram
+on the sum is ever drawn. Calibration is supporting hygiene in this work, not a
+headline.
+
+\subsection{Decision curve analysis and net benefit}
+\label{subsec:bg-dca}
+
+Generic accuracy and calibration metrics ignore that the two error types of a
+welfare instrument are not equally costly: failing to flag a painful cat is far
+worse than over-flagging a comfortable one. Decision curve analysis
+\cite{vickers2006dca} addresses this by plotting \emph{net benefit} against a
+threshold probability that encodes the clinician's relative weighting of the two
+errors, allowing a model to be judged across a \emph{range} of harm ratios
+rather than at a single symmetric-cost operating point. Because we have no
+veterinarian-elicited undertreat:overtreat ratio, we sweep the ratio as a range
+along the threshold-probability axis. This welfare-asymmetric decision curve is
+the headline artifact of the trustworthiness wrapper---a clinical-decision
+contribution that distinguishes the wrapper from generic calibration---and the
+operating point itself is selected at a fixed pain-recall $\geq 0.90$ anchored
+to the FGS validation study, never at a symmetric Youden-$J$ or $F_1$ knee.
+
+\subsection{Conformal risk control: Learn-Then-Test}
+\label{subsec:bg-ltt}
+
+Learn-Then-Test (LTT) \cite{angelopoulos2021ltt} is a distribution-free,
+finite-sample procedure for choosing model thresholds so that a user-specified
+risk is controlled with high probability. We use it for the defer-to-vet
+abstention rule: two thresholds bracket the $0.39$ point so that confident
+negatives and confident positives are returned while the uncertain middle is
+deferred, and LTT certifies a one-sided lower bound on the negative predictive
+value (NPV, i.e.\ control of missed pain) at each abstention rate. The output is
+reported strictly as a \emph{lower bound}; the word \enquote{guaranteed} is
+banned, and if the available label budget cannot certify a useful band the
+abstention curve is reported as exploratory rather than as a controlled claim.
+
+\subsection{Inter-rater agreement: weighted kappa and Krippendorff's alpha}
+\label{subsec:bg-agreement}
+
+Agreement between two raters on an ordinal scale is measured with the
+quadratically weighted kappa \cite{cohen1968kappa}, which penalises
+disagreements by the squared distance between levels and is therefore the
+correct statistic for the three-level AUs (a nominal kappa over
+$\{0,1,2\}$ without weights is a bug to avoid). The headline measurement of this
+project is exactly such a per-AU quadratic weighted kappa between the VLM and
+the veterinary anchor, gated on its confidence-interval \emph{lower bound}
+rather than the point estimate, because at the small anchor sizes available a
+point estimate of $0.6$ is statistically indistinguishable from a true value of
+$0.47$. Separately, Krippendorff's alpha \cite{krippendorff2004} in its ordinal
+form measures the self-consistency of the VLM across repeated runs at non-zero
+temperature; this is a vet-free reliability pre-screen and an abstention signal,
+and it complements but never substitutes for the vs-vet kappa.
+
+\subsection{Confident learning for label triage}
+\label{subsec:bg-confident}
+
+Confident learning \cite{cleanlab2021} estimates which labels in a noisy dataset
+are likely wrong by analysing the joint distribution of given and predicted
+labels. We use it not to clean labels automatically but to \emph{triage} the
+scarce veterinary review budget: images that confident learning flags as likely
+mislabelled, together with VLM disagreements and near-threshold cases, are sent
+to the veterinarian first, maximising label corrections per review minute.
+
+\subsection{Background robustness and saliency faithfulness}
+\label{subsec:bg-robustness}
+
+A face-pain classifier can appear accurate while reading the wrong signal---
+lighting, background, or capture conditions correlated with the pain label
+rather than the face itself. The backgrounds-challenge line of work
+\cite{xiao2021background} demonstrates that models routinely exploit such
+spurious foreground/background cues and provides the conceptual basis for our
+\emph{capture-condition confound audit}: a trivial classifier built on
+brightness, blur, aspect ratio, and generic embedding features is trained to
+predict pain, and if it beats chance the label is entangled with acquisition
+context. Complementarily, the energy-based pointing game from the Score-CAM line
+\cite{wang2020scorecam} quantifies saliency \emph{faithfulness}---how much of a
+saliency map's energy falls inside the relevant region---and underlies the
+per-AU energy-based pointing game (EBPG) we report alongside the
+foreground/background gap (FGS-BG-Gap). Crucially this audit is
+\emph{one-directional}: it is well powered to \emph{detect} confounding but
+underpowered to rule it out, so its only honest conclusion is \enquote{no
+confound detected at this power,} never \enquote{no confound.} The
+\emph{protocol}---FGS-BG-Gap plus per-AU EBPG, runnable on any future
+facial-pain corpus---is the second headline contribution, distinct from any
+verdict about a particular dataset.
+
+\section{Related feline and animal pain work}
+\label{sec:bg-related}
+
+Each entry below follows the same recipe: aim, method, the key reliability
+statistic the authors report, and the limitation that bears on our design. The
+reported numbers belong to the cited studies and are quoted here as background;
+this project has not yet run experiments and reports no results of its own.
+
+\subsection{FGS validation (Evangelista et al.)}
+The aim was to construct and validate the Feline Grimace Scale as an
+observational acute-pain instrument \cite{evangelista2019}. The method paired
+human raters scoring the five AUs against established pain references, with
+psychometric validation of reliability, criterion validity, and a decision
+threshold. The headline reliability statistics are an area under the curve of
+approximately $0.94$ with sensitivity around $90.7\%$ and specificity around
+$86.6\%$ at the normalised-ratio threshold of $0.39$. The limitation for us is
+that this is a \emph{human-rater} instrument: it certifies that trained people
+scoring the rubric recover pain, not that any automated pipeline does, and it
+fixes the construct and the operating anchor (pain-recall $\geq 0.90$) we
+inherit rather than a model to compare against.
+
+\subsection{Automated landmark FGS (Steagall et al.)}
+The aim was to automate FGS scoring from images \cite{steagall2023}. The method
+detected facial landmarks, derived geometric features from them, and classified
+with a gradient-boosted model (XGBoost), with a minimum-aggregation rule across
+whisker and head regions. The reported headline accuracy is about $95.5\%$. Two
+limitations shape our positioning: the pipeline is a \emph{landmark-geometry}
+approach that we deliberately do not replicate (it is one of the replication
+traps in Section~\ref{sec:bg-synthesis}), and a single bare accuracy figure on
+its own corpus is precisely the anti-benchmark we refuse to compete against on
+headline terms.
+
+\subsection{Explainable binary cat-pain detection (Feighelstein et al.)}
+The aim was binary cat-pain detection with explanation \cite{feighelstein2023}.
+The method compared a landmark-based classifier (reported around $77\%$) against
+a deep-learning classifier (reported around $65\%$), with an explainability
+analysis indicating the mouth region contributed more than the eyes, which
+contributed more than the ears, and a two-source pain ground-truth rule
+(a composite pain-scale threshold together with a charted clinical reason). The
+limitation is that this is a \emph{binary} detector on a related corpus; without
+the firewall and per-cat grouping we adopt, the natural next paper is a
+backbone-swapped re-run of exactly this, which is the study we are explicitly
+trying not to write.
+
+\subsection{CatFLW landmarks (Martvel et al.)}
+The aim was a cat facial-landmark dataset and detector \cite{martvel2024catflw}.
+The method provided CatFACS-aligned facial landmarks with reported normalised
+mean error in roughly the $9$--$26\%$ range at a modest landmark count. The
+limitation, and the reason it is preprocessing rather than an anchor in our
+pipeline, is that it carries landmarks and bounding boxes but \emph{no pain or
+AU labels}; treating it as a graded FGS anchor would be a category error.
+We use it only for an eye-alignment / NME audit to confirm crops are
+geometrically clean enough to feed the ordinal heads.
+
+\subsection{COSMIN scoping review of human-rater instruments (Lee \& Steagall)}
+The aim was a COSMIN-style scoping review of the measurement properties of
+feline pain instruments \cite{leesteagall2026}. The method screened and
+appraised \emph{human-rater} pain-assessment instruments against measurement-
+property criteria. The limitation that governs how we cite it is one of scope:
+the review covers human-rater instruments only, and automated/AI scoring is
+outside its topical remit. We therefore do not claim the review named
+calibration or confidence intervals as gaps, nor that it excluded automated
+scorers as a finding---it simply did not address them.
+
+\subsection{Low-prevalence measurement-error propagation (Chavoshi et al.)}
+The aim was to characterise how measurement error propagates at low disease
+prevalence \cite{chavoshi2025}. The method analysed how imperfect labels and
+classifiers degrade effective performance as prevalence falls, with a worked
+illustration in which a nominally strong classifier collapses to roughly $53\%$
+effective sensitivity around $10\%$ prevalence. The implication for us is direct
+and sobering: our corpus sits near $12$--$13\%$ pain prevalence, so headline
+accuracy is the wrong target, confidence intervals and a fixed-high-sensitivity
+operating point are mandatory, and any single-number boast would be misleading
+in exactly the regime this paper formalises.
+
+\section{Synthesis and positioning}
+\label{sec:bg-synthesis}
+
+\subsection{What is new here, and what is conceded}
+The prior work above clusters into two families: detectors that report a single
+accuracy figure on their own corpus
+\cite{steagall2023,feighelstein2023}, and the instrument/measurement context
+that frames them \cite{evangelista2019,leesteagall2026,chavoshi2025} plus the
+landmark scaffolding \cite{martvel2024catflw}. Our contribution is deliberately
+\emph{not} a better detector. It is two transportable measurement protocols that
+no prior feline-pain study produced: (i) a measurement of whether a frozen VLM
+can weak-label FGS action units at human-rater agreement, expressed as five
+per-AU quadratic weighted kappas against a veterinary anchor and gated on the
+confidence-interval lower bound; and (ii) a reusable capture-condition
+confound-attribution protocol (FGS-BG-Gap plus per-AU EBPG), one-directional by
+construction. The DINOv2-plus-CORN engine carrying these methods is conceded as
+plumbing and is never claimed as novel; the binary-plus-wrapper spine ships with
+a welfare-asymmetric decision curve and a one-sided NPV lower-bound abstention
+curve, while the $0$--$10$ ordinal layer ships inspected-but-not-validated.
+Table~\ref{tab:positioning} contrasts the prior work with this positioning, with
+accuracy treated explicitly as an anti-benchmark and a column marking whether a
+contribution is a \emph{portable method}.
+
+\begin{table}[t]
+  \centering
+  \caption[Prior work versus this work positioning matrix]{Positioning matrix.
+    Accuracy figures are quoted from the cited studies as background and are
+    treated as an \emph{anti-benchmark}: this work does not compete on a single
+    corpus accuracy. The final column marks whether the contribution is a
+    dataset-agnostic \emph{portable method}. Quoted statistics are the original
+    authors'; this project reports no results.}
+  \label{tab:positioning}
+  \small
+  \begin{tabular}{@{}p{3.0cm}p{3.1cm}p{3.3cm}cc@{}}
+    \toprule
+    \textbf{Work} & \textbf{Method} & \textbf{Reported reliability stat
+      (theirs)} & \textbf{Task} & \textbf{Portable method?} \\
+    \midrule
+    Evangelista et al.\ \cite{evangelista2019}
+      & Human-rater FGS, validated
+      & AUC $\approx 0.94$; sens.\ $90.7\%$; spec.\ $86.6\%$ at $0.39$
+      & Graded (human) & No (instrument) \\
+    Steagall et al.\ \cite{steagall2023}
+      & Landmark geometry $\to$ XGBoost
+      & Acc.\ $\approx 95.5\%$
+      & Graded (auto) & No \\
+    Feighelstein et al.\ \cite{feighelstein2023}
+      & Landmark vs.\ deep, with XAI
+      & Acc.\ $\approx 77\%$ (landmark) / $65\%$ (DL)
+      & Binary & No \\
+    Martvel et al.\ \cite{martvel2024catflw}
+      & CatFACS landmark detector
+      & NME $\approx 9$--$26\%$
+      & Landmarks & No (no pain labels) \\
+    Lee \& Steagall \cite{leesteagall2026}
+      & COSMIN scoping review
+      & Measurement-property appraisal (human raters only)
+      & Review & No \\
+    Chavoshi et al.\ \cite{chavoshi2025}
+      & Error-propagation analysis
+      & $\sim 53\%$ eff.\ sens.\ at $10\%$ prevalence
+      & Theory & Yes (transfers) \\
+    \midrule
+    \textbf{This work (i)}
+      & VLM-as-AU-rater, vs.-vet kappa
+      & \emph{CI-lower-bound-gated per-AU QWK (to be measured)}
+      & AU rating & \textbf{Yes} \\
+    \textbf{This work (ii)}
+      & Confound-attribution protocol
+      & \emph{FGS-BG-Gap + per-AU EBPG (one-directional)}
+      & Audit & \textbf{Yes} \\
+    \textbf{This work (frame)}
+      & Welfare-asymmetric DCA + LB-abstention
+      & \emph{net benefit (range); one-sided 95\% NPV LB}
+      & Binary wrapper & \textbf{Yes} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{The not-a-replicate case and eight replication traps}
+\label{subsec:bg-traps}
+
+Because this project is instantiated on a single in-domain corpus, the most
+likely way it could collapse into \enquote{another cat-pain detector} is by
+falling into one of a small set of replication traps. We name them here so the
+methods chapter can be read as a list of deliberate avoidances:
+
+\begin{enumerate}
+  \item \textbf{Landmark-geometry replication.} Re-implementing the Steagall
+    landmark-to-XGBoost pipeline \cite{steagall2023}; we use frozen features and
+    ordinal heads precisely to not retread it.
+  \item \textbf{Binary-detector replication.} Producing a backbone-swapped
+    re-run of the Feighelstein binary detector \cite{feighelstein2023}; the
+    portable methods, not the detector, are the headline.
+  \item \textbf{Video/temporal replication.} Borrowing temporal landmark-track
+    machinery; out of scope and not what the corpus supports.
+  \item \textbf{External-cohort overclaim.} Asserting cross-cohort
+    generalisation from a corpus dominated by a single known camera identity.
+  \item \textbf{Single-rater ICC overclaim.} Reporting multi-rater agreement
+    statistics when only one veterinary anchor exists.
+  \item \textbf{Accuracy-as-benchmark.} Writing \enquote{we beat $77/79/95\%$};
+    we always print the distinct-pain-cat denominator with Clopper--Pearson or
+    bootstrap intervals, and never compete on a single corpus accuracy.
+  \item \textbf{Cross-species headline.} Carrying a horse-grimace number into
+    the abstract, results, or any transfer table; the horse set is decode
+    scaffolding for a unit test only.
+  \item \textbf{Validated-graded overclaim.} Reporting the $0$--$10$ graded
+    layer as a validated instrument; it ships inspected-but-not-validated, and
+    the word \enquote{graded} is struck from every validated-claim sentence.
+\end{enumerate}
+
+Avoiding these eight traps is what converts a single-corpus study into a
+contribution that survives the obvious \enquote{swap the backbone and add
+metrics} critique: the two surviving claims are facts about the world (a
+measured VLM-vs-vet agreement) and a reusable audit protocol, both portable to
+the next dataset, riding on an explicitly conceded engine.

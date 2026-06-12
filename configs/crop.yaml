@@ -1,0 +1,53 @@
+# Face crop & alignment preprocessing (Gate 5). IMPLEMENTATION_PLAN §3.
+# All thresholds here are PROPOSED operating values: tuned ONCE on the Gate 5
+# audit set then FROZEN before scoring, so the quality gate cannot be re-tuned
+# to inflate prevalence (§3.2). Logic reads these; nothing is hardcoded in src.
+
+# --- output crop contract (§3.0, fixed; do not vary per-image) ---
+edge: 518                   # 518 = 14*37; divisible by DINOv2 patch size 14
+patch: 14                   # DINOv2 ViT-S/14 patch; edge % patch == 0 asserted
+# Only legal alternative edges if Gate 5 resolution fails: 518, 672 (14*48), 784 (14*56)
+legal_edges: [518, 672, 784]
+
+# --- §3.1 margin EXPANSION (never shrink) ---
+expand: 0.135               # 13.5%, midpoint of the 12-15% band (BUILD_PLAN line 125)
+height_expand_mult: 1.4     # asymmetric: extra top room for ear tips
+
+# --- §3.2 frontal-pose / quality gate thresholds (route-to-vet) ---
+quality_gate:
+  yaw_ratio_min: 0.6        # (nose->L-eye)/(nose->R-eye); < min  -> route_vet (~ -25 deg yaw)
+  yaw_ratio_max: 1.67       #                              > max  -> route_vet (~ +25 deg yaw)
+  roll_abs_max_deg: 25.0    # in-plane tilt; aligner fixes <=25 deg, beyond is a pose problem
+  ear_closed_min: 0.12      # eye-aspect-ratio (EAR); < min -> eyes-closed, orbital AU unreadable
+  blur_var_min: 60.0        # variance-of-Laplacian; < min -> blur defer (tunable on audit set)
+  # Haar coarse fallback localizer (detect-failure -> abstention; NOT the landmark path)
+  haar_scale_factor: 1.1
+  haar_min_neighbors: 3
+  haar_min_size: [48, 48]
+
+haar_cascade: models/cat-face-detector/haarcascade_frontalcatface.xml
+
+# --- §3.4 2-point eye-similarity alignment (only if Gate 5 audit fails) ---
+align:
+  # canonical eye targets as a fraction of edge: eyes on a horizontal line,
+  # interocular = 0.38*edge, centered, slightly high (§3.4).
+  left_target:  [0.31, 0.42]
+  right_target: [0.69, 0.42]
+  interocular_frac: 0.38
+
+# --- §3.3 Gate 5 NME / resolution audit ---
+audit:
+  n: 50                     # 30-50 CatFLW images
+  seed: 5
+  nme_pass_max: 0.08        # median NME_A <= 0.08 (<=8% of interocular) to pass
+  gap_pass_max: 0.02        # gap(A-B) <= 0.02 to pass with box-as-cropper
+  interocular_px_min: 40.0  # median inter-ocular distance >= 40 px AFTER resize to edge
+  # TODO(eye-index): the L/R EYE-CENTER indices into the 48-point CatFLW landmark
+  # array are NOT yet confirmed against the CatFLW index map (§3.3, §3.6 DoD).
+  # The first ~6 points are the eye/canthi cluster; the values below are a
+  # documented BEST-GUESS placeholder and MUST be pinned (and recorded into
+  # reports/gate5_nme.json) before any NME is computed. Pinning is a gate-exit
+  # blocker, not a runtime default to trust silently.
+  left_eye_idx: 0           # PLACEHOLDER — pin against CatFLW index map
+  right_eye_idx: 1          # PLACEHOLDER — pin against CatFLW index map
+  eye_index_pinned: false   # set true only after visual confirmation on the audit set

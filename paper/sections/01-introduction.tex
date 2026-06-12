@@ -1,0 +1,415 @@
+% !TeX root = ../main.tex
+% Chapter 1 — Introduction
+% Self-contained section file: no preamble, no \documentclass.
+% Assumes the main document loads: graphicx, booktabs, tikz (libraries: positioning, arrows.meta, fit, backgrounds), hyperref, and a citation backend (biblatex/natbib) resolving the keys below.
+
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background and significance}
+\label{sec:intro-background}
+
+Cats are obligate maskers of pain. As a prey-adapted species they suppress overt
+distress behaviours in the presence of an observer, so that the very act of
+clinical examination perturbs the signal a clinician is trying to read. This
+makes feline acute-pain assessment one of the harder problems in companion-animal
+welfare: the patient cannot self-report, the behavioural channel is actively
+concealed, and the physiological channels (heart rate, blood pressure) are
+confounded by the stress of handling. The consequence is systematic
+under-treatment of pain in cats relative to dogs, a gap that the veterinary
+literature has repeatedly identified as a welfare and analgesia-stewardship
+concern.
+
+The dominant response to this problem has been to ground pain assessment in
+\emph{facial} rather than \emph{behavioural} expression. Facial movement is far
+harder to suppress voluntarily than posture or vocalisation, and it can be coded
+objectively through anatomically-defined muscle movements. The Feline Facial
+Action Coding System (CatFACS), an adaptation of the human Facial Action Coding
+System (FACS), decomposes the cat face into discrete \emph{action units} (AUs)
+that correspond to identifiable muscle actions. Building on this foundation, the
+\emph{Feline Grimace Scale} (FGS) operationalises pain into five ordinal action
+units---ear position, orbital tightening, muzzle tension, whisker change, and
+head position---each scored on a three-level ordinal scale
+($0 = \text{absent}$, $1 = \text{moderate or uncertain}$, $2 = \text{obvious}$).
+The five per-AU scores are summed to a $0$--$10$ composite, and a normalised
+ratio threshold of $>0.39$ separates the painful from the non-painful state
+\autocite{evangelista2019}. The FGS is attractive precisely because it is cheap,
+fast, and rater-trainable; its original validation reported strong discrimination
+of acute pain (area under the curve $\approx 0.94$, sensitivity $\approx 90.7\%$,
+specificity $\approx 86.6\%$ at the $>0.39$ cut-point) against a clinical
+reference \autocite{evangelista2019}. Figure~\ref{fig:fgs-five-au} summarises the
+five-AU structure that the present work treats as its target ontology.
+
+% ---------------------------------------------------------------------------
+% Figure 1.1 — FGS five-AU diagram (captioned placeholder, TikZ schematic).
+% ---------------------------------------------------------------------------
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      au/.style={draw, rounded corners, minimum width=2.5cm, minimum height=1.0cm,
+                 align=center, fill=gray!8},
+      lvl/.style={font=\scriptsize\itshape, gray},
+      every node/.style={align=center},
+    ]
+    % central face placeholder
+    \node[draw, circle, minimum size=2.2cm, fill=gray!4] (face) {cat face\\(crop)};
+    % five AUs around the face
+    \node[au, above left=0.9cm and 1.6cm of face]  (ear)      {Ear position};
+    \node[au, above right=0.9cm and 1.6cm of face] (orbital)  {Orbital\\tightening};
+    \node[au, right=2.0cm of face]                 (muzzle)   {Muzzle\\tension};
+    \node[au, below right=0.9cm and 1.6cm of face] (whisker)  {Whisker\\change};
+    \node[au, below left=0.9cm and 1.6cm of face]  (head)     {Head\\position};
+    % connectors
+    \foreach \n in {ear,orbital,muzzle,whisker,head}{
+      \draw[-{Latex[length=2mm]}, gray] (face) -- (\n);
+    }
+    % per-AU ordinal scale annotation
+    \node[lvl, below=0.05cm of ear]     {$0\,/\,1\,/\,2$};
+    \node[lvl, below=0.05cm of orbital] {$0\,/\,1\,/\,2$};
+    \node[lvl, below=0.05cm of muzzle]  {$0\,/\,1\,/\,2$};
+    \node[lvl, below=0.05cm of whisker] {$0\,/\,1\,/\,2$};
+    \node[lvl, below=0.05cm of head]    {$0\,/\,1\,/\,2$};
+    % aggregation note
+    \node[draw, dashed, rounded corners, below=1.4cm of face, fill=gray!4,
+          minimum width=8.2cm, align=center] (sum)
+      {five per-AU scores $\;\rightarrow\;$ sum $\in\{0,\dots,10\}$
+       $\;\rightarrow\;$ normalised ratio $>0.39$ flags \emph{pain}};
+    \draw[-{Latex[length=2mm]}, gray] (head) |- (sum);
+  \end{tikzpicture}
+  \caption[The five FGS action units]{Schematic of the Feline Grimace Scale
+    \autocite{evangelista2019}. Each of the five action units is scored on a
+    three-level ordinal scale ($0/1/2$); the five scores are summed to a $0$--$10$
+    composite and converted to a normalised ratio, with $>0.39$ flagging pain.
+    This diagram fixes the target ontology used throughout the thesis; it is a
+    structural schematic, not an example annotation. (Placeholder figure.)}
+  \label{fig:fgs-five-au}
+\end{figure}
+
+A recent wave of machine-learning work has sought to automate this pipeline.
+Two methodological families dominate. The first is \emph{landmark-then-geometry}:
+a facial-landmark detector locates anatomical points, hand-engineered geometric
+features are derived, and a classifier (frequently a gradient-boosted tree)
+predicts pain or grimace score. Representative of this family,
+\textcite{steagall2023} report an automated FGS pipeline reaching $95.5\%$
+agreement using a minimum-aggregation rule over the whisker and head action units,
+and \textcite{feighelstein2023} report a binary cat-pain classifier in which a
+landmark-based model ($\approx 77\%$) outperformed a direct deep-learning
+classifier ($\approx 65\%$), alongside an explainability analysis ranking the
+mouth region above the eyes and ears in feature importance. The second family
+relies on facial-landmark corpora to standardise the geometry: CatFLW provides
+$48$ CatFACS-aligned landmarks per face with reported normalised mean error in
+the $9$--$26\%$ range at roughly seven landmark-points of cost
+\autocite{martvel2024catflw}. In parallel, foundation vision encoders such as
+DINOv2 \autocite{oquab2023dinov2} have made it cheap to extract strong,
+general-purpose facial features without task-specific pre-training, lowering the
+data and compute floor for small-corpus ordinal modelling. Most recently, a COSMIN
+scoping review of feline pain instruments has begun to systematise the
+measurement-quality evidence for \emph{human-rater} instruments
+\autocite{leesteagall2026}; automated scoring falls outside that review's topic
+scope, so the question of what \emph{measurement} guarantees an automated scorer
+should carry remains open.
+
+\section{The gap, in our terms}
+\label{sec:intro-gap}
+
+The automated-FGS and binary-cat-pain literature, summarised above, is impressive
+on its own terms---but those terms are accuracy on a single-source corpus. We
+identify three gaps that this prior work does not address, and which together
+motivate the present thesis.
+
+\paragraph{(G1) No transportable trustworthiness method.}
+Prior automated work optimises a point accuracy (or AUC) on one corpus and reports
+it. What it does not produce is a \emph{method}---a piece of released, runnable
+machinery that a future investigator can carry to the next corpus and re-run to
+obtain a trustworthiness measurement. The headline number in
+\textcite{steagall2023} or \textcite{feighelstein2023} is a fact about
+\emph{their} dataset; it is not an instrument that travels. Because no open,
+graded cat-FGS dataset exists, a contribution that is merely ``high accuracy on
+corpus $X$'' is, for a feline-pain scorer, dead on arrival under independent
+replication: a reviewer can dismiss it as a backbone swap on inaccessible data.
+The portable artefact---the reusable measurement protocol---is the missing
+deliverable.
+
+\paragraph{(G2) No audit of capture-condition confounds.}
+A facial-pain corpus is acquired under conditions (lighting, camera, restraint,
+clinical context) that may correlate with the pain label itself. If brightness,
+blur, aspect ratio, or background can predict the pain label, then a classifier
+can score well by reading acquisition context rather than facial expression, and
+the reported accuracy is an artefact of capture rather than evidence of pain
+detection. Prior work does not systematically audit this entanglement, and---more
+importantly---does not ship the audit as a protocol that the next corpus can run.
+
+\paragraph{(G3) Low-prevalence measurement-error propagation is ignored.}
+Acute clinical pain is a low-prevalence event in many realistic deployment
+settings. At low prevalence, even small per-sample labelling and classification
+errors propagate non-linearly into the operating characteristics that a clinician
+actually relies upon. \textcite{chavoshi2025} make this concrete: at a $10\%$
+prevalence, an instrument whose raw error looks benign can collapse to roughly
+$53\%$ effective sensitivity once measurement error is propagated through the base
+rate. A scorer reported only as a single accuracy figure, with no confidence
+interval and no prevalence-aware operating point, silently hides this failure
+mode.
+
+These three gaps share a common root: the field reports \emph{performance} but not
+\emph{trustworthiness}, and it reports both as corpus-bound numbers rather than
+transportable methods. The present thesis is organised around closing that gap
+without pretending to data we do not have.
+
+\section{Objectives}
+\label{sec:intro-objectives}
+
+The thesis pursues four numbered objectives, ordered from the two headline
+\emph{portable methods} down to the conceded engineering substrate.
+
+\begin{enumerate}
+  \item \textbf{Measure VLM--vet agreement on FGS action units.} Determine whether
+    a frozen vision--language model (VLM) can weak-label the five FGS action units
+    at \emph{human-rater agreement}, quantified as a per-AU quadratic-weighted
+    Cohen's $\kappa$ against a veterinary anchor, reported with a confidence-interval
+    lower bound. This is a forward-looking method finding---\emph{can} a frozen
+    VLM weak-label feline FGS AUs at rater agreement---not an audit of one
+    corpus's particular labels.
+  \item \textbf{Build a portable confound-attribution protocol.} Construct a
+    reusable, one-directional capture-condition audit (the FGS--BG--Gap and
+    per-AU energy-based pointing-game, EBPG) that any future facial-pain-scorer
+    corpus can run to detect---never to ``rule out''---entanglement between the
+    pain label and acquisition context.
+  \item \textbf{Ship a welfare-asymmetric binary-plus-abstention decision floor.}
+    Deliver a calibrated binary pain decision at a \emph{fixed} high-sensitivity
+    operating point (pain-recall $\geq 0.90$, anchored to
+    \textcite{evangelista2019}; never a symmetric Youden-$J$/$F_1$ knee), made
+    visible through a welfare-asymmetric decision curve, with a defer-to-vet
+    abstention boundary reported as a one-sided $95\%$ negative-predictive-value
+    lower bound.
+  \item \textbf{Build---but only inspect, not validate---a $0$--$10$ ordinal
+    engine.} Implement a frozen DINOv2 encoder feeding five per-AU ordinal heads
+    and a distributional decode to a $0$--$10$ composite, and ship it as an
+    \emph{inspected-not-validated} exploratory layer. This engine is conceded as
+    plumbing; it is never advanced as a validated graded claim.
+\end{enumerate}
+
+Objectives~1 and~2 are the two transportable contributions of the thesis;
+Objective~3 is the honest decision floor that stands on its own even if the graded
+layer is dropped; Objective~4 is built for completeness and future extension but
+is firewalled out of every validated results table. The contribution map is
+summarised in Figure~\ref{fig:contribution-map}.
+
+% ---------------------------------------------------------------------------
+% Figure 1.2 — Thesis contribution map (TikZ).
+% ---------------------------------------------------------------------------
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      box/.style={draw, rounded corners, minimum height=1.0cm, align=center,
+                  text width=3.7cm, inner sep=4pt},
+      head/.style={box, fill=gray!14, very thick},
+      frame/.style={box, fill=gray!6},
+      engine/.style={box, dashed, fill=white},
+      lbl/.style={font=\scriptsize\itshape, gray},
+    ]
+    % two portable methods (the headline)
+    \node[head] (m1) {\textbf{Method 1}\\VLM-as-AU-rater\\per-AU quadratic $\kappa$\\vs.\ vet (CI-lower-bound-gated)};
+    \node[head, right=1.0cm of m1] (m2) {\textbf{Method 2}\\Capture-condition\\confound-attribution\\(FGS-BG-Gap + per-AU EBPG)};
+    \node[lbl, above=0.15cm of m1.north east] {portable, dataset-agnostic --- the claimed contributions};
+    % the wrapper frame underneath
+    \node[frame, below=1.2cm of m1, text width=3.7cm] (op)
+      {Welfare-asymmetric decision curve\\@ pain-recall $\geq 0.90$};
+    \node[frame, below=1.2cm of m2, text width=3.7cm] (ab)
+      {One-sided $95\%$ NPV\\lower-bound abstention};
+    \node[lbl, below=0.1cm of op.south east] {trustworthiness wrapper --- the frame};
+    % conceded engine at the base, centred under the two wrapper frames
+    \node[engine, below=1.5cm of op.south east, anchor=north, text width=8.4cm] (eng)
+      {\textbf{Conceded engine (plumbing --- never claimed novel):}
+       frozen DINOv2 ViT-S/14 $\rightarrow$ 5 per-AU CORN heads $\rightarrow$
+       $0/1/2 \rightarrow$ sum $0$--$10 \rightarrow$ distributional decode.
+       Graded layer ships \emph{inspected-not-validated}.};
+    % connectors
+    \draw[-{Latex[length=2mm]}, gray] (eng) -- (op);
+    \draw[-{Latex[length=2mm]}, gray] (eng) -- (ab);
+    \draw[-{Latex[length=2mm]}, gray] (op) -- (m1);
+    \draw[-{Latex[length=2mm]}, gray] (ab) -- (m2);
+  \end{tikzpicture}
+  \caption[Thesis contribution map]{Contribution map. The two headline
+    deliverables are \emph{portable methods} (top): a VLM-as-AU-rater per-AU
+    $\kappa$ protocol and a capture-condition confound-attribution protocol. The
+    trustworthiness wrapper (middle) supplies the welfare-asymmetric operating
+    point and the abstention floor. The DINOv2$+$CORN engine (bottom) is conceded
+    plumbing and is never claimed as a contribution; its graded output ships
+    inspected-not-validated. (Placeholder schematic.)}
+  \label{fig:contribution-map}
+\end{figure}
+
+\section{Scope and honesty boundary}
+\label{sec:intro-scope}
+
+This thesis is, at the time of writing, a \emph{research proposal and methodology}
+backed by a build specification; it reports an evaluation protocol, gate-conditioned
+expected outcomes, and decision rules, rather than completed experimental results.
+No accuracy, $\kappa$, or calibration number reported as ``ours'' appears in this
+document, because no such experiment has yet been run. Literature numbers
+(e.g.\ those of \textcite{evangelista2019}, \textcite{steagall2023},
+\textcite{feighelstein2023}, \textcite{martvel2024catflw}, and
+\textcite{chavoshi2025}) are reproduced only as background and are explicitly
+attributed to their sources.
+
+Several scope boundaries follow from honesty about what the project can and cannot
+deliver, and are held as hard constraints throughout:
+
+\begin{itemize}
+  \item \textbf{Single corpus, single anchor.} The empirical substrate is a single
+    forked Roboflow cat-pain corpus (binary pain / no\_pain boxes,
+    $\sim 2040$ records / $\sim 1547$ distinct images, $\sim 12$--$13\%$
+    prevalence, with a leaky shipped split that is discarded) plus one veterinary
+    anchor whose size is fixed by an up-front power calculation. No open, graded
+    cat-FGS dataset exists; CatFLW \autocite{martvel2024catflw} is used for
+    eye-alignment landmarks only, not as a graded anchor, and an open
+    horse-grimace set is used solely as a decode unit-test fixture (no horse
+    number ever appears in a results table).
+  \item \textbf{Solo compute.} The work is built by a single developer on an Apple
+    M4 / MPS machine (no local CUDA); detector training alone is offloaded to a
+    cloud T4, and the frozen encoder plus the ordinal heads run locally on cached
+    features.
+  \item \textbf{Decision-support framing only.} The output is a triage
+    recommendation---``grimace consistent with pain, $X/10$; recommend veterinary
+    assessment''---and \emph{never} an autonomous analgesia trigger. The negative
+    class is documented as an unknown mixture (possibly sedated or post-operative
+    animals), not as a clean ``no-pain'' reference.
+  \item \textbf{Engine conceded.} The DINOv2$+$CORN engine is treated as plumbing
+    throughout and is never claimed as a novel contribution; the word
+    ``graded'' is struck from every validated-claim sentence, and the thesis
+    abstract holds with the graded output dropped.
+  \item \textbf{Anti-benchmark discipline.} The thesis never claims to ``beat''
+    the $77\%$ / $79\%$ / $95\%$ figures of prior work. Every reported rate is
+    accompanied by its distinct-pain-cat denominator and a Clopper--Pearson or
+    bootstrap confidence interval, and accuracy is treated as an anti-benchmark
+    rather than the objective.
+\end{itemize}
+
+\section{Research procedure}
+\label{sec:intro-procedure}
+
+The work is executed as a strict, blocking \emph{gate order}: each gate writes an
+auditable artefact and blocks all downstream quantitative work until it passes.
+The order is risk-first---the cheapest checks that can kill or reframe the project
+run before any veterinary hour or GPU spend. The eight gates are summarised below
+and depicted in Figure~\ref{fig:gate-flow}.
+
+\begin{enumerate}
+  \item \textbf{G0 --- Power calculations and vet-budget pre-registration.}
+    Fix the single integer (how many faces the vet scores) by three zero-data
+    power calculations: the faces needed for a per-AU $\kappa$ half-width
+    $\leq 0.15$; the faces needed to certify a useful negative-predictive-value
+    band at an acceptable abstention rate; and whether the $>0.39$ operating-point
+    interval is reportable at the budgeted $n$. Blocks everything quantitative.
+  \item \textbf{G1 --- Per-cat merge.} Collapse clips to true individuals,
+    validated against trusted camera ids, so that no individual straddles a fold
+    and the honest distinct-pain-cat denominator can be printed.
+  \item \textbf{G2 --- Capture-condition confound audit.} Run the one-directional
+    portable audit (Objective~2) before any spend; it can kill or reframe the
+    corpus, and it publishes either way.
+  \item \textbf{G3 --- Frozen, hashed, cat-disjoint hold-out.} Freeze and hash the
+    test manifest so that a continuous-integration check aborts any run that can
+    read it---structurally defeating post-hoc goalpost moves.
+  \item \textbf{G4 --- MPS compute-correctness pre-checks (blocking).} Assert
+    MPS-versus-CPU encoder logit parity and pass a synthetic ordinal
+    decode-to-sum-to-threshold unit test, so that no number from silently-wrong
+    hardware logits is ever believed.
+  \item \textbf{G5 --- Alignment / normalised-mean-error gate.} Check that the
+    detector crop is geometrically clean enough to feed the ordinal heads, adding
+    a two-point eye-similarity alignment if not, so that ``calibration'' never
+    silently measures crop quality.
+  \item \textbf{G1-B --- Weak-label reliability $\kappa$ pilot.} Score the per-AU
+    VLM-versus-vet quadratic $\kappa$ on the anchor (Objective~1); the pilot itself
+    selects the VLM, and the gate fires on the $\kappa$ confidence-interval
+    \emph{lower bound}, not the point estimate.
+  \item \textbf{G6 --- Severity-cell count gate.} If the anchor yields only
+    single-digit AU$=2$ (severe) cells, collapse the high end of the scale by a
+    pre-committed rule rather than printing an uninformative per-cell number.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+% Figure 1.3 — Gate flow (TikZ).
+% ---------------------------------------------------------------------------
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      font=\scriptsize,
+      gate/.style={draw, rounded corners, minimum width=1.65cm, minimum height=0.85cm,
+                   align=center, fill=gray!8},
+      block/.style={gate, fill=gray!18, very thick},
+      flow/.style={-{Latex[length=1.6mm]}, gray},
+    ]
+    \node[gate] (g0) {G0\\power\\+ budget};
+    \node[gate, right=0.55cm of g0] (g1) {G1\\per-cat\\merge};
+    \node[gate, right=0.55cm of g1] (g2) {G2\\confound\\audit};
+    \node[gate, right=0.55cm of g2] (g3) {G3\\frozen\\hold-out};
+    \node[block, below=0.7cm of g3] (g4) {G4\\MPS\\(blocking)};
+    \node[gate, left=0.55cm of g4] (g5) {G5\\align\\/ NME};
+    \node[gate, left=0.55cm of g5] (g1b) {G1-B\\$\kappa$ pilot\\(CI-LB)};
+    \node[gate, left=0.55cm of g1b] (g6) {G6\\severity\\collapse};
+    \draw[flow] (g0) -- (g1);
+    \draw[flow] (g1) -- (g2);
+    \draw[flow] (g2) -- (g3);
+    \draw[flow] (g3) -- (g4);
+    \draw[flow] (g4) -- (g5);
+    \draw[flow] (g5) -- (g1b);
+    \draw[flow] (g1b) -- (g6);
+  \end{tikzpicture}
+  \caption[Gate run-order]{The blocking gate run-order
+    (G0 $\rightarrow$ G1 $\rightarrow$ G2 $\rightarrow$ G3 $\rightarrow$ G4
+    $\rightarrow$ G5 $\rightarrow$ G1-B $\rightarrow$ G6). Each gate emits an
+    auditable artefact and blocks downstream quantitative work; G4 (MPS
+    compute-correctness) is hard-blocking. The order is risk-first: the cheapest
+    kill-or-reframe checks run before any veterinary or GPU spend.}
+  \label{fig:gate-flow}
+\end{figure}
+
+A kill/pivot rule is attached to the gate order: if the orbital, ear, or head
+$\kappa$ lower bound at G1-B falls below its pre-registered floor, the graded
+layer is dropped entirely and the project ships the calibrated
+binary-plus-abstention floor with the confound protocol; the two portable-method
+headlines still stand, because a mediocre $\kappa$ is itself a real first
+measurement.
+
+\section{Expected benefits and contributions}
+\label{sec:intro-contributions}
+
+The thesis is designed so that its value does not depend on any single experiment
+firing favourably. Its expected contributions are three released, dataset-agnostic
+artefacts, each of which stands as a portable method rather than a corpus-bound
+number:
+
+\begin{enumerate}
+  \item \textbf{A VLM-as-AU-rater $\kappa$ protocol and result.} Released code that
+    scores any face corpus's per-AU VLM labels against a veterinary anchor and
+    reports five quadratic-weighted $\kappa$ values with confidence-interval lower
+    bounds. The forked corpus's numbers merely \emph{instantiate} the protocol;
+    the deliverable is the reusable measurement and the one fact-about-the-world
+    it produces---whether a frozen VLM weak-labels feline FGS action units at
+    human-rater agreement.
+  \item \textbf{A capture-condition confound-attribution protocol.} The
+    one-directional FGS--BG--Gap plus per-AU EBPG audit, runnable on any future
+    facial-pain-scorer corpus, whose deliverable is the protocol itself rather
+    than a verdict about one dataset.
+  \item \textbf{A welfare-asymmetric decision-curve and abstention floor.} An
+    operating point fixed at high sensitivity with the undertreat-to-overtreat
+    harm ratio swept as a range, plus a defer-to-vet boundary reported with
+    finite-sample one-sided lower bounds. This is the clinical-decision
+    contribution that distinguishes the trustworthiness wrapper from generic
+    calibration, and it makes the low-prevalence error-propagation concern of
+    \textcite{chavoshi2025} an explicit, reported quantity rather than a hidden
+    failure mode.
+\end{enumerate}
+
+Taken together these artefacts answer the three gaps of
+Section~\ref{sec:intro-gap} without overclaiming: they supply the transportable
+trustworthiness method (G1), the capture-condition audit (G2), and the
+prevalence-aware operating point (G3) that the prior automated-FGS literature
+leaves open. The remainder of the thesis develops each in turn---the FGS and
+automated-scoring background and the measurement-quality literature
+(Chapter~2), the methodology and gate-bound evaluation protocol, and the
+gate-conditioned expected outcomes and decision rules---always under the standing
+constraint that the DINOv2$+$CORN engine is conceded plumbing and that no graded
+claim is ever validated.

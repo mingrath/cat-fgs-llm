@@ -1,0 +1,320 @@
+% Chapter 8 -- Ethics, Welfare Framing, and Limitations
+% Self-contained section file: no preamble, no \documentclass.
+% Mirrors the template's Chapter 5, Sec. 5.3 (Limitations, itemized, each tied to a concrete cause),
+% expanded to the project's welfare/ethics stance.
+% HONESTY RULE: this is a methodology / research-proposal chapter. No experiments have been run
+% and no result numbers of ours are reported. Literature anchors are attributed as background.
+
+\chapter{Ethics, Welfare Framing, and Limitations}
+\label{ch:ethics-welfare-limitations}
+
+This chapter states the ethical and welfare commitments that govern how the
+instrument may be used, and then enumerates --- candidly, in the itemized style
+of the template's limitations section --- the constraints that bound every claim
+this work makes. It is written in the same self-honesty register as the rest of
+the document: because no experiments have yet been conducted, the chapter
+reports no outcomes of our own. What it fixes instead is the framing under which
+any future outcome would be permitted to circulate, the measurement-error
+consequences we already know our data will impose, and the descope triggers that
+convert each limitation into a pre-committed decision rather than a post-hoc
+excuse.
+
+\section{Decision-Support Triage Framing Only}
+\label{sec:triage-framing}
+
+The instrument is a \emph{decision-support triage} tool and nothing more. Its
+permitted output is a single sentence of the form \emph{``grimace consistent
+with pain, $X/10$; recommend veterinary assessment''}, and the role of that
+sentence is to surface a candidate for human attention, not to take any action
+on the animal. The system is \textbf{never} an autonomous analgesia trigger:
+under no configuration does a score, a threshold crossing, or an abstention
+cause a drug to be administered, withheld, or dosed without a clinician in the
+loop. This is a hard design boundary, not a deployment recommendation, and it is
+restated in the released model card and datasheet so that a downstream
+integrator cannot quietly repurpose the output as a control signal.
+
+This framing follows directly from the welfare-asymmetric loss that motivates
+the entire wrapper. The two error directions are not symmetric in their
+consequences: a missed painful cat (a false negative) leaves an animal in
+untreated pain, whereas a false alarm (a false positive) costs a clinician's
+review and, at worst, an unnecessary examination. Because the harms are
+asymmetric, the operating point is fixed at a high pain-recall target
+($\geq 0.90$, anchored to the FGS validation level reported
+by~\cite{evangelista2019}) rather than at a symmetric-cost Youden-J or $F_1$
+knee, and the headline wrapper artifact is a harm-ratio-weighted decision curve
+that sweeps the undertreat-to-overtreat asymmetry as a \emph{range} (we have no
+vet-elicited point ratio, so we report the range and let the reader locate their
+own loss on it). The triage framing is the ethical counterpart of that loss:
+precisely because we tune the instrument to over-refer rather than under-refer,
+the output must terminate at a recommendation for human assessment and may not
+short-circuit into autonomous treatment. An instrument calibrated to flag
+generously is safe only if a human adjudicates each flag.
+
+\begin{figure}[t]
+  \centering
+  \fbox{\begin{minipage}{0.82\linewidth}
+    \vspace{0.4em}
+    \centering
+    \textbf{[Captioned placeholder --- triage-output card mock]}\\[0.6em]
+    \begin{flushleft}
+    \small
+    \texttt{------------------------------------------}\\
+    \texttt{ FELINE PAIN TRIAGE (decision support)}\\
+    \texttt{------------------------------------------}\\
+    \texttt{ Grimace consistent with pain.}\\
+    \texttt{ Estimated FGS-style score:  X / 10}\\
+    \texttt{ Recommendation: REFER FOR}\\
+    \texttt{   VETERINARY ASSESSMENT.}\\[0.4em]
+    \texttt{ This is NOT a diagnosis and NOT an}\\
+    \texttt{ analgesia trigger. A clinician must}\\
+    \texttt{ adjudicate. [defer / abstain shown}\\
+    \texttt{ when below NPV lower-bound floor]}\\
+    \texttt{------------------------------------------}
+    \end{flushleft}
+    \vspace{0.2em}
+  \end{minipage}}
+  \caption[Triage-output card mock]{Captioned placeholder for the triage-output
+  card the instrument is permitted to emit. The card surfaces a candidate for
+  human review and explicitly disclaims diagnosis and autonomous analgesia. The
+  $X/10$ figure is shown for inspection only; per Chapter~\ref{ch:ethics-welfare-limitations}
+  the $0$--$10$ ordinal layer is inspected-not-validated and is never a validated
+  claim. This is a design mock, not a screenshot of a built system.}
+  \label{fig:triage-card}
+\end{figure}
+
+\section{Negative-Class Ambiguity and Low-Prevalence Measurement Error}
+\label{sec:negative-class}
+
+The corpus carries only binary \texttt{pain}/\texttt{no\_pain} boxes, and the
+negative class is best understood as an \emph{unknown mixture}. The images
+labelled \texttt{no\_pain} are not guaranteed to be cats in a clean baseline
+state; the class plausibly contains sedated, post-operative, or
+post-recovery animals whose facial expression is suppressed for reasons
+unrelated to the absence of pain. We document this in the datasheet as a known
+property of the labels rather than treating ``no pain'' as a clean physiological
+ground truth. The pain labels themselves are, until the confound audit and the
+weak-label kappa pilot pass, unvalidated pseudo-labels on a generic photo
+corpus, and we treat them as such.
+
+This ambiguity has a concrete statistical consequence that we do not get to wish
+away, because it interacts with the corpus's low pain prevalence. At a
+prevalence near $13\%$, even a label channel with seemingly modest error
+propagates into a severely degraded effective sensitivity once the base rate is
+folded in; the measurement-error analysis of~\cite{chavoshi2025} makes this
+quantitative, showing how a low-prevalence regime can drive an apparently
+acceptable instrument down to roughly half its nominal sensitivity once
+label noise is accounted for. We therefore treat negative-class ambiguity not as
+a footnote but as a first-order threat to every quantitative claim, and we
+respond to it structurally: the sensitivity and specificity of the $0.39$
+decision are estimated \emph{only} on vet-confirmed labels (the circularity
+firewall), the prevalence is always reported on a fixed metadata basis with its
+discrepancy logged, and every reported count carries its distinct-pain-cat
+denominator together with Clopper--Pearson or bootstrap confidence intervals so
+that the reader can see the finite-sample uncertainty rather than a bare point
+estimate.
+
+\section{Limitations}
+\label{sec:limitations}
+
+Mirroring the template's itemized limitations section, we enumerate the binding
+constraints of this work, each tied to a concrete cause and, where one exists,
+to a pre-committed mitigation or descope trigger. None of these is hidden in
+prose elsewhere; they are collected here so a reader can audit the gap between
+what the instrument could in principle claim and what its data and budget
+actually license. Table~\ref{tab:limitations} summarizes the mapping from
+limitation to cause to mitigation.
+
+\paragraph{Single-source corpus and a lone camera identity.}
+The entire spine is instantiated on one forked corpus, and the only known camera
+identity in it is a single label (\texttt{CAT\_01}, the lone known camera id).
+There is no second cohort, no second site, and no external validation set.
+Consequently we make \textbf{no external-cohort or cross-site generalization
+claim} of any kind: every reported number characterizes behaviour on this
+corpus only, and the portability we do claim lives in the \emph{methods} (the
+VLM-as-AU-rater kappa protocol and the confound-attribution protocol), which are
+released as runnable code that the next corpus can re-run --- not in any number
+this corpus produces.
+
+\paragraph{The vet-anchor budget wall.}
+Every quantitative claim that requires trustworthy graded labels --- the per-AU
+kappa, the $0.39$ sensitivity/specificity, the abstention NPV lower bound, the
+severity cells --- draws on the \emph{same} small veterinary anchor, on the
+order of fifty pain-positive images, whose exact size is fixed by the Gate-0
+power calculation. This single budget is the project's dominant constraint. At
+this $n$ the severity tail is essentially unestimable, a ``guaranteed'' NPV is
+arithmetically undeliverable, and a data-fitted cross-AU error-correlation
+matrix would launder noise as rigor. We respond by budgeting the anchor up front
+and by demoting any claim the budget cannot support \emph{on paper now} rather
+than discovering its weakness later.
+
+\paragraph{The graded layer is inspected-not-validated.}
+The $0$--$10$ ordinal CORN layer is built, but it ships as an internally
+consistent, VLM-anchored, qualitatively inspected exploratory artifact. The word
+``graded'' is struck from every validated-claim sentence, and the abstract and
+every results claim are written to hold with this layer dropped. There is no
+independent per-AU $0/1/2$ gold held-out set on the solo timeline, so a validated
+graded instrument is explicitly out of scope; the gold-set chase was cut from
+the critical path precisely because the only candidate sets are either a category
+error as a graded anchor (landmarks, not AU scores) or carry unbounded
+request-only access dependencies.
+
+\paragraph{Muzzle and whiskers kappa fragility.}
+We expect the per-AU agreement to be strongest on the orbital, ear, and head
+units and weakest on the muzzle and whiskers, in line with the relative
+difficulty of those units reported in prior feline-pain
+work~\cite{feighelstein2023}. The Gate-1-B floors reflect this asymmetry
+(higher floor for orbital/ear/head, a lower acceptable-with-caveat band for
+muzzle/whiskers), and the gate fires on the confidence-interval \emph{lower
+bound} rather than the point estimate. If the orbital/ear/head floor is not
+cleared, the graded layer is dropped entirely and the project pivots to the
+calibrated binary-plus-abstention spine; if only muzzle/whiskers fail, we
+proceed on the surviving units and state how dropping two of five heads narrows
+the achievable $0$--$10$ range.
+
+\paragraph{CatFLW licensing blocks commercial deployment.}
+The landmark set used for the alignment and NME audit, CatFLW, is licensed
+CC~BY-NC~4.0~\cite{martvel2024catflw}; it is non-commercial, the aligner trained
+on it inherits that restriction, and it therefore blocks any commercial
+deployment of a derived model. We keep it strictly walled from the CC~BY corpus
+so a derived release stays CC~BY, and we use CatFLW for alignment and NME only,
+never as a graded anchor.
+
+\paragraph{The confound audit is one-directional.}
+The capture-condition confound-attribution protocol is well powered to
+\emph{detect} confounding but underpowered to \emph{rule it out} at the
+available $n$. We therefore report ``no confound detected at this power'' and
+never ``no confound.'' The protocol can raise an alarm; it cannot certify the
+absence of an alarm, and the released artifact is the portable protocol itself
+rather than any verdict about this specific corpus.
+
+\paragraph{MPS-correctness dependency.}
+All local scoring runs on Apple-silicon MPS, where a silently incorrect kernel
+would render a leak-proof metric worthless. We therefore make the MPS-versus-CPU
+logit-parity and decode-path unit checks a \emph{blocking} gate: no number
+derived from MPS logits is believed until that gate is green. This is a genuine
+dependency --- a regression in the accelerator's numerics would invalidate
+downstream numbers --- and we surface it rather than assume correctness.
+
+\paragraph{Background instrument context.}
+The scoping review of human-rater feline pain instruments~\cite{leesteagall2026}
+situates our background but covers only human-rater instruments; automated
+scoring is out of its topic scope, and we do not attribute to it any claim about
+calibration, confidence intervals, or the exclusion of automated scorers. It
+frames the human-instrument landscape; it does not license a claim about ours.
+
+\begin{table}[t]
+  \centering
+  \caption[Limitations, causes, and mitigations]{Limitations of this work, each
+  tied to a concrete cause and to a pre-committed mitigation or descope trigger.
+  Mirrors the template's itemized limitations table. ``Descope trigger'' names
+  the pre-registered condition under which the corresponding claim is demoted or
+  dropped rather than rescued post hoc.}
+  \label{tab:limitations}
+  \small
+  \begin{tabular}{@{}p{0.27\linewidth} p{0.30\linewidth} p{0.33\linewidth}@{}}
+    \toprule
+    \textbf{Limitation} & \textbf{Cause} & \textbf{Mitigation / descope trigger} \\
+    \midrule
+    Single-source corpus; lone \texttt{CAT\_01} camera id &
+    One forked corpus, no second cohort/site &
+    No external-cohort claim; portability lives in released methods, not numbers \\
+    \addlinespace
+    $\sim$50-positive vet-anchor budget &
+    One small anchor shared across every graded claim &
+    Gate-0 power calc fixes $n$ up front; unsupported claims demoted on paper now \\
+    \addlinespace
+    Graded $0$--$10$ layer not validated &
+    No independent per-AU gold set on the solo timeline &
+    Ships inspected-not-validated; ``graded'' struck from validated sentences \\
+    \addlinespace
+    Muzzle/whiskers kappa fragility &
+    Hardest AUs~\cite{feighelstein2023}, small $n$ &
+    Gate-1-B fires on CI lower bound; pivot to binary spine if orbital/ear/head fail \\
+    \addlinespace
+    Negative class = unknown mixture &
+    Possible sedated/post-op cats in \texttt{no\_pain} &
+    Documented in datasheet; firewall + low-prevalence error noted~\cite{chavoshi2025} \\
+    \addlinespace
+    CatFLW CC~BY-NC blocks commercial use &
+    Non-commercial license~\cite{martvel2024catflw} &
+    Walled from CC~BY corpus; alignment/NME use only \\
+    \addlinespace
+    Confound audit one-directional &
+    Powered to detect, not to rule out &
+    Report ``no confound detected at this power''; release the protocol, not a verdict \\
+    \addlinespace
+    MPS-correctness dependency &
+    Apple-silicon accelerator numerics &
+    Blocking MPS$\leftrightarrow$CPU parity + decode unit tests before any number \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{License Co-Mingling Firewall and Data-Release Ethics}
+\label{sec:license-firewall}
+
+The released bundle must remain honestly licensed, which requires a strict
+\emph{license co-mingling firewall}. Each external source lives in its own
+namespace with a one-line license stamp, so that a CC0, CC~BY-NC, horse, or
+mouse image can never leak into a cat-pain loader or into a release that claims a
+more permissive license than its most restrictive ingredient allows. Concretely,
+the forked Roboflow corpus is CC~BY~4.0 and releasable, the vet-anchor labels are
+project-original and releasable, the horse-grimace fixture is CC~BY~4.0 and used
+for decode unit-testing only, CatFLW is CC~BY-NC~4.0 and kept
+walled~\cite{martvel2024catflw}, the DINOv2 backbone is Apache-2.0, and the
+fallback aligner archive is CC0 and namespaced outside the pain corpus. Because
+the CatFLW-derived aligner inherits the non-commercial restriction, any release
+that includes it is non-commercial; we keep the alignment artifact separable so a
+CC~BY release path remains available.
+
+The data-release ethics extend beyond licensing. The released annotation bundle
+flags vet-confirmed rows distinctly from VLM-only rows, so a downstream user is
+never misled about which labels carry veterinary confirmation. The datasheet
+documents pseudo-label provenance, the unknown-mixture nature of the negative
+class, the discarded leaky shipped split, the frozen hashed cat-disjoint test
+manifest, and the explicit concession that the DINOv2+CORN engine is plumbing and
+not claimed novel. Augmented copies never enter any reported $N$, and no
+accuracy comparison is framed as ``beating'' a prior number; the corpus is
+instantiation, not benchmark.
+
+\section{The Eight Replication Traps as Self-Imposed Limitations}
+\label{sec:replication-traps}
+
+Finally, we record as self-imposed limitations the replication-trap discipline
+that keeps this work from collapsing into a re-implementation of prior detectors.
+These are constraints we accept voluntarily, each foreclosing a tempting move
+that would either overclaim or quietly reproduce existing work:
+
+\begin{enumerate}
+  \item \textbf{No landmark-plus-XGBoost geometry pipeline.} We do not reproduce
+  the landmark-and-geometry detector lineage~\cite{steagall2023}; the engine is a
+  frozen-feature plus ordinal-head path, conceded as plumbing.
+  \item \textbf{No video or temporal modelling.} We score still crops only and
+  make no temporal-aggregation claim.
+  \item \textbf{No external-cohort claim on a single camera identity.} With one
+  known camera id, generalization across cohorts is not asserted.
+  \item \textbf{No multi-rater ICC with one veterinarian.} A single anchor rater
+  cannot support an inter-rater reliability coefficient across raters; we report
+  agreement against the anchor, not a multi-rater ICC.
+  \item \textbf{Horse data is decode scaffolding only.} The horse-grimace set
+  unit-validates the decode$\rightarrow$sum$\rightarrow$threshold path on genuine
+  $0/1/2$ labels and never contributes a number to the abstract, results, or any
+  transfer table.
+  \item \textbf{No engine-novelty claim.} The DINOv2+CORN engine is conceded as
+  plumbing permanently; a swap-the-backbone delta is harmless only because it is
+  never sold as the contribution.
+  \item \textbf{No phantom weak-label citation.} The labeler is self-justified by
+  the kappa pilot; we invoke no unretrievable ``only this model is acceptable''
+  citation to justify the choice.
+  \item \textbf{No symmetric-cost operating point and no ``guaranteed'' NPV.} The
+  operating point is welfare-asymmetric at fixed high recall, and the abstention
+  curve is a one-sided $95\%$ NPV lower bound with the word ``guaranteed'' banned.
+\end{enumerate}
+
+Taken together, these eight traps function as a pre-registered boundary on what
+the work is allowed to assert. They are limitations in the strict sense --- each
+removes a capability the instrument might otherwise appear to have --- but they
+are the limitations that make the remaining claims honest, portable, and
+solo-deliverable, and they are the reason the modal product is a
+binary-plus-wrapper triage instrument with two released portable methods rather
+than another cat-pain detector.

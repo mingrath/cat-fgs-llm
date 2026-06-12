@@ -1,0 +1,375 @@
+% !TeX root = ../main.tex
+% Chapter 7 -- Expected Outcomes, Gate-Conditioned Decisions, and Risk Analysis
+% Self-contained section file: no preamble, no \documentclass.
+% HONESTY RULE: no experiments have been run. This chapter replaces a "Results"
+% chapter with an EXPECTED / GATE-CONDITIONED OUTCOMES framing. Every quantitative
+% figure that appears as a number belongs to the LITERATURE and is attributed as such.
+%
+% PREAMBLE REQUIREMENTS (main.tex must load these):
+%   \usepackage{booktabs}
+%   \usepackage{tikz}
+%   \usetikzlibrary{arrows.meta,positioning}
+% The TikZ gate tree uses arrows.meta (Latex tips) and positioning (below=of / right=of).
+
+\chapter{Expected Outcomes, Gate-Conditioned Decisions, and Risk Analysis}
+\label{ch:expected-outcomes}
+
+\newcommand{\evangelistanums}{AUC~$0.94$ / sensitivity~$90.7\%$ / specificity~$86.6\%$}
+
+\begin{quote}\small\itshape
+No experiments have been run. This chapter contains no measured results, no
+accuracies, no $\kappa$ values, no calibration numbers, and no figures of our own
+curves. It states, per gate, the \emph{decision rule} and the gate-conditioned
+outcome (\textsc{go} / \textsc{pivot} / \textsc{collapse}), the modal product we
+plan to ship, and the kill criteria under which we pivot. Every numeric value that
+appears (e.g. \evangelistanums) is drawn from the prior literature and is
+explicitly attributed to its authors as a \emph{background anchor}, never as a
+result of this work.
+\end{quote}
+
+This chapter deliberately departs from the template's Chapter~4
+(\emph{การทดลองและผลลัพธ์}, Experiments and Results). Because the project is a
+research proposal and methodology with a strict, artifact-emitting gate order
+rather than a completed empirical study, a conventional results chapter would
+either be empty or be forced to fabricate numbers. We therefore recast the
+chapter as an \emph{expected-outcomes and risk} analysis: for each gate we
+pre-register the decision rule, the pass/fail branch, and exactly what ships in
+each case. The chapter is organised around the \emph{modal deliverable}
+(\S\ref{sec:modal-deliverable}), the gate-conditioned decision table
+(\S\ref{sec:decision-table}), the power-calculation-conditioned framing of the
+abstention curve (\S\ref{sec:power-conditioned}), the expected severity-cell
+collapse (\S\ref{sec:severity-collapse}), the Monte-Carlo correlation-sensitivity
+band (\S\ref{sec:rho-band}), and the literature anchors we cite as background
+(\S\ref{sec:lit-anchors}).
+
+%====================================================================
+\section{The Modal Deliverable as the Default Product}
+\label{sec:modal-deliverable}
+
+We plan the repository, the evaluation protocol, and the write-up for the
+\emph{modal} outcome --- the product we expect to ship --- not the optimistic one.
+The modal deliverable is a \textbf{binary-pain decision-support instrument with a
+trustworthiness wrapper}, accompanied by two portable methods, shipped on an
+explicitly-conceded engine. The graded $0$--$10$ Feline Grimace Scale (FGS) layer
+is present strictly as an \emph{inspected-not-validated} artifact. The single
+governing rule on the prose: \textbf{the abstract must hold with the graded layer
+dropped}, and the word ``graded'' is struck from every validated-claim sentence.
+
+Concretely, the modal product comprises six named components, summarised in
+Table~\ref{tab:modal-components}. Five are validated claims; the sixth (the graded
+CORN layer) is never entered into a validated results table.
+
+\begin{table}[t]
+\centering
+\caption[The six components of the modal deliverable]{The six components of the
+modal deliverable. The abstract is required to hold with Component~6 dropped; the
+DINOv2+CORN engine is conceded as plumbing and is never claimed novel. ``Validated''
+means estimated against vet-confirmed labels under the circularity firewall.}
+\label{tab:modal-components}
+\small
+\begin{tabular}{@{}clp{0.40\linewidth}c@{}}
+\toprule
+\# & Component & What it is & Validated? \\
+\midrule
+1 & Calibrated binary decision &
+  Per-image pain decision at a \emph{fixed pain-recall} $\geq 0.90$ operating
+  point (after \citealp{evangelista2019}); never Youden-$J$/$F_1$ & Yes \\
+2 & $\kappa$-as-method &
+  Per-AU VLM-vs-vet quadratic-weighted $\kappa$ \citep{cohen1968kappa} reported on
+  its \emph{CI lower bound}; the protocol is the deliverable & Yes (headline~1) \\
+3 & Confound-attribution protocol &
+  FGS-BG-Gap $+$ per-AU EBPG \citep{wang2020scorecam,xiao2021background},
+  \emph{one-directional} (``no confound detected at this power'') & Yes (headline~2) \\
+4 & Welfare-asymmetric decision curve &
+  Net-benefit decision-curve analysis \citep{vickers2006dca} with the
+  undertreat:overtreat harm ratio swept as a \emph{range} & Yes \\
+5 & LB-abstention curve &
+  One-sided $95\%$ NPV \emph{lower bound} at each abstention rate
+  \citep{angelopoulos2021ltt}; ``guaranteed'' is banned & Yes (exploratory if G0 unmet) \\
+6 & Inspected graded-CORN &
+  $5$ per-AU CORN heads \citep{shi2023corn} $\to$ $0$--$10$ sum $\to$ pmf;
+  inspected-not-validated & \textbf{No} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two \emph{portable methods} --- Component~2 (VLM-as-AU-rater $\kappa$) and
+Component~3 (the confound-attribution protocol) --- are the only claimed
+contributions, and both ship as released, runnable, dataset-agnostic code. The
+calibration, RPS, ClasswiseECE, and conformal machinery are \emph{supporting
+evidence}, never headlines. The engine (frozen DINOv2 ViT-S/14
+\citep{oquab2023dinov2} feeding the CORN ordinal heads \citep{shi2023corn}) is
+conceded as plumbing and is never presented as novel.
+
+%====================================================================
+\section{The Gate-Conditioned Decision Table}
+\label{sec:decision-table}
+
+The project executes a strict, blocking gate order: \textbf{G0}
+(power calcs and vet-budget pre-registration) $\to$ \textbf{G1} (per-CAT merge)
+$\to$ \textbf{G2} (capture-condition confound audit) $\to$ \textbf{G3} (frozen
+hashed cat-disjoint hold-out) $\to$ \textbf{G4} (MPS compute-correctness, blocking)
+$\to$ \textbf{G5} (alignment/NME) $\to$ \textbf{G1-B} (weak-label reliability
+$\kappa$ pilot) $\to$ \textbf{G6} (severity-cell collapse). Each gate carries a
+\emph{pre-registered} decision rule; passing a gate is a precondition for the work
+downstream of it, and failing a gate routes to a pre-committed branch rather than
+to an improvised fix. Figure~\ref{fig:gate-tree} renders the gate order as a
+decision tree terminating in the modal product, and Table~\ref{tab:kill-crosswalk}
+gives the kill/pivot crosswalk in full.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=6.5mm and 9mm,
+  every node/.style={font=\footnotesize},
+  gate/.style={rectangle, rounded corners, draw, fill=blue!6, align=center,
+               minimum width=30mm, minimum height=8mm, inner sep=3pt},
+  branch/.style={rectangle, draw, fill=orange!8, align=center,
+                 minimum width=34mm, inner sep=3pt},
+  ship/.style={rectangle, rounded corners, draw, very thick, fill=green!10,
+               align=center, minimum width=42mm, inner sep=4pt},
+  flow/.style={-{Latex[length=2mm]}, thick},
+  sidelab/.style={font=\scriptsize\itshape}
+]
+% main spine
+\node[gate] (g0) {G0 power / vet budget};
+\node[gate, below=of g0] (g1) {G1 per-CAT merge};
+\node[gate, below=of g1] (g2) {G2 confound audit};
+\node[gate, below=of g2] (g3) {G3 frozen hold-out};
+\node[gate, below=of g3] (g4) {G4 MPS correctness\\\scriptsize(BLOCKING)};
+\node[gate, below=of g4] (g5) {G5 alignment / NME\\\scriptsize(BLOCKING)};
+\node[gate, below=of g5] (g1b) {G1-B $\kappa$ pilot\\\scriptsize(CI lower bound)};
+\node[gate, below=of g1b] (g6) {G6 severity cells};
+\node[ship, below=of g6] (modal) {Modal product:\\binary $+$ wrapper $+$ $\kappa$-method\\$+$ confound protocol\\$+$ graded (inspected-only)};
+
+\foreach \a/\b in {g0/g1, g1/g2, g2/g3, g3/g4, g4/g5, g5/g1b, g1b/g6, g6/modal}
+  \draw[flow] (\a) -- (\b);
+
+% branch outcomes on the right
+\node[branch, right=18mm of g0] (g0b) {G0(b) fail:\\NPV band ships\\\textsc{exploratory}};
+\node[branch, right=18mm of g2] (g2b) {G2 non-portable:\\demote to\\threat-to-validity};
+\node[branch, right=18mm of g4] (g4b) {G4/G5 fail:\\\textsc{collapse} --\\fix, believe no number};
+\node[branch, right=18mm of g1b] (g1bb) {G1-B $\kappa$-LB low:\\\textsc{pivot} to\\binary spine};
+\node[branch, right=18mm of g6] (g6b) {G6 fires:\\\textsc{collapse}\\high-end scale};
+
+\draw[flow, orange!70!black] (g0) -- (g0b);
+\draw[flow, orange!70!black] (g2) -- (g2b);
+\draw[flow, orange!70!black] (g4) -- (g4b);
+\draw[flow, orange!70!black] (g1b) -- (g1bb);
+\draw[flow, orange!70!black] (g6) -- (g6b);
+
+% pivots still terminate in a publishable product
+\draw[flow, dashed, orange!70!black] (g1bb.south) |- ([yshift=4mm]modal.east) -- (modal.east);
+\end{tikzpicture}
+\caption[Gate-conditioned decision tree]{Gate-conditioned decision tree. The left
+spine is the \textsc{go} path through gates G0$\to$G6 terminating in the modal
+product. The right column shows the pre-registered branch at each gate. Note that
+no branch is a project-killing null: a G1-B \textsc{pivot} drops the graded layer
+but still ships the calibrated binary spine, the $\kappa$-as-method headline, and
+the confound protocol (dashed arrow). G4/G5 are blocking correctness gates --- a
+failure halts reporting until fixed, never silently degrades a number.}
+\label{fig:gate-tree}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption[Kill/pivot crosswalk]{Kill/pivot crosswalk (gate $\to$ branch $\to$ what
+ships), after the kill criteria of the finalised direction. Every branch remains
+publishable; the only ``hard stop'' branches are the blocking correctness gates
+G4/G5, which halt reporting until the defect is fixed rather than ending the
+project.}
+\label{tab:kill-crosswalk}
+\footnotesize
+\begin{tabular}{@{}p{0.13\linewidth}p{0.36\linewidth}p{0.42\linewidth}@{}}
+\toprule
+Gate & Failing branch (trigger) & What ships on that branch \\
+\midrule
+G0(b) &
+  Budget cannot certify a useful NPV band &
+  \textsc{proceed}; the abstention curve (Component~5) is demoted to
+  \emph{exploratory}; ``guaranteed'' never appears. Not a kill --- relocates the
+  deliverable onto the welfare decision curve. \\[2pt]
+G2 &
+  Audit damning but yields only ``CAT\_01 is confounded'' (non-portable) &
+  Demote the audit to a threat-to-validity paragraph; the $\kappa$ method then
+  carries the headline alone. If G1-B \emph{also} fails, the honest paper is a
+  confound/audit note (venue pre-registered now). \\[2pt]
+G2 &
+  Confounding detected as a \emph{transportable protocol} &
+  \textsc{proceed} --- a publishable co-headline even if everything downstream is
+  null \citep{xiao2021background}. \\[2pt]
+G1-B &
+  $\kappa$ CI lower bound below floor on orbital/ear/head &
+  \textsc{pivot} to binary spine: \emph{drop graded entirely}; ship calibrated
+  binary $+$ abstention $+$ confound audit. $\kappa$-as-method and the wrapper
+  still stand (a mediocre but real first $\kappa$ measurement is publishable). \\[2pt]
+G1-B &
+  Passes orbital/ear/head; fails muzzle/whiskers &
+  \textsc{proceed} on the surviving AUs; state how dropping $2$ of $5$ heads
+  shifts the achievable $0$--$10$ range and whether $0.39$ ($\approx 4/10$) is
+  even reachable. \\[2pt]
+G4 / G5 &
+  MPS logit parity / decode unit test / NME audit fails &
+  \textsc{blocking}: fix before any metric is believed. No number from
+  silently-wrong logits or misaligned crops is reported. \\[2pt]
+G6 &
+  AU=2 (severe) cells single-digit &
+  \textsc{collapse} the high-end scale (pre-committed); do \emph{not} print a
+  per-cell severe calibration number. Expected to fire (see
+  \S\ref{sec:severity-collapse}). \\[2pt]
+$\rho$-band &
+  Monte-Carlo \textsc{go} under $\rho=0$ but \textsc{no-go} under $\rho=0.3$ &
+  Declare the gate \emph{fragile}; default to the binary fallback rather than
+  claim a \textsc{go} the correlation could flip (\S\ref{sec:rho-band}). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The structural property we want from Table~\ref{tab:kill-crosswalk} is that
+\emph{no branch is a project-killing null}. The two portable methods are designed
+to be independently publishable: a mediocre per-AU $\kappa$ is still the first
+measurement of whether a frozen vision-language model can weak-label feline FGS
+action units at human-rater agreement, and a confounding signal detected as a
+transportable protocol is a publishable co-headline regardless of downstream
+outcomes. The binary-plus-wrapper spine survives the loss of the graded layer by
+construction.
+
+%====================================================================
+\section{Power-Calculation-Conditioned Framing of Abstention}
+\label{sec:power-conditioned}
+
+The abstention curve (Component~5) is the component most exposed to the project's
+single binding constraint: every quantitative claim ultimately draws on the same
+modest vet-confirmed anchor (a pre-Gate-0 placeholder of ${\sim}120$--$150$
+confirmed images, ${\geq}50$ pain-positive; the exact integer is fixed by the
+Gate~0 power calc and committed before any vet hour is spent). Gate~0 runs three
+zero-data power calculations: (a) the number of faces needed for a per-AU $\kappa$
+CI half-width $\leq 0.15$; (b) the number needed for a Learn-Then-Test /
+conformal-certified NPV $\geq 0.90$ at an abstention rate $\leq 40\%$
+\citep{angelopoulos2021ltt}; and (c) whether the $0.39$-threshold operating-point
+CI is reportable at the budgeted $n$.
+
+The decision rule is pre-registered: \textbf{if Gate~0(b) shows the budget cannot
+certify a useful NPV band, the abstention curve ships \emph{exploratory}, full
+stop}, and the word ``guaranteed'' never appears anywhere in the paper. This is
+not a kill criterion --- it relocates the headline weight of the wrapper onto the
+welfare-asymmetric decision curve (Component~4), which is the more robust artifact
+at small $n$. The arithmetic motivating this branch is sobering: certifying
+NPV~$\geq 0.95$ would require on the order of $60$ zero-error abstained-in
+negatives out of ${\sim}70$ total, which collapses the abstention rate toward zero
+and yields a vacuous instrument. We therefore demote the claim \emph{on paper now}
+rather than discover the shortfall after the vet's time is spent, and we report
+the abstention curve as ``NPV with a one-sided $95\%$ lower bound at each
+abstention rate'' --- a finite-sample statement, never a guarantee.
+
+%====================================================================
+\section{Expected Severity-Cell Collapse (Gate 6)}
+\label{sec:severity-collapse}
+
+Gate~6 is a pure-counting gate applied after the vet anchor exists: it counts the
+number of vet-confirmed AU=2 (severe) cells per action unit. The pre-registered
+rule is that if any AU's $=2$ cell count is single-digit, the high end of the
+scale is \emph{collapsed} (merge the $1$ and $2$ levels, or report only
+painful/not-above-threshold). This is a structural decision, not a caveat: a
+caveat would leave an anchoring number in a table, whereas an AU=2 sensitivity
+estimate at single-digit $n$ carries a confidence interval spanning roughly
+$[0.35, 0.97]$ --- that is no information.
+
+\textbf{We expect Gate~6 to fire.} Given the ${\sim}12$--$13\%$ pain prevalence of
+the source corpus and the further rarity of \emph{severe} grimace within the pain
+class, the budgeted anchor is very unlikely to deliver double-digit AU=2 cells.
+Planning for the collapse in advance --- rather than treating it as a surprise ---
+is what keeps the graded layer honest: no per-cell severe calibration number is
+printed, and the graded layer remains an inspected-not-validated artifact. This is
+the operational reason the word ``graded'' is struck from every validated-claim
+sentence; the low-prevalence measurement-error dynamics that make such tail cells
+untrustworthy are exactly those characterised by \citet{chavoshi2025}, whose
+analysis shows how a high apparent agreement can coexist with a badly degraded
+operating sensitivity once prevalence is low.
+
+%====================================================================
+\section{Monte-Carlo Correlation-Sensitivity Band}
+\label{sec:rho-band}
+
+A naive plan would estimate a full $5\times5$ cross-AU error-correlation matrix
+from the anchor and feed it into the error-propagation Monte-Carlo. At the
+budgeted $n$ this is false rigor: a ten-off-diagonal matrix has per-entry
+confidence intervals on the order of $[-0.4, +0.6]$, may not even be
+positive-definite, and launders sampling noise as data-driven structure. We
+therefore replace it with a \textbf{two-point $\rho$-sensitivity band}: the
+error-propagation Monte-Carlo is run twice, once under independence ($\rho = 0$)
+and once under a pinned uniform correlation ($\rho = 0.3$), and the gate returns
+\textsc{go} \emph{only if the decision holds under both}.
+
+The decision rule is pre-registered (Table~\ref{tab:kill-crosswalk}, final row):
+if the Monte-Carlo is \textsc{go} under $\rho = 0$ but \textsc{no-go} under
+$\rho = 0.3$, we declare the gate \emph{fragile}, say so explicitly, and default to
+the binary fallback rather than claim a \textsc{go} that a plausible correlation
+could flip. A pinned $\rho$ is an honest sensitivity analysis; a noisily-fit
+matrix would be a false claim of empirical precision. The two-point band is the
+conservative substitute that we can defend at this sample size; the full matrix is
+explicitly deferred (re-added only when $n$ reaches the low hundreds of vet rows
+with non-single-digit cells).
+
+%====================================================================
+\section{Literature Anchors as Background, Never as Our Results}
+\label{sec:lit-anchors}
+
+The numbers in Table~\ref{tab:lit-anchors} are the prior literature's, cited as
+\emph{background anchors} that motivate our design choices --- chiefly the
+fixed-recall operating point and the anti-benchmark reporting discipline. \textbf{None
+of these figures is a result of this work}, and the paper never makes a
+``we beat $77/79/95\%$'' claim. We report against the distinct-pain-cat
+denominator with Clopper--Pearson / bootstrap confidence intervals, and the
+literature figures appear only as prior-art context, never as a head-to-head
+comparison.
+
+\begin{table}[t]
+\centering
+\caption[Literature background anchors]{Literature background anchors. Every figure
+below belongs to the cited authors and is reproduced here as background context for
+our design --- \emph{not} as a result of this work. We do not benchmark against
+these numbers; they motivate the fixed pain-recall $\geq 0.90$ operating point and
+the decision-support framing.}
+\label{tab:lit-anchors}
+\footnotesize
+\begin{tabular}{@{}p{0.20\linewidth}p{0.34\linewidth}p{0.36\linewidth}@{}}
+\toprule
+Source (theirs) & Their reported figure & How we use it (background only) \\
+\midrule
+\citet{evangelista2019} &
+  FGS validation: \evangelistanums{}; pain at a $>0.39$ ($\approx 4/10$) threshold &
+  Sources our fixed pain-recall $\geq 0.90$ \emph{target} and the $0.39$ decision
+  cutoff; never a comparison baseline. \\[2pt]
+\citet{steagall2023} &
+  Automated FGS via landmark$\to$geometry$\to$XGBoost, $95.5\%$ accuracy &
+  Names a method family (landmark$+$XGBoost) we deliberately do \emph{not}
+  replicate; cited to position our conceded-engine choice. \\[2pt]
+\citet{feighelstein2023} &
+  Binary cat-pain: landmark $77\%$ vs.\ deep-learning $65\%$; XAI mouth $>$ eyes
+  $>$ ears &
+  Background for the binary spine and for AU saliency expectations; not a target
+  to beat. \\[2pt]
+\citet{chavoshi2025} &
+  Low-prevalence measurement-error propagation (e.g.\ ${\sim}10\%$ prevalence
+  $\to$ ${\sim}53\%$ effective sensitivity) &
+  Motivates the severity-cell collapse (\S\ref{sec:severity-collapse}) and the
+  low-prevalence CI discipline. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Restatement of the honesty contract.}
+To close the chapter, we restate its governing constraint without hedging.
+\emph{No experiments have been run.} This chapter contains no measured results.
+The gate-conditioned outcomes above are pre-registered decision rules and the
+products that ship on each branch, not observations. The only numbers presented
+are the literature anchors of Table~\ref{tab:lit-anchors}, each attributed to its
+authors. When the project executes, every reported figure will carry its
+distinct-pain-cat denominator and a Clopper--Pearson or bootstrap confidence
+interval, sensitivity and specificity at the $0.39$ cutoff will be estimated on
+vet-confirmed labels only (the circularity firewall), and the agreement between
+the model and the weak-labeling VLM will never be presented as validation. The
+modal product --- the binary-plus-wrapper instrument with the two portable methods
+and an inspected-not-validated graded layer --- is the outcome we plan for, and it
+stands even if the graded layer is dropped entirely.

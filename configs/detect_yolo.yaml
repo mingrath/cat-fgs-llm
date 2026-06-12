@@ -1,0 +1,12 @@
+# Phase A detector — YOLOv11s runner-up. Sweep/selection metric is PAIN RECALL, never mAP.
+model: yolo11s
+resolution: 512
+lr: 1.0e-3                  # SGD/ultralytics default base lr (optimizer=auto sets its own)
+epochs: 100
+batch_size: 16
+patience: 25
+
+# Operating point: fixed pain-recall >= 0.90 (Evangelista anchor, NOT Youden-J/F1),
+# hardcoded in src/detect/decision.py select_threshold — not configurable here.
+
+resize: Fit                # Fit (reflect/white edges), NOT Stretch (distorts AU geometry)

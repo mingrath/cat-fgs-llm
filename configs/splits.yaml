@@ -1,0 +1,14 @@
+# Cross-validation splits. Group by INDIVIDUAL cat_id, NEVER by clip.
+# CAT_01 is carved out as a frozen LOIO hold-out; StratifiedGroupKFold runs on the rest.
+cv:
+  method: StratifiedGroupKFold
+  n_splits: 5
+  group: cat_id              # one cat across many clips -> ONE group
+  random_state: 42
+  shuffle: true
+
+loio_holdout: CAT_01         # frozen leave-one-individual-out hold-out (carved out before CV)
+
+prevalence_target: 0.127     # target pain prevalence per fold (264/1819 basis)
+prevalence_tol: 0.05         # allowed |fold prevalence - target| (§1.6 assert)
+min_pos_per_fold: 25         # minimum pain-positive images per fold (recomputed at runtime)

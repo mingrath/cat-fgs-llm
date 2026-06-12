@@ -1,0 +1,20 @@
+# Global run config — inherited by every gate. Seeds/paths live here, never hardcoded.
+seed: 42
+deterministic: true          # torch.use_deterministic_algorithms(True, warn_only=True); PYTHONHASHSEED=42
+device: null                 # null = auto via src.model.device.DEVICE (mps if available, else cpu). NO local CUDA.
+num_workers: 0               # small data; deterministic loading
+
+project: cat-fgs-llm         # W&B project name
+
+paths:
+  repo_root: /Users/mingrath/ghq/github.com/mingrath/cat-fgs-llm
+  data: data
+  datasets: data/datasets
+  features: data/features
+  manifests: data/manifests
+  external: data/external
+  artifacts: artifacts
+  figures: artifacts/figures
+  tables: artifacts/tables
+  model_cards: artifacts/model_cards
+  reports: artifacts/reports

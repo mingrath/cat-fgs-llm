@@ -1,0 +1,13 @@
+# Capture-condition confound-attribution protocol (portable method headline #2).
+# ONE-DIRECTIONAL audit: a positive result reads "no confound detected at this power",
+# never "CAT_01 is confounded".
+direction: one_directional
+
+features:
+  fgs_bg_gap: true          # FGS-BG-Gap: foreground-vs-background gap feature
+  ebpg: true                # per-AU EBPG (energy-based pointing game) attribution
+
+# Trivial-classifier probe: brightness/blur/aspect (+ optional CLIP) predicting pain.
+# NOT a config knob: the scalar feature list is fixed in scripts/gate2_confound.py
+# (SCALAR_FEATURES), and CLIP columns ride the --use-clip flag (any column prefixed
+# "clip_"). Listed here for documentation only — editing this file changes nothing.

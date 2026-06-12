@@ -1,0 +1,501 @@
+\chapter{Evaluation Protocol and Gate System}
+\label{ch:eval-protocol}
+
+This chapter specifies \emph{how} the system of
+Chapters~\ref{ch:methodology-engine} and~\ref{ch:vlm-wrapper} will be
+evaluated and \emph{in what order} its components are permitted to run. It is a protocol
+chapter, not a results chapter: no experiment has been executed at the time of writing, and
+consequently no accuracy, kappa, calibration, or net-benefit number from \emph{our} system
+appears anywhere below. Every quantitative figure cited in this chapter is either (i) a
+\emph{target} or \emph{pre-registered floor} drawn from the build plan, or (ii) a published
+number from the prior literature, attributed to its source. The chapter is organised around a
+single conviction inherited from the project's design debate: that the credibility of a
+low-data, single-source feline-pain instrument is determined less by any headline metric than
+by the \emph{discipline} of the procedure that produces it. We therefore present the
+cross-validation and frozen hold-out design (\S\ref{sec:cv-holdout}), the Phase~A and Phase~B
+metric definitions (\S\ref{sec:phaseA-metrics}--\S\ref{sec:phaseB-metrics}), the blocking gate
+checklist $G0\ldots G6$ plus $G1\text{-}B$ (\S\ref{sec:gates}), the reproducibility contract
+(\S\ref{sec:repro}), and the anti-benchmark reporting rules (\S\ref{sec:anti-benchmark}) as a
+single, executable evaluation contract.
+
+A note on terminology used throughout. The instrument's \emph{validated} claims concern the
+binary pain decision and the two portable methods (the per-action-unit (AU) VLM-as-rater
+$\kappa$ protocol and the capture-condition confound-attribution protocol). The graded
+$0\text{--}10$ Feline Grimace Scale (FGS) sum is reported as an
+\emph{inspected-not-validated} artifact; wherever a metric is computed on the graded sum, it is
+labelled inspection-only and is never advanced as evidence for a validated claim.
+
+\section{Cross-validation and the frozen hold-out}
+\label{sec:cv-holdout}
+
+\subsection{Grouped stratified cross-validation}
+
+The corpus is the forked Roboflow \texttt{cat-pain} binary detection dataset
+($\approx 2040$ records, $\approx 1547$ distinct after collapsing $493$ exact-duplicate
+filenames, $336$ source clips, pain prevalence $\approx 12.7\%$). Because the dataset is
+small, class-imbalanced, and contains many frames drawn from a handful of source clips and
+individuals, the dominant statistical risk is \emph{subject leakage}: near-identical frames of
+the same animal appearing in both a training and an evaluation partition would inflate every
+reported metric. The evaluation therefore uses subject-exclusive cross-validation.
+
+Folds are produced by \texttt{StratifiedGroupKFold} with $5$ splits, stratified on the
+image-level binary pain label and grouped by \emph{individual} (\texttt{cat\_id}). Image-level
+(not clip-level) stratification is mandatory because $135$ of the $336$ clips are class-mixed
+and cannot be collapsed to a single label without discarding information. Grouping by the
+individual---never by clip---is required for leakage safety: letting one individual's frames
+straddle folds is the same-subject leakage that subject-exclusive (leave-one-animal-out)
+validation exists to prevent, the named standard in this subdomain~\cite{feighelstein2023}. The
+one complication is the most prolific known individual (\texttt{CAT\_01}, $84$ clips,
+$\approx 605$ images, $\approx 30\%$ of the corpus): grouping it naively into the folds would
+fuse a single degenerate super-group fold (\texttt{StratifiedGroupKFold} degrades to
+\texttt{GroupKFold} for a dominant group). We therefore \emph{carve \texttt{CAT\_01} out as a
+frozen leave-one-individual-out hold-out} and run \texttt{StratifiedGroupKFold(groups=cat\_id)}
+over the remaining individuals only---leakage-safe \emph{and} balanced---reporting
+\texttt{CAT\_01} performance separately via that hold-out. The splitter is shared verbatim by
+Phase~A and Phase~B so that the partition boundaries never shift between the two evaluation
+regimes:
+
+\begin{verbatim}
+from sklearn.model_selection import StratifiedGroupKFold
+m = (cat_id != "CAT_01")            # CAT_01 -> frozen leave-one-individual-out hold-out, never in CV
+sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+for tr, va in sgkf.split(X=images[m], y=labels[m], groups=cat_id[m]):
+    assert set(cat_id[m][tr]).isdisjoint(set(cat_id[m][va]))   # G1 disjointness (per individual)
+    assert "CAT_01" not in set(cat_id[m][va])                  # dominant individual excluded from CV
+    pf = labels[m][va].mean()
+    assert abs(pf - 0.127) <= 0.05 and labels[m][va].sum() >= 25  # per-fold prevalence + count
+\end{verbatim}
+
+The per-fold disjointness assertion is a hard runtime check, not a comment: a violation aborts
+the run. The per-fold positive counts are recomputed after carving out \texttt{CAT\_01} and
+grouping by individual; the gate requires that no fold falls at zero or one positive, so that
+subject-exclusive cross-validation remains feasible without empty strata. All preprocessing, threshold selection, temperature scaling, and abstention calibration
+are fit \emph{inside each training fold only} (nested); the validation fold sees only frozen,
+already-fit transforms. Out-of-fold predictions are pooled, and every reported rate is
+accompanied by its bootstrap $95\%$ confidence interval, with the interval \emph{width} stated
+up front rather than buried.
+
+\subsection{The frozen, hashed, cat-disjoint hold-out (Gate~3)}
+
+Cross-validation alone does not defend against post-hoc goalpost-moving --- the temptation to
+re-select a test partition after seeing results. We therefore carve out a single
+boundary-rich, true-prevalence ($\approx 13\%$) test set from cat-disjoint merged groups
+\emph{before} cross-validation begins, and freeze it. The test manifest --- the list of test
+group identifiers together with the SHA-256 of the fold CSV --- is itself hashed, and the hash
+is committed to the repository:
+
+\begin{verbatim}
+manifest = {"version": "<roboflow_version>",
+            "test_groups": sorted(test_group_ids),
+            "fold_csv_sha256": sha256(folds.csv)}
+manifest_hash = sha256(json.dumps(manifest, sort_keys=True))
+\end{verbatim}
+
+A continuous-integration (CI) guard then \emph{aborts any training, sweep, or
+threshold-tuning run that can read the test manifest}, and the hold-out evaluation script
+refuses to run if the working tree's fold CSV was mutated after the freeze. This converts the
+discipline of ``never look at the test set during selection'' from a promise into an enforced
+structural property: the only code path that may read the hold-out is the final evaluation,
+executed once. This is the \emph{CI-abort} contract of Gate~3.
+
+\subsection{Honest denominators and confidence intervals}
+
+Three reporting rules apply to \emph{every} rate in the document and are restated here because
+they are the substance of the cross-validation design, not decoration:
+
+\begin{enumerate}
+  \item \textbf{The distinct-pain-cat denominator is always printed.} A sensitivity reported
+        over frames is meaningless if those frames are many views of few animals; the count of
+        distinct pain-positive individuals is therefore printed alongside every pain-class rate.
+  \item \textbf{Augmented copies never enter any reported $N$.} Geometric or photometric
+        augmentation is a training-time device only; no augmented image contributes to a
+        denominator, a numerator, or a confidence interval.
+  \item \textbf{Every proportion carries an interval.} Proportions are reported with
+        Clopper--Pearson exact intervals; pooled and derived statistics (PR-AUC, $\kappa$,
+        RPS, net benefit) carry cat-grouped bootstrap $95\%$ intervals.
+\end{enumerate}
+
+The headline cross-validation is the multi-frame, per-cat-grouped design with honestly wide
+intervals and per-clip inference aggregation. A one-frame-per-cat secondary clean hold-out is
+reported \emph{only if} the merged distinct-pain-cat count remains above $50$; otherwise it is
+omitted rather than reported on a denominator too small to interpret.
+
+\section{Phase~A metrics: the binary spine}
+\label{sec:phaseA-metrics}
+
+Phase~A evaluates the binary pain detector (Chapter~\ref{ch:methodology-engine}) that constitutes
+the validated spine of the instrument. The class imbalance ($\approx 13\%$ positive) makes
+two conventional choices actively misleading and both are prohibited: accuracy (dominated by
+the majority class) and ROC-AUC (whose specificity axis is insensitive at low prevalence) are
+never used to rank models.
+
+The \textbf{primary} ranking metric is the area under the precision--recall curve
+(PR-AUC / average precision, AP) with pain as the positive class, computed on the per-image
+pain score (the maximum confidence over predicted pain boxes, or zero if none). Localization
+quality (\texttt{map}, \texttt{map\_50}, \texttt{map\_75}) is measured for diagnostic purposes
+only and is never the headline. The \textbf{operating-point} metric is the pain-class recall
+at a \emph{fixed} sensitivity target: the decision threshold is selected, inside the training
+folds, as the lowest threshold achieving pain-recall $\geq 0.90$ --- anchored to the
+sensitivity reported for the validated FGS by Evangelista et al.~\cite{evangelista2019}
+($\approx 0.91$ at AUC~$\approx 0.94$) --- and the specificity that this fixed-recall point buys is then reported
+on the held-out fold with bootstrap intervals.
+
+This fixed-recall choice is deliberate and is itself a contribution of the wrapper: a
+symmetric-cost knee (Youden's $J$ or $F_1$) optimises the wrong loss for a welfare instrument,
+in which a missed painful animal (under-treatment) is far costlier than a false alarm
+(over-treatment). The operating point is not tuned to a balance the data cannot justify; it is
+pinned to a clinically motivated sensitivity floor, and the cost of that floor is reported
+transparently. Phase~A results are reported as the mean $\pm$ standard deviation across the
+five cat-grouped folds, plus pooled bootstrap intervals.
+
+\section{Phase~B metrics: AU agreement, calibration, decision, and abstention}
+\label{sec:phaseB-metrics}
+
+Phase~B evaluates the AU-level engine output and the trustworthiness wrapper. Exactly one
+Phase~B number is a \emph{gated, validated} quantity --- the per-AU VLM-vs-vet agreement
+$\kappa$; everything concerning the graded $0\text{--}10$ sum is computed and reported as
+inspection-only.
+
+\subsection{Per-AU VLM-as-rater quadratic kappa (headline method~1)}
+
+The first portable method asks whether a frozen vision-language model can weak-label the five
+FGS action units at human-rater agreement. For each AU we compute the quadratic-weighted
+agreement \cite{cohen1968kappa} between the model's $\{0,1,2\}$ rating and a veterinary
+anchor, \emph{bootstrap its confidence interval, and gate and report on the CI lower bound}
+rather than the point estimate. This lower-bound discipline is forced by the sample size: at
+the budgeted anchor count, a point estimate of $0.6$ is statistically indistinguishable from a
+true value of $0.47$, so a point-estimate gate would not be a gate at all. The pre-registered
+floors are: orbital, ear, and head-position AUs require a CI lower bound $\geq 0.60$; the
+muzzle and whisker AUs are accepted with a caveat in the $0.40\text{--}0.60$ band. Mean
+absolute error, adjacent accuracy ($|\hat{y}-y|\leq 1$), and per-AU three-class macro-$F_1$ are
+reported as descriptive support only and never as the gate. Where multiple repeated model votes
+are available, their internal consistency is summarised with an ordinal Krippendorff
+$\alpha$~\cite{krippendorff2004}; this measures rater self-consistency and is explicitly
+\emph{not} validation against the vet.
+
+\subsection{Distributional calibration of the graded sum (inspection-only)}
+
+The graded layer is decoded distributionally rather than by hard argmax. Each AU's
+rank-consistent CORN head~\cite{shi2023corn} emits cumulative rank probabilities
+$P(\text{rank} > k) = \prod \sigma(\text{logit})$, which are differenced into a probability
+mass function (pmf) over $\{0,1,2\}$; the five per-AU pmfs are convolved into a single pmf over
+the $0\text{--}10$ sum:
+
+\begin{verbatim}
+p_gt    = cumprod(sigmoid(logits_au))          # P(rank > k), per AU
+pmf_au  = to_pmf(p_gt)                          # [N, 3]
+pmf_sum = reduce(np.convolve, [pmf_au_i ...])   # [N, 11] over the 0-10 sum
+\end{verbatim}
+
+Calibration of this distribution is summarised by the ranked probability score
+(RPS) on the sum (a single scalar with a bootstrap interval) and by per-AU classwise expected
+calibration error~\cite{guo2017calibration}. A binned reliability diagram or binned ECE on the
+eleven-atom sum is \emph{deliberately not produced}: with roughly eleven atoms the per-bin
+standard error is on the order of $\pm 0.18\text{--}0.26$, so such a diagram would launder noise
+as a calibration finding. Argmax decoding is used \emph{only} for the $0.39$ point decision.
+This entire block is labelled inspection-only and supports no validated claim.
+
+\subsection{Clinical decision under the circularity firewall}
+
+The binary clinical decision at the $0.39$ FGS cutoff (the validated FGS threshold of
+Evangelista et al.~\cite{evangelista2019}, $\approx 4/10$) is evaluated under a strict
+circularity firewall:
+sensitivity and specificity at $0.39$ are estimated \emph{only on vet-confirmed labels}, and
+the VLM-vs-vet $\kappa$ is \emph{never} re-used as validation of the decision. The operating
+point is selected inside the training folds at the fixed pain-recall $\geq 0.90$ target above,
+and the specificity it buys is reported with bootstrap intervals and with the cutoff's
+fold-to-fold variance. Evangelista's published operating point is cited solely to \emph{source}
+the recall target; it is prior-art context, never a head-to-head comparison.
+
+\subsection{Welfare-asymmetric decision curve (headline wrapper artifact)}
+
+The headline wrapper artifact is a decision-curve / net-benefit analysis~\cite{vickers2006dca}
+rather than a calibration plot. Because no veterinarian-elicited under-treat:over-treat harm
+ratio exists, the harm ratio is swept as a \emph{range} across the threshold-probability axis,
+$p_t = \text{over}/(\text{under}+\text{over})$; under-treatment far exceeds over-treatment for a
+welfare instrument, so the low-$p_t$ region ($p_t \approx 0.05\text{--}0.40$) is emphasised. The
+net benefit at threshold probability $p_t$,
+\[
+\mathrm{NB}(p_t) \;=\; \frac{\mathrm{TP}}{n} \;-\; \frac{\mathrm{FP}}{n}\cdot\frac{p_t}{1-p_t},
+\]
+makes the welfare asymmetry explicit and is the contribution that distinguishes the wrapper
+from generic calibration hygiene.
+
+\subsection{Defer-to-vet abstention (one-sided NPV lower bound)}
+
+The abstention curve reports the negative predictive value (NPV) of the ``no pain'' decision
+as a function of the abstention rate, controlled by a Learn-Then-Test risk-control
+procedure~\cite{angelopoulos2021ltt} fit inside the training folds. It is reported as a
+\emph{one-sided $95\%$ lower bound} at each abstention rate; the word ``guaranteed'' is banned
+from every sentence describing it. The motivation is statistical honesty: certifying
+NPV~$\geq 0.95$ at this sample size would require so many error-free abstained-in negatives that
+the abstention rate would collapse toward zero, yielding a vacuous instrument. The lower-bound
+curve states exactly the NPV the budget can defend, and at what abstention cost.
+
+Table~\ref{tab:metric-defs} consolidates every metric formula with a shared
+TP/TN/FP/FN legend.
+
+\begin{table}[t]
+\centering
+\caption{Metric definitions used in the evaluation protocol. Legend (per evaluation unit):
+TP/FP/FN/TN are true/false positive and false/true negative counts at the operating threshold;
+$n$ is the number of distinct evaluation units (never augmented copies). $\hat{p}$ denotes a
+predicted probability/score, $y$ a label, $w_{ij}=(i-j)^2$ the quadratic disagreement weight.
+Phase~B rows marked \emph{(insp.)} are inspection-only and support no validated claim.}
+\label{tab:metric-defs}
+\small
+\begin{tabular}{@{}p{0.215\linewidth}p{0.43\linewidth}p{0.27\linewidth}@{}}
+\toprule
+\textbf{Metric} & \textbf{Definition} & \textbf{Role} \\
+\midrule
+PR-AUC / AP &
+$\sum_k (R_k - R_{k-1})\,P_k$, with $P=\tfrac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$,
+$R=\tfrac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$ swept over thresholds &
+Phase~A primary rank \\
+\addlinespace
+Pain recall (sensitivity) &
+$\tfrac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$, fixed $\geq 0.90$ inside folds &
+Phase~A operating point \\
+\addlinespace
+Specificity &
+$\tfrac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FP}}$ at the fixed-recall point &
+Phase~A / decision \\
+\addlinespace
+Quadratic $\kappa$ \cite{cohen1968kappa} &
+$1 - \dfrac{\sum_{ij} w_{ij}\,O_{ij}}{\sum_{ij} w_{ij}\,E_{ij}}$, $w_{ij}=(i-j)^2$; gate on
+\textbf{bootstrap CI lower bound} &
+Phase~B headline (gated) \\
+\addlinespace
+RPS on $0\text{--}10$ sum &
+$\sum_{k=0}^{10}\big(\mathrm{CDF}_{\hat{p}}(k) - \mathrm{CDF}_{y}(k)\big)^2$ &
+Phase~B calib. (insp.) \\
+\addlinespace
+ClasswiseECE \cite{guo2017calibration} &
+$\frac{1}{C}\sum_c \sum_b \tfrac{|B_{b,c}|}{n}\,\big|\,\mathrm{acc}_{b,c}-\mathrm{conf}_{b,c}\big|$ &
+Phase~B per-AU calib. (insp.) \\
+\addlinespace
+Net benefit \cite{vickers2006dca} &
+$\tfrac{\mathrm{TP}}{n} - \tfrac{\mathrm{FP}}{n}\cdot\tfrac{p_t}{1-p_t}$, $p_t$ swept as a range &
+Phase~B headline wrapper \\
+\addlinespace
+NPV lower bound \cite{angelopoulos2021ltt} &
+one-sided $95\%$ LB on $\tfrac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FN}}$ over abstained-in
+negatives, per abstention rate &
+Phase~B abstention \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The blocking gate system}
+\label{sec:gates}
+
+The build is governed by a \emph{strict, total, blocking} order of gates,
+$G0 \to G1 \to G2 \to G3 \to G4 \to G5 \to G1\text{-}B \to G6$. Each gate writes a
+\texttt{PASS} artifact and exposes a single numeric or structural exit test; a downstream gate
+may not run until its predecessor's \texttt{PASS} exists. The order is deliberately
+\emph{risk-first}: the cheapest project-killers (power feasibility, confound, leakage,
+compute-correctness) fire on CPU/M4 before any veterinary time or cloud-GPU spend is committed,
+and the single irreplaceable veterinary engagement ($G1\text{-}B$) is scheduled exactly once,
+late, against a frozen budget. $G1\text{-}B$ sits after $G5$ because the $\kappa$ pilot needs
+aligned face crops to weak-label. Figure~\ref{fig:gate-dag} shows the dependency DAG with each
+gate's compute tag, and Table~\ref{tab:gate-matrix} gives each gate's exit artifact, blocking
+condition, and compute.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=8mm and 7mm,
+  gate/.style={draw, rounded corners, align=center, font=\footnotesize\sffamily,
+               minimum height=9mm, minimum width=20mm, fill=gray!6},
+  block/.style={draw, rounded corners, align=center, font=\footnotesize\sffamily,
+               minimum height=9mm, minimum width=20mm, fill=red!8, very thick},
+  flow/.style={-{Latex[length=2mm]}, thick},
+  tag/.style={font=\scriptsize\itshape, gray!60!black}
+]
+\node[gate] (g0) {$G0$\\power+budget};
+\node[gate, right=of g0] (g1) {$G1$\\per-CAT merge};
+\node[gate, right=of g1] (g2) {$G2$\\confound};
+\node[gate, right=of g2] (g3) {$G3$\\hashed hold-out};
+\node[block, below=14mm of g3] (g4) {$G4$\\MPS correctness};
+\node[gate, left=of g4] (g5) {$G5$\\NME/align};
+\node[block, left=of g5] (g1b) {$G1\text{-}B$\\$\kappa$ pilot};
+\node[gate, left=of g1b] (g6) {$G6$\\severity collapse};
+
+\draw[flow] (g0) -- (g1);
+\draw[flow] (g1) -- (g2);
+\draw[flow] (g2) -- (g3);
+\draw[flow] (g3) -- (g4);
+\draw[flow] (g4) -- (g5);
+\draw[flow] (g5) -- (g1b);
+\draw[flow] (g1b) -- (g6);
+
+\node[tag, below=0.5mm of g0] {CPU};
+\node[tag, below=0.5mm of g1] {CPU};
+\node[tag, below=0.5mm of g2] {CPU};
+\node[tag, below=0.5mm of g3] {CPU};
+\node[tag, below=0.5mm of g4] {M4/MPS};
+\node[tag, below=0.5mm of g5] {M4};
+\node[tag, below=0.5mm of g1b] {API+CPU};
+\node[tag, below=0.5mm of g6] {CPU};
+\end{tikzpicture}
+\caption{Blocking gate dependency DAG. Arrows are hard predecessor constraints: a gate may not
+run until its predecessor has written \texttt{PASS}. Bold nodes ($G4$, $G1\text{-}B$) are the
+two gates that can block or pivot the entire spine --- $G4$ on silent compute-correctness,
+$G1\text{-}B$ on the veterinary $\kappa$ pilot. Italic tags are the compute tier. $G1\text{-}B$
+follows $G5$ because it needs aligned crops.}
+\label{fig:gate-dag}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Gate-by-gate exit artifact, blocking condition, and compute. Each gate writes
+\texttt{artifacts/gateN/PASS}. ``Pivot'' rows can redirect the spine to the binary fallback
+without killing the project; ``Blocking'' rows must turn green before any downstream number is
+believed.}
+\label{tab:gate-matrix}
+\footnotesize
+\begin{tabular}{@{}p{0.10\linewidth}p{0.40\linewidth}p{0.10\linewidth}p{0.30\linewidth}@{}}
+\toprule
+\textbf{Gate} & \textbf{Exit artifact + blocking condition} & \textbf{Compute} & \textbf{Kill / pivot} \\
+\midrule
+$G0$ & Committed single-integer vet budget + $\kappa$ floors + $\rho$-band decision in
+\texttt{prereg.yaml}; three zero-data power calcs ($\kappa$ CI half-width $\leq 0.15$;
+LTT/MAPIE NPV$\geq 0.90$ at $\leq 40\%$ abstention; $0.39$ CI reportability) &
+CPU ($\tfrac{1}{2}$ day) &
+If the NPV calc fails, abstention is exploratory-only (no ``guaranteed''); not a kill \\
+\addlinespace
+$G1$ & \texttt{folds.csv}; assert no individual straddles a fold; distinct-pain-cat
+denominator printed and stored &
+CPU &
+Fall back to per-clip grouping with re-ID flagged as a limitation \\
+\addlinespace
+$G2$ & Confound result logged as ``no confound \emph{detected at this power}''; FGS-BG-Gap +
+per-AU EBPG computed (one-directional) &
+CPU, no vet &
+Portable protocol $\Rightarrow$ proceed/co-headline; non-portable $\Rightarrow$
+threat-to-validity \\
+\addlinespace
+$G3$ & Hashed cat-disjoint test manifest (\texttt{test\_ids.sha256}) + CI guard that aborts
+any leaking run, demonstrated on a deliberate violation &
+CPU &
+Hard blocker: no scoring until the guard provably aborts a leak \\
+\addlinespace
+$G4$ & (a) MPS--CPU DINOv2 logit parity $\max|\Delta|<10^{-3}$; (b) 1-epoch CORN smoke test;
+(c) synthetic decode$\to$sum$\to 0.39$ unit test &
+M4/MPS &
+\textbf{Blocking} --- no number believed until all three pass \\
+\addlinespace
+$G5$ & CatFLW-landmark NME inside crop vs eye-aligned crop + median face resolution, both
+clearing \texttt{prereg.yaml} thresholds &
+M4 &
+\textbf{Blocking} for Phase~B; else add 2-point eye-similarity alignment and re-measure \\
+\addlinespace
+$G1\text{-}B$ & $\approx 120$-image ($\geq 50$ positive) per-AU quadratic $\kappa$ with CI;
+GO iff orbital/ear/head $\kappa$\textbf{-LB} $\geq 0.60$ (muzzle/whiskers $0.40\text{--}0.60$
+caveat) &
+API + CPU &
+$\kappa$-LB below floor $\Rightarrow$ \textbf{pivot to binary spine} (drop graded); not a kill \\
+\addlinespace
+$G6$ & Count vet-confirmed AU$=2$ cells; if any single-digit, collapse the high end
+(pre-committed structural decision) &
+CPU &
+Expected to fire $\Rightarrow$ collapse; do \emph{not} print a per-cell severe number \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Cross-cutting kill triggers.} Two triggers cut across the gate order. First, the
+Monte-Carlo robustness check of the cross-AU error correlation is run under both $\rho=0$ and a
+pinned $\rho=0.3$; a GO under $\rho=0$ that becomes a NO-GO under $\rho=0.3$ declares the gate
+\emph{fragile}, which is reported as such, and the build defaults to the binary fallback rather
+than claim a GO that the correlation assumption could flip. Second, $G4$ or $G5$ failing is
+absolutely blocking: no metric computed downstream of a silently-wrong MPS logit or a
+misaligned crop is believed, because in that regime ``calibration'' would measure crop quality
+rather than pain.
+
+\paragraph{The modal product.} The gate system is designed so that the most probable outcome is
+not a failure but a well-characterised \emph{binary-plus-wrapper} instrument:
+binary pain decision $+$ the $\kappa$-as-method finding $+$ the confound-attribution protocol
+$+$ the welfare decision curve $+$ the lower-bound abstention curve, with graded-CORN shipped as
+an inspected-not-validated artifact. Every gate either advances this product or pivots cleanly
+onto it.
+
+\section{Reproducibility contract}
+\label{sec:repro}
+
+Reproducibility is treated as a gate property, not an afterthought: every gate inherits the
+contract below, and two of its clauses are themselves blocking ($G3$ and $G4$).
+
+\begin{itemize}
+  \item \textbf{Single seed.} A single \texttt{seed\_everything(42)} seeds Python, NumPy,
+        Torch, and MPS; no script re-seeds ad hoc.
+  \item \textbf{Deterministic mode.} \texttt{torch.use\_deterministic\_algorithms(True,
+        warn\_only=True)}, \texttt{PYTHONHASHSEED=42}, and \texttt{num\_workers=0} on the small
+        corpus.
+  \item \textbf{Provenance on every run.} The \texttt{git\_sha} and the Roboflow dataset
+        version are injected into the experiment-tracker config and tags for every run, so any
+        artifact is traceable to exact code and exact data.
+  \item \textbf{Locked environment.} \texttt{uv.lock} and \texttt{.python-version} are
+        committed; all runs go through \texttt{uv run} against the macOS MPS-capable wheels (no
+        CUDA extras on the M4).
+  \item \textbf{Frozen hashed test manifest (blocking, $G3$).} A CI test aborts any
+        train/sweep that can read \texttt{test\_ids.sha256}.
+  \item \textbf{Blocking Gate-4 unit tests.} The CORN decode$\to$sum$\to 0.39$ test and the
+        MPS--CPU logit-parity test must pass in CI before any quantitative target runs; a red
+        Gate~4 blocks Phase~B entirely.
+  \item \textbf{Byte-frozen rubric cache.} The VLM rubric is byte-frozen and its hash pinned;
+        any byte change invalidates the prompt cache, making accidental rubric drift
+        detectable.
+  \item \textbf{Firewall in code.} The sensitivity/specificity firewall (vet-only labels at
+        $0.39$; $\kappa$ never used as validation) is enforced in the operating-point module,
+        not merely described in prose.
+\end{itemize}
+
+The single deterministic-seed entry point is small enough to reproduce here:
+
+\begin{verbatim}
+def seed_everything(seed: int = 42):
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
+    if torch.backends.mps.is_available(): torch.mps.manual_seed(seed)
+    torch.use_deterministic_algorithms(True, warn_only=True)
+\end{verbatim}
+
+\section{Anti-benchmark reporting discipline}
+\label{sec:anti-benchmark}
+
+The instrument is framed as decision support, not as a leaderboard entry, and the reporting
+discipline enforces that framing. The single hardest rule: \textbf{the document never claims to
+``beat'' a prior accuracy figure} --- not the $77\%$ landmark or $65\%$ deep-learning binary
+numbers, not the $79\%$, and not the $95.5\%$ automated-FGS pipeline number from the
+literature. Such a comparison would be false rigor on a single-source corpus with a different
+label semantics, a different prevalence, and a different evaluation unit. Prior published
+numbers appear only as \emph{prior-art context} (for example, sourcing the fixed pain-recall
+target from Evangelista's validated operating point), explicitly attributed and never staged as
+a head-to-head win.
+
+Concretely, the discipline requires that:
+
+\begin{enumerate}
+  \item Every rate is printed with its \textbf{distinct-pain-cat denominator} and a
+        Clopper--Pearson or bootstrap interval; a bare percentage is never reported.
+  \item \textbf{Augmented copies never enter any reported $N$}.
+  \item The graded $0\text{--}10$ sum and its VLM-vs-vet $\kappa$ are labelled
+        \textbf{internal / inspection-only}; the word ``graded'' is struck from every
+        validated-claim sentence, and the abstract holds with the graded layer dropped.
+  \item The confound result is phrased ``no confound \textbf{detected at this power},'' never
+        ``no confound,'' reflecting that the audit is well-powered to detect entanglement and
+        underpowered to rule it out.
+  \item The output is always presented as triage --- ``grimace consistent with pain, $X/10$;
+        recommend veterinary assessment'' --- and \textbf{never} as an autonomous analgesia
+        trigger; the negative class is documented as an unknown mixture (possibly sedated or
+        post-operative).
+  \item The DINOv2$+$CORN engine is stated to be \textbf{conceded plumbing, not a novel
+        contribution}; the claimed contributions are the two portable methods and the
+        welfare-asymmetric wrapper.
+\end{enumerate}
+
+Taken together, the cross-validation design, the blocking gate order, the reproducibility
+contract, and the anti-benchmark rules form a single evaluation contract whose purpose is to
+make the eventual results \emph{believable in proportion to what the data can actually
+support} --- and to make any overclaim structurally impossible to ship.

@@ -1,0 +1,234 @@
+% !TeX root = ../main.tex
+% Chapter 9 -- Conclusion and Future Work
+% Self-contained section file: no preamble, no \documentclass.
+% HONESTY RULE: no experiments have been run. This is a proposal / methodology
+% document. This chapter restates the (planned) contribution, reaffirms the
+% honesty boundary, and lays out future work / re-add triggers. It contains NO
+% measured results of our own. Any number it mentions belongs to the prior
+% literature and is attributed as such.
+% Mirrors the template's Chapter 5: \S5.1 conclusion + \S5.4 recommendations.
+
+\chapter{Conclusion and Future Work}
+\label{ch:conclusion}
+
+\begin{quote}\small\itshape
+No experiments have been run. This chapter draws no empirical conclusions about
+the performance of our instrument; it has none to draw. It restates what the
+project \emph{proposes} to deliver, reaffirms the boundary between a proposal and
+a validated study, and pre-registers the conditions under which descoped work
+would be re-added. Every quantitative value it mentions belongs to the cited prior
+literature and is attributed to its authors as a background anchor.
+\end{quote}
+
+This chapter mirrors the template's concluding chapter: a restatement of the
+contribution (\S\ref{sec:concl-contribution}, in the spirit of the template's
+\S5.1 conclusion), a reaffirmation of the honesty boundary
+(\S\ref{sec:concl-honesty}), and a future-work and re-add-trigger schedule
+(\S\ref{sec:concl-future}, in the spirit of the template's \S5.4 recommendations
+for further study). It is deliberately short: a proposal earns its conclusion not
+by summarising findings but by stating precisely what it would take to convert the
+proposal into a validated claim.
+
+%====================================================================
+\section{Restatement of the Contribution}
+\label{sec:concl-contribution}
+
+This work set out under a single discipline: \emph{not to build another cat-pain
+detector}. The danger was never that such a detector is hard --- the literature
+already reports strong numbers, including the validated Feline Grimace Scale (FGS)
+anchor of Evangelista et al.\ \cite{evangelista2019} and the landmark-to-geometry
+automated pipeline of Steagall et al.\ \cite{steagall2023} --- but that a frozen
+backbone with a binary pain head and a handful of standard reliability metrics
+would be \emph{indistinguishable} from prior work once a reviewer mentally swapped
+the backbone and added an extra metric. We therefore relocated the contribution
+away from the engine and onto two transportable methods and one welfare-aware
+operating discipline, and we conceded the engine in writing.
+
+The thesis the document defends is stated in
+Chapter~\ref{ch:introduction} and recapitulated here in its load-bearing form:
+this is not another cat-pain detector because its headline deliverables are
+\textbf{two transportable methods that no prior feline-pain work produced} ---
+
+\begin{enumerate}
+  \item a \textbf{per-AU \mbox{VLM-as-AU-rater} agreement protocol}: a measurement
+  of whether a frozen vision--language model can weak-label FGS action units at
+  human-rater agreement, reported as five per-AU quadratic $\kappa$ values
+  \emph{gated on the confidence-interval lower bound} against a veterinary anchor,
+  with released code that runs the same comparison on any face corpus; and
+  \item a \textbf{capture-condition confound-attribution protocol}
+  (FGS-BG-Gap plus per-AU energy-based pointing-game faithfulness), framed
+  one-directionally --- well-powered to \emph{detect} a capture-condition confound,
+  explicitly under-powered to \emph{rule one out} --- and reusable on the next
+  dataset rather than a verdict about this one ---
+\end{enumerate}
+
+\noindent shipped on an \textbf{explicitly-conceded \mbox{DINOv2$+$CORN} engine}
+\cite{oquab2023dinov2,shi2023corn} that we never claim as novel, and wrapped in an
+\textbf{honest binary-plus-abstention floor}: a welfare-asymmetric operating point
+selected at a fixed pain-recall $\geq 0.90$ (anchored to
+Evangelista et al.\ \cite{evangelista2019}) with the undertreat-to-overtreat harm
+ratio swept as a range over a decision curve, and a defer-to-vet boundary reported
+as a one-sided $95\%$ negative-predictive-value lower bound. The instrument is
+framed throughout as decision-support triage --- ``grimace consistent with pain,
+$X/10$; recommend veterinary assessment'' --- never as an autonomous analgesia
+trigger.
+
+Two consequences of this framing are themselves part of the contribution. First,
+the engine concession is permanent and deliberate: a conceded
+swap-the-backbone delta is harmless, whereas an oversold one is the reviewer's
+favourite kill. Second --- and this is the strongest honesty commitment in the
+project --- the \textbf{graded $0$--$10$ FGS layer ships as an
+inspected-not-validated artifact}. The CORN ordinal heads are trained, decoded
+distributionally, and inspected qualitatively, but the word ``graded'' is struck
+from every validated-claim sentence in the document, and the abstract is required
+to hold with the graded layer dropped entirely. The thing we cannot validate at
+the available sample size, we do not assert. What survives that subtraction --- a
+calibrated binary decision-support instrument, two portable methods, and a
+welfare-aware operating discipline --- is the contribution, and it is not another
+cat-pain detector.
+
+%====================================================================
+\section{Reaffirmation of the Honesty Boundary}
+\label{sec:concl-honesty}
+
+The single most important sentence in this document is that \textbf{no experiments
+have been run}. This is a research proposal and a methodology, not a completed
+empirical study. The document contains no measured accuracies, no $\kappa$ values
+of our own, no calibration numbers, no abstention curves with our data on them,
+and no figures of our own curves. Where a number appears --- the FGS validation
+figures of Evangelista et al.\ (AUC~$0.94$, sensitivity~$90.7\%$,
+specificity~$86.6\%$, threshold $>0.39$) \cite{evangelista2019}, the
+$95.5\%$ landmark-geometry classification accuracy of Steagall et al.\
+\cite{steagall2023}, or the landmark normalised-mean-error range of the CatFLW
+benchmark \cite{martvel2024catflw} --- it belongs to the cited prior literature
+and is presented strictly as a background anchor, never as a result of this work.
+
+The boundary is enforced structurally rather than rhetorically. Chapter~\ref{ch:expected-outcomes}
+replaces a results chapter with an \emph{expected-outcomes and gate-conditioned}
+analysis: for each gate $G_0$ through $G_6$ (plus the weak-label reliability pilot
+$G_{1\text{-}B}$) the document pre-registers the decision rule and the
+\textsc{go}/\textsc{pivot}/\textsc{collapse} branch \emph{before} any datum is
+seen, so that the eventual study cannot move its own goalposts. Three further
+firewalls make the proposal falsifiable in advance: sensitivity and specificity at
+the $0.39$ decision boundary are to be estimated \emph{only} on vet-confirmed
+labels (the $\kappa$-against-VLM number is never treated as validation); the
+cat-disjoint test split is frozen and hashed so that no individual straddles a
+fold and the distinct-pain-cat denominator is always printed with
+Clopper--Pearson or bootstrap intervals; and the word ``guaranteed'' is banned
+from the abstention curve, which is reported only as a finite-sample lower bound.
+
+Read correctly, then, the conclusions of this document are conditional and
+methodological. They are claims about \emph{what would be measured, by what rule,
+and what would ship in each branch} --- not claims about what was measured. The
+abstract holds with the graded layer dropped; the contribution holds even if the
+weak-label reliability pilot forces the planned pivot to the binary spine; and no
+sentence in the document asserts a performance number that the project has not yet
+earned the right to assert.
+
+%====================================================================
+\section{Future Work and Re-Add Triggers}
+\label{sec:concl-future}
+
+A proposal that descopes aggressively owes the reader an explicit account of
+\emph{what was cut and what would bring it back}. The project's critical path was
+narrowed to what is solo-deliverable on a single Apple-silicon machine with one
+veterinary annotator; several capabilities were removed not because they are
+undesirable but because the available sample size cannot support them honestly. We
+therefore record each descoped item as a future-work line paired with a
+pre-registered re-add trigger, so that a successor (a v2 effort, a larger team, or
+a follow-on with a richer data agreement) inherits a schedule rather than a wish.
+Table~\ref{tab:concl-readd} states the triggers; the prose below names the four
+most consequential.
+
+\begin{table}[t]
+\centering
+\caption[Descoped capabilities and their pre-registered re-add triggers]{Descoped
+capabilities and the pre-registered conditions under which each would re-enter the
+critical path. None is on the solo, single-vet timeline of v1; each is a v2
+candidate gated on a concrete, measurable condition rather than on optimism. ``AU''
+denotes a Feline Grimace Scale action unit; ``NPV'' denotes negative predictive
+value.}
+\label{tab:concl-readd}
+\small
+\begin{tabular}{@{}p{0.42\linewidth} p{0.52\linewidth}@{}}
+\toprule
+\textbf{Descoped capability} & \textbf{Re-add trigger (pre-registered)} \\
+\midrule
+Validated graded $0$--$10$ FGS claim
+  & An \emph{independent} per-AU $0/1/2$ gold held-out set arrives \emph{and} the
+    severe ($\mathrm{AU}{=}2$) cells reach double-digit counts. \\
+\addlinespace
+External request-only FGS dataset as a graded anchor
+  & A request-only set clears a Data Use Agreement with a bounded turnaround;
+    treated as a v2 windfall, never a v1 blocker. \\
+\addlinespace
+``Guaranteed'' NPV language on the abstention curve
+  & A power calculation shows the budgeted veterinary $n$ certifies
+    $\mathrm{NPV} \geq 0.90$ at an abstention rate $\leq 40\%$ (a larger vet
+    account). \\
+\addlinespace
+Empirical $5\times 5$ cross-AU error-correlation matrix
+  & The vet-labelled $n$ reaches the low hundreds with non-single-digit cells;
+    until then a two-point $\rho$ sensitivity band stands in. \\
+\addlinespace
+Per-cell severe ($\mathrm{AU}{=}2$) calibration number
+  & The anchor yields double-digit $\mathrm{AU}{=}2$ cells; until then the high
+    end of the scale is collapsed. \\
+\addlinespace
+Engine novelty claim (\mbox{DINOv2$+$CORN})
+  & Never --- conceded as plumbing permanently. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Validating the graded layer.}
+The graded $0$--$10$ regression is the natural next step, and converting it from
+an inspected artifact into a validated claim is the project's principal future
+work --- a move that mirrors the template's own recommendation to extend a binary
+classifier toward a validated graded scale. Two conditions must both hold: an
+\emph{independent} per-AU $0/1/2$ gold held-out set must exist (CatFLW
+\cite{martvel2024catflw} cannot serve this role, being a landmark and
+bounding-box resource rather than a graded-severity anchor), and the severe
+$\mathrm{AU}{=}2$ cells must reach double-digit counts so that per-cell sensitivity
+is estimable rather than spanning the whole unit interval. Only when both are met
+does the project move from a binary spine to a validated graded regression with
+the welfare-aware operating point carried forward onto the ordinal output.
+
+\paragraph{A bounded data agreement as a v2 windfall.}
+The richest accelerant would be a request-only feline-FGS dataset clearing a Data
+Use Agreement with a bounded turnaround. Because such agreements carry unbounded
+schedule risk on a solo timeline, the v1 plan deliberately keeps them off the
+critical path; in v2 a cleared agreement is a windfall that simultaneously
+supplies an external cohort for the confound-attribution protocol and a candidate
+graded anchor. It is a re-add trigger, never a blocker.
+
+\paragraph{Certifying the abstention floor.}
+The defer-to-vet boundary currently ships as a one-sided $95\%$ NPV lower-bound
+curve precisely because the budgeted veterinary sample cannot certify a useful
+$\mathrm{NPV}$ floor at a tolerable abstention rate; certifying
+$\mathrm{NPV} \geq 0.95$ would collapse the abstention rate toward zero and yield a
+vacuous instrument. A larger veterinary account --- enough to certify
+$\mathrm{NPV} \geq 0.90$ at an abstention rate of at most $40\%$ --- is the
+re-add trigger that would let the abstention curve be reported as a certified floor
+rather than an exploratory lower bound, and the word ``guaranteed'' remains banned
+until that power calculation succeeds.
+
+\paragraph{An empirical cross-AU correlation matrix.}
+The propagation of per-AU error into the $0$--$10$ sum is currently handled by a
+two-point $\rho$ sensitivity band (a \textsc{go} is declared only if the decision
+holds under both $\rho{=}0$ and a pinned $\rho{=}0.3$), because a noisily fit
+$5\times 5$ correlation matrix at the available $n$ launders sampling noise as
+data-driven rigor and need not even be positive-definite. Once the vet-labelled
+sample reaches the low hundreds with non-single-digit cells, the pinned band is
+replaced by an empirical cross-AU error-correlation matrix --- a strictly more
+honest input that requires only more data, not a new method.
+
+\bigskip
+\noindent In sum, the modal product this proposal plans to ship --- a calibrated
+binary decision-support instrument with a welfare-asymmetric decision curve and a
+one-sided-$95\%$-NPV abstention curve, two portable methods, and an
+inspected-not-validated graded layer on a conceded engine --- is solo-deliverable
+and stands on its own. The future work above is not a list of things missing from
+that product but a schedule of well-defined, sample-size-gated upgrades, each of
+which converts an honestly-deferred claim into a validated one the moment its
+pre-registered trigger fires.

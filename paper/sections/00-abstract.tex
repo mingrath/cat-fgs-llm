@@ -1,0 +1,69 @@
+% Chapter 0 -- Abstract
+% Self-contained section file: no preamble, no \documentclass.
+% Mirrors the template's bilingual dual-abstract slot (Thai p.5 + English p.6 + keyword line);
+% English written here per the project's single-language directive.
+% HONESTY RULE: this is a methodology / research-proposal abstract. No experiments have been
+% run and no result numbers of ours are reported. Literature anchors are attributed as background.
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\label{ch:abstract}
+
+This is a methodology and research proposal: no experiments have yet been
+conducted, and the document reports no empirical results of our own. We
+propose a \emph{trustworthiness-first} feline pain scorer that is deliberately
+\emph{not} another cat-pain detector. Automated Feline Grimace Scale (FGS) work
+has established strong in-domain detection numbers --- the FGS itself validates
+at the cited reference level of AUC~$0.94$ with sensitivity~$90.7\%$ and
+specificity~$86.6\%$ above a $\geq 0.39$ threshold~\cite{evangelista2019}, with
+subsequent landmark-and-geometry pipelines reporting comparable
+accuracy~\cite{steagall2023, feighelstein2023} --- so a further accuracy
+re-implementation would contribute nothing. Those figures are background only,
+attributed to their authors, and are never restated as ours. Instead, our two
+\emph{claimed} contributions are deliberately \emph{portable methods}, each
+intended to transfer to the next facial-pain corpus rather than to characterize
+a single dataset: \textbf{(i)} a \emph{VLM-as-AU-rater} protocol that scores a
+frozen vision--language model's per-action-unit (per-AU) weak labels against a
+veterinary anchor by quadratic-weighted Cohen's kappa, gated on the
+\emph{lower bound} of the kappa confidence interval rather than its point
+estimate; and \textbf{(ii)} a \emph{capture-condition confound-attribution
+protocol} (an FGS-versus-background gap statistic, FGS-BG-Gap, together with a
+per-AU energy-based pointing-game measure, EBPG) that any future corpus can
+re-run as a one-directional audit, reporting ``no confound detected at this
+power'' rather than asserting the absence of confounding.
+
+These two methods are shipped on an explicitly \emph{conceded} engine: a frozen
+DINOv2 ViT-S/14 backbone~\cite{oquab2023dinov2} feeding five per-AU
+rank-consistent CORN ordinal heads~\cite{shi2023corn}. We claim no novelty for
+this engine and state so plainly throughout; it is plumbing that instantiates
+the methods, not a contribution. The shippable spine is a
+\emph{binary-plus-abstention} floor: a calibrated pain decision taken at a
+welfare-asymmetric operating point fixed to pain-recall~$\geq 0.90$ (rather than
+a symmetric-cost Youden-J or $F_1$ knee), accompanied by a defer-to-vet
+abstention curve reported as a one-sided $95\%$ negative-predictive-value lower
+bound (the word ``guaranteed'' is avoided as unsupportable at the budgeted
+sample size). The headline evaluation artifact of the wrapper is a
+harm-ratio-weighted decision curve that sweeps the undertreat-to-overtreat
+asymmetry as a range. A strict circularity firewall holds throughout: the
+sensitivity and specificity of the $0.39$ decision are estimated only on
+vet-confirmed labels, and the kappa-versus-VLM agreement is never treated as
+validation of that decision.
+
+The proposal is governed by a self-honesty constraint that the abstract is
+written to satisfy: every claim above must continue to hold if the exploratory
+$0$--$10$ ordinal layer is dropped entirely. That ordinal layer is built and
+inspected but is \emph{never} entered as a validated claim, and no validated
+sentence in this work rests upon it. What we report in the results chapters is
+therefore not a table of our accuracies but the evaluation \emph{protocol}, the
+gate-conditioned expected outcomes, and the pre-registered decision rules
+(power-calc budget, kappa CI-lower-bound floors, severity-cell collapse, and
+the binary-fallback pivot) under which each artifact ships or is demoted. The
+intended product is a decision-support triage instrument --- ``grimace
+consistent with pain; recommend veterinary assessment'' --- and never an
+autonomous analgesia trigger.
+
+\vspace{1em}
+\noindent\textbf{Keywords:} feline pain assessment; Feline Grimace Scale;
+facial action units; vision--language model weak labeling; quadratic-weighted
+kappa; trustworthy machine learning; calibration and abstention; decision-curve
+analysis; confound attribution; ordinal regression.

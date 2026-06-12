@@ -1,0 +1,48 @@
+# ENGINE config (conceded plumbing, never claimed novel).
+# Frozen DINOv2 ViT-S/14 + 5 per-AU CORN heads. Distributional decode is DEFAULT.
+num_aus: 5                  # 5 per-AU CORN heads (one per FGS action unit)
+K: 3                        # ordinal levels per AU -> {0,1,2}, so K-1 = 2 CORN logits per head
+
+backbone:
+  name: dinov2-vit-s/14
+  frozen: true
+  hidden_dim: 384
+  patch_size: 14
+  crop_edge: 518            # crop input edge (518 = 37 patches * 14)
+
+decode:
+  mode: distributional      # DEFAULT: P(rank>k)=cumprod(sigmoid(logits)) -> per-AU pmf -> convolve to 0-10 sum pmf
+  # Hard argmax decode is used ONLY for the 0.39 point decision; NO binned reliability
+  # diagram on the 11-atom 0-10 sum (RPS-on-sum + per-AU ClasswiseECE only).
+  # The 0.39 itself is NOT configurable here: the single definition lives in
+  # src/vlm/aggregate.py POINT_DECISION_THRESHOLD (Gate-4-pinned decode contract).
+
+co_teach:
+  num_gradual: 10           # epochs to ramp keep-rate 1.0 -> (1 - tau); canonical Han et al. 2018 R(T)
+  # tau = estimated VLM noise rate. RUNTIME-OWNED by Gate-1-B: train_corn.py reads
+  # est_noise_rate.overall from artifacts/gate1b/kappa_report.json (--tau overrides).
+  # Deliberately NOT a config key — a placeholder here silently drops good rows.
+  # vet-clean rows (is_vet_clean==1) are NEVER dropped from either selection.
+
+# Head-training knobs (frozen-backbone linear probe, ~120-300 labels, M4/MPS).
+# Literal defaults mirror IMPLEMENTATION_PLAN §5.6 table.
+train:
+  optimizer: adamw
+  lr: 1.0e-3                # tiny linear probe; AdamW stable
+  weight_decay: 1.0e-2
+  epochs: 80               # 60-100; default 80. converges fast on cached feats
+  batch_size: 32           # whole train set fits one batch on [N,384] in RAM
+  dropout: 0.1             # light reg
+  head_init_std: 2.0e-5    # trunc_normal_ std; small-data linear-probe stability
+  num_workers: 0           # small data / MPS; deterministic loading
+  pool: cls                # cls (default) vs patch_mean; cache holds both
+  loss: corn               # corn (default) vs coral ablation
+  train_folds: [0, 1, 2]   # cat-disjoint G3 folds used for training
+  seeds: [0, 1, 2, 3, 4]   # 5 seeds; report mean +/- bootstrap CI (n is small)
+  au_weights: null         # optional [1,1,1.5,1.5,1] to upweight muzzle/whiskers imbalance
+
+# Sibling BINARY pain head (the v1 SPINE). Linear(384,1) + BCEWithLogitsLoss(pos_weight).
+# Trained on y_pain, independent of CORN; this is the validated-claim path. The 0-10 CORN
+# sum is INSPECTED-NOT-VALIDATED and never emits a validated-claim number.
+binary_pain:
+  pos_weight: null         # RUNTIME: set to n_neg/n_pos from the train split if null
