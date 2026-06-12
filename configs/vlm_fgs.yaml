@@ -16,6 +16,11 @@ au_order:
   - head
 
 # Gate 1-B fires on the CI LOWER BOUND of each per-AU quadratic kappa, not the point estimate.
+# Interpretation guard (see src/eval/kappa.py): a high kappa measures weak-labeling
+# capability ONLY if the vet anchor is independent of the rater AND the rubric handed to
+# the VLM differs from the rubric the vet scored from; otherwise it measures
+# rubric-following. A result is pending an independent per-AU vet anchor that does not yet
+# exist (the dataset is binary pain/no_pain), so this ships as a runnable protocol.
 # SINGLE SOURCE for the floors: gate0_power.py reads them from HERE and commits them
 # into data/manifests/power.json, which gate1b_kappa_pilot.py enforces. Edit here only.
 kappa_floors:

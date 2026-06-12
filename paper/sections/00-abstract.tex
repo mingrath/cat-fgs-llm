@@ -26,7 +26,10 @@ a single dataset: \textbf{(i)} a \emph{VLM-as-AU-rater} protocol that scores a
 frozen vision--language model's per-action-unit (per-AU) weak labels against a
 veterinary anchor by quadratic-weighted Cohen's kappa, gated on the
 \emph{lower bound} of the kappa confidence interval rather than its point
-estimate; and \textbf{(ii)} a \emph{capture-condition confound-attribution
+estimate --- a protocol whose result is pending an independent per-AU
+veterinary anchor that does not yet exist (the current binary pain/no-pain
+labels cannot yield $0/1/2$ AU ground truth), so it ships today as a
+runnable protocol rather than a reported number; and \textbf{(ii)} a \emph{capture-condition confound-attribution
 protocol} (an FGS-versus-background gap statistic, FGS-BG-Gap, together with a
 per-AU energy-based pointing-game measure, EBPG) that any future corpus can
 re-run as a one-directional audit, reporting ``no confound detected at this

@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.gate3_holdout import abort_if_test_manifest_readable  # noqa: E402
 from src.data.seed import seed_everything  # noqa: E402
+from src.model.backbone import DEFAULT_VARIANT  # noqa: E402
 from src.model.cache_features import build_cache  # noqa: E402
 from src.model.device import DEVICE  # noqa: E402
 
@@ -49,6 +50,9 @@ def main() -> None:
                     help="override output npz (else the --set default)")
     ap.add_argument("--device", default=None,
                     help="compute device (else configs/global.yaml device)")
+    ap.add_argument("--variant", default=None,
+                    help="backbone variant (else configs/corn.yaml backbone.name); "
+                         "dinov2_vits14_reg (field default) or dinov2_vits14")
     args = ap.parse_args()
 
     # Gate-3 firewall: the cache is consumed by training; a cache build that can
@@ -59,6 +63,10 @@ def main() -> None:
     seed_everything(int(gcfg.get("seed", 42)))
     device = args.device or gcfg.get("device") or DEVICE  # null config -> auto (mps else cpu)
 
+    # backbone variant: CLI override else corn.yaml backbone.name else the reg default
+    ccfg = yaml.safe_load((ROOT / "configs" / "corn.yaml").read_text())
+    variant = args.variant or ccfg.get("backbone", {}).get("name") or DEFAULT_VARIANT
+
     default_manifest, default_out = SETS[args.set]
     manifest = Path(args.manifest) if args.manifest else default_manifest
     out = Path(args.out) if args.out else default_out
@@ -68,7 +76,7 @@ def main() -> None:
             f"manifest not found: {manifest} "
             f"(produced by the G1 per-CAT merge + G3 frozen fold CSV)"
         )
-    build_cache(str(manifest), str(out), device=device)
+    build_cache(str(manifest), str(out), device=device, variant=variant)
 
 
 if __name__ == "__main__":

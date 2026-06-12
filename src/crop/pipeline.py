@@ -2,8 +2,10 @@
 
 detect -> quality-gate -> expand -> (align) -> letterbox -> resize 518 RGB.
 
-Produces the exact crop tensor the frozen DINOv2 ViT-S/14 engine consumes, plus
-``crop_manifest.parquet`` (one row per source image). Rows with
+Produces the exact crop tensor the frozen DINOv2 ViT-S/14 engine consumes (the
+``_reg`` register variant ``dinov2_vits14_reg`` is the field default — registers
+suppress attention artifacts that hurt the dense, localized per-AU features),
+plus ``crop_manifest.parquet`` (one row per source image). Rows with
 ``route_vet=True`` are EXCLUDED from feature caching and from every sens/spec/κ
 denominator downstream (§3.5) — "detector/quality failure -> defer-to-vet" is an
 explicit, counted abstention channel, not a silent drop. Augmented copies never

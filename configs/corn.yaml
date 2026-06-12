@@ -1,11 +1,14 @@
 # ENGINE config (conceded plumbing, never claimed novel).
-# Frozen DINOv2 ViT-S/14 + 5 per-AU CORN heads. Distributional decode is DEFAULT.
+# Frozen DINOv2 ViT-S/14 (register variant default) + 5 per-AU CORN heads. Distributional decode is DEFAULT.
 num_aus: 5                  # 5 per-AU CORN heads (one per FGS action unit)
 K: 3                        # ordinal levels per AU -> {0,1,2}, so K-1 = 2 CORN logits per head
 
 backbone:
-  name: dinov2-vits14_reg        # _reg (register) variants are field default; dinov2_vits14_reg suppresses
-  frozen: true                   # attention artifacts that hurt dense, localized FGS features. A/B before locking ViT-S/14.
+  # torch.hub id consumed by src.model.backbone (reg = field default; plain = A/B comparator).
+  # _reg registers suppress attention artifacts that hurt dense, localized per-AU FGS
+  # features (orbital/ear/muzzle); A/B vs plain dinov2_vits14 before locking.
+  name: dinov2_vits14_reg
+  frozen: true
   hidden_dim: 384
   patch_size: 14
   crop_edge: 518            # crop input edge (518 = 37 patches * 14)

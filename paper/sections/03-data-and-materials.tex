@@ -173,9 +173,16 @@ specificity at the $0.39$ operating point are estimated \emph{only} on these
 vet-confirmed labels. The kappa of the model's predictions against the VLM is
 \emph{never} reported as validation, because it would measure the model
 re-learning the VLM's heuristic rather than agreement with clinical ground
-truth. The VLM-versus-vet kappa is a \emph{method finding} --- whether a frozen
-VLM can weak-label feline FGS action units at human-rater agreement --- and not
-a validation of the decision. The graded $0$--$10$ layer ships
+truth. The VLM-versus-vet kappa is a \emph{method whose result is pending} the
+independent per-AU vet anchor --- it ships today as a runnable protocol for
+asking whether a frozen VLM can weak-label feline FGS action units at human-rater
+agreement, not as a number, since the binary corpus cannot yield the $0/1/2$
+ground truth the kappa needs --- and is in no case a validation of the decision.
+A high kappa would measure weak-labeling \emph{capability} only if the anchor is
+independent of the rater who scored the target \emph{and} the rubric handed to
+the VLM differs from the one the vet scored from; otherwise it measures
+rubric-following, and a run must state which it measures
+(see \texttt{src/eval/kappa.py}). The graded $0$--$10$ layer ships
 \emph{inspected-not-validated}: the word ``graded'' is struck from every
 validated-claim sentence, and the headline holds with that layer dropped.
 
@@ -223,7 +230,12 @@ CC~BY release built from the spine corpus.
 Three further assets are conceded plumbing. The frozen image encoder
 (\texttt{facebook/dinov2-small}, Apache-2.0) is a foundation-feature backbone
 \citep{oquab2023dinov2} that is never domain-adapted; its features are cached to
-disk once and the ordinal heads are trained off the cache. A Haar
+disk once and the ordinal heads are trained off the cache. The register variant
+(\texttt{dinov2\_vits14\_reg}) is the field default --- registers suppress
+attention artifacts that hurt the dense, localized features the per-AU heads read
+(orbital, ear, muzzle sub-regions) --- with the plain backbone kept only as an
+A/B comparator before \mbox{ViT-S/14} is locked; this remains conceded plumbing,
+not a contribution. A Haar
 \texttt{frontalcatface} cascade (MIT) is a zero-training fallback cropper used
 only when a detector box is missing, and a detection failure is logged as an
 abstention signal rather than promoted into a landmark pipeline. The Zhang-2008

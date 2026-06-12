@@ -303,9 +303,14 @@ that would either overclaim or quietly reproduce existing work:
   \item \textbf{No engine-novelty claim.} The DINOv2+CORN engine is conceded as
   plumbing permanently; a swap-the-backbone delta is harmless only because it is
   never sold as the contribution.
-  \item \textbf{No phantom weak-label citation.} The labeler is self-justified by
-  the kappa pilot; we invoke no unretrievable ``only this model is acceptable''
-  citation to justify the choice.
+  \item \textbf{No phantom weak-label citation.} The labeler is justified by the
+  kappa protocol --- whose result is pending an independent per-AU vet anchor that
+  does not yet exist, since the current binary \texttt{pain}/\texttt{no\_pain}
+  corpus cannot yield $0/1/2$ AU ground truth --- and we invoke no unretrievable
+  ``only this model is acceptable'' citation to justify the choice. A high kappa
+  measures weak-labeling capability only if the anchor is independent and the
+  rubric handed to the VLM differs from the one the vet scored from; otherwise it
+  measures rubric-following, and a run must state which it measures.
   \item \textbf{No symmetric-cost operating point and no ``guaranteed'' NPV.} The
   operating point is welfare-asymmetric at fixed high recall, and the abstention
   curve is a one-sided $95\%$ NPV lower bound with the word ``guaranteed'' banned.

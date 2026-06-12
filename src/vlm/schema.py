@@ -8,7 +8,12 @@ schema by construction.
 
 This is supervision-layer plumbing only. The structured-output call is borrowed
 plumbing; the portable method is the downstream per-AU VLM-vs-vet quadratic kappa
-(src.eval.kappa / §4 pilot), not this file.
+(src.eval.kappa / §4 pilot), not this file. That kappa method ships today as a
+runnable PROTOCOL whose result is pending an independent per-AU vet anchor that
+does not yet exist (the current dataset is binary pain/no_pain and cannot yield
+0/1/2 AU ground truth). It self-justifies the labeler only under the interpretation
+guard in src.eval.kappa (anchor independent of the rater, and a rubric distinct
+from the vet's), else it measures rubric-following, not weak-labeling skill.
 
 Claude strict structured outputs strip numeric min/max (FACTCHECK C48/C49), so the
 ordinal levels are pinned with ``enum: [0, 1, 2]`` -- the only reliable way to fix

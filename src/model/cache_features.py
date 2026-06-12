@@ -29,7 +29,7 @@ import torch
 from PIL import Image
 
 from src.constants import AU_ORDER
-from src.model.backbone import extract, load_frozen_dinov2, preprocess
+from src.model.backbone import DEFAULT_VARIANT, extract, load_frozen_dinov2, preprocess
 from src.model.device import DEVICE
 
 # manifest_csv columns (IMPLEMENTATION_PLAN §5.2):
@@ -54,17 +54,20 @@ def _dinov2_commit() -> str:
         return "unknown"
 
 
-def _write_provenance(out_npz, device: str, n_rows: int) -> Path:
+def _write_provenance(out_npz, device: str, n_rows: int, variant: str) -> Path:
     """Write <cache-stem>.PROVENANCE.json next to the cache (datasheet line).
 
     Named after the npz so the cat and horse caches each keep their own
-    provenance instead of overwriting a shared file."""
+    provenance instead of overwriting a shared file. Records the backbone
+    variant (reg vs plain) so a reported number can never hide which engine
+    produced its features."""
     out_npz = Path(out_npz)
     prov_path = out_npz.parent / f"{out_npz.stem}.PROVENANCE.json"
     prov_path.parent.mkdir(parents=True, exist_ok=True)
     prov = {
         "cache_npz": str(out_npz),
         "n_rows": n_rows,
+        "backbone_variant": variant,  # dinov2_vits14_reg (field default) or dinov2_vits14
         "dinov2_commit": _dinov2_commit(),
         "preprocess": {
             "resize": 518,
@@ -83,8 +86,12 @@ def _write_provenance(out_npz, device: str, n_rows: int) -> Path:
     return prov_path
 
 
-def build_cache(manifest_csv, out_npz, device: str = DEVICE):
+def build_cache(manifest_csv, out_npz, device: str = DEVICE, variant: str = DEFAULT_VARIANT):
     """One frozen-DINOv2 forward over every crop in manifest_csv -> out_npz.
+
+    variant selects the ViT-S/14 backbone: ``dinov2_vits14_reg`` (field default,
+    registers suppress attention artifacts on localized per-AU features) or the plain
+    ``dinov2_vits14`` A/B comparator. The variant is recorded in PROVENANCE.json.
 
     Saves CLS + mean-pooled patch tokens + 5-AU labels (-1 sentinel where
     unscored) + y_pain + is_vet_clean, then writes PROVENANCE.json.
@@ -92,7 +99,7 @@ def build_cache(manifest_csv, out_npz, device: str = DEVICE):
     out_npz = Path(out_npz)
     out_npz.parent.mkdir(parents=True, exist_ok=True)
 
-    m, hidden = load_frozen_dinov2(device)
+    m, hidden = load_frozen_dinov2(device, variant=variant)
     assert hidden == 384, f"expected 384-d ViT-S features, got {hidden}"
 
     rows, cls_feats, patch_feats = [], [], []
@@ -118,7 +125,7 @@ def build_cache(manifest_csv, out_npz, device: str = DEVICE):
         y_pain=np.array([int(r["y_pain"]) for r in rows], dtype=np.int64),
         is_vet_clean=np.array([int(r.get("is_vet_clean", 0)) for r in rows], dtype=np.int64),
     )
-    prov_path = _write_provenance(out_npz, device, len(rows))
+    prov_path = _write_provenance(out_npz, device, len(rows), variant)
     print(f"cached {len(rows)} crops -> {out_npz}")
     print(f"provenance -> {prov_path}")
     return out_npz
