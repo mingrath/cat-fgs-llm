@@ -4,8 +4,12 @@
 direction: one_directional
 
 features:
-  fgs_bg_gap: true          # FGS-BG-Gap: foreground-vs-background gap feature
-  ebpg: true                # per-AU EBPG (energy-based pointing game) attribution
+  fgs_bg_gap: true          # FGS-BG-Gap: foreground-vs-background gap feature (image-side)
+  ebpg: true                # per-AU EBPG (energy-based pointing game) attribution (image-side)
+  judge_bias: true          # VLM-rater judge-bias axis: |0/1/2 shift| + flip-rate under
+                            # named prompt perturbations (position/verbosity/self_enhancement).
+                            # Code path: src.eval.confound.judge_bias (consumes baseline +
+                            # perturbed rater reruns); vet-free, not gated by the vet anchor.
 
 # Trivial-classifier probe: brightness/blur/aspect (+ optional CLIP) predicting pain.
 # NOT a config knob: the scalar feature list is fixed in scripts/gate2_confound.py

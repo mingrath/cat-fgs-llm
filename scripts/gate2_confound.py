@@ -122,6 +122,8 @@ def run_gate(features_csv: str, out_json: str, use_clip: bool = False) -> dict:
         # wire them here once those artifacts exist.
         "bg_gap": None,  # TODO(runtime): src.eval.confound.bg_gap_per_au on bg-swap composites
         "ebpg": None,    # TODO(runtime): src.eval.confound.ebpg on per-AU saliency vs CatFLW ROI
+        "judge_bias": None,  # TODO(runtime): src.eval.confound.judge_bias on baseline + perturbed
+                             # (position/verbosity/self_enhancement) VLM-rater reruns
         "note": NO_CONFOUND_MSG,
     }
     Path(out_json).parent.mkdir(parents=True, exist_ok=True)

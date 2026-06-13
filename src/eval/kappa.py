@@ -51,20 +51,42 @@ def qwk(y_vlm, y_vet) -> float:
     return cohen_kappa_score(y_vlm, y_vet, labels=[0, 1, 2], weights="quadratic")
 
 
+def _boot_indices(rng, n: int, groups=None) -> np.ndarray:
+    """Row indices for ONE bootstrap resample.
+
+    Without `groups`: i.i.d. row resample (rng.integers). With `groups` (e.g. cat_id):
+    CLUSTER resample — draw whole cats with replacement and gather their rows, so
+    within-cat correlation is respected and the CI is not optimistically narrow. This
+    mirrors src.eval.bootstrap.bootstrap_ci's cluster branch; the κ gate inherits the
+    same cat_id grouping the wrapper curves and StratifiedGroupKFold already use (THE
+    LAW: CV grouped by cat_id). Multiple images per cat are NOT independent draws.
+    """
+    if groups is None:
+        return rng.integers(0, n, n)
+    uniq = np.unique(groups)
+    picked = rng.choice(uniq, size=len(uniq), replace=True)
+    return np.concatenate([np.where(groups == g)[0] for g in picked])
+
+
 def bootstrap_qwk_lb(
     y_vlm,
     y_vet,
     n_boot: int = 5000,
     alpha: float = 0.05,
     seed: int = 42,
+    groups=None,
 ) -> tuple[float, float]:
     """Paired bootstrap one-sided 95% LOWER BOUND of the per-AU quadratic kappa.
 
-    Resamples paired IMAGES (rows), not AU-rows. Degenerate resamples (a single class
-    present -> kappa undefined) are skipped; sklearn signals these by RETURNING nan
-    (it does not raise), so nan replicates are filtered explicitly — without that
-    filter a near-constant AU silently yields a nan lower bound and the gate reports
-    a quality FAIL for what is actually a degeneracy/power problem.
+    Resamples paired rows by default; pass `groups` (cat_id) to CLUSTER-resample whole
+    cats instead — the gate-feeding lower bound must respect within-cat correlation, so
+    Gate-1-B always passes groups=cat_id (image-i.i.d. resampling inflates the LB). The
+    same cat_id grouping is used by the wrapper bootstraps and StratifiedGroupKFold.
+    Degenerate resamples (a single class present -> kappa undefined) are skipped;
+    sklearn signals these by RETURNING nan (it does not raise), so nan replicates are
+    filtered explicitly — without that filter a near-constant AU silently yields a nan
+    lower bound and the gate reports a quality FAIL for what is actually a
+    degeneracy/power problem.
     Returns (point_kappa, ci_lower_bound); ci_lower_bound is nan ONLY when every
     resample was degenerate — callers must surface that as "degenerate", not "fail".
 
@@ -74,11 +96,12 @@ def bootstrap_qwk_lb(
     """
     y_vlm = np.asarray(y_vlm)
     y_vet = np.asarray(y_vet)
+    groups = None if groups is None else np.asarray(groups)
     rng = np.random.default_rng(seed)
     n = len(y_vlm)
     stats_ = []
     for _ in range(n_boot):
-        idx = rng.integers(0, n, n)
+        idx = _boot_indices(rng, n, groups)
         try:
             val = qwk(y_vlm[idx], y_vet[idx])
         except ValueError:
@@ -97,22 +120,25 @@ def bootstrap_qwk_ci(
     n_boot: int = 10000,
     alpha: float = 0.05,
     seed: int = 42,
+    groups=None,
 ) -> tuple[float, float, float]:
     """Two-sided percentile CI of the per-AU quadratic kappa (§6.1 reporting form).
 
-    Paired resample of IMAGES, n_boot default 10000, percentile alpha/2 .. 1-alpha/2.
-    Returns (kappa, lo, hi). The gate fires on the one-sided lower bound
-    (bootstrap_qwk_lb); this two-sided CI is for the reported kappa table.
+    Paired resample of rows by default; pass `groups` (cat_id) to cluster-resample
+    whole cats (same discipline as bootstrap_qwk_lb). n_boot default 10000, percentile
+    alpha/2 .. 1-alpha/2. Returns (kappa, lo, hi). The gate fires on the one-sided lower
+    bound (bootstrap_qwk_lb); this two-sided CI is for the reported kappa table.
     """
     y_vlm = np.asarray(y_vlm)
     y_vet = np.asarray(y_vet)
+    groups = None if groups is None else np.asarray(groups)
     rng = np.random.default_rng(seed)
     n = len(y_vlm)
-    idx = rng.integers(0, n, size=(n_boot, n))
     boots = []
-    for i in idx:
+    for _ in range(n_boot):
+        idx = _boot_indices(rng, n, groups)
         try:
-            boots.append(qwk(y_vlm[i], y_vet[i]))
+            boots.append(qwk(y_vlm[idx], y_vet[idx]))
         except ValueError:
             continue
     boots = np.asarray(boots, dtype=float)
@@ -142,14 +168,17 @@ def per_au_kappa_table(
     distinct_pain_cats.
     """
     au_names = au_names or AU_NAMES
+    # cluster-bootstrap by cat_id when the column is present, so the reported CI and
+    # the gate-firing lower bound both respect within-cat correlation (THE LAW).
+    groups = df[cat_col].to_numpy() if cat_col in df.columns else None
     rows = []
     for au in au_names:
         v = df[f"{au}_vlm"].to_numpy()
         p = df[f"{au}_vet"].to_numpy()
-        k, lo, hi = bootstrap_qwk_ci(v, p, n_boot=n_boot, alpha=alpha, seed=seed)
+        k, lo, hi = bootstrap_qwk_ci(v, p, n_boot=n_boot, alpha=alpha, seed=seed, groups=groups)
         # same n_boot/seed as the two-sided CI so the gate-firing lb and the
         # reported interval come from one RNG stream (reproducible together)
-        _, lb = bootstrap_qwk_lb(v, p, n_boot=n_boot, alpha=alpha, seed=seed)
+        _, lb = bootstrap_qwk_lb(v, p, n_boot=n_boot, alpha=alpha, seed=seed, groups=groups)
         n_cats = None
         if cat_col in df.columns:
             # distinct individuals among VLM-or-vet pain-positive (AU >= 1) rows

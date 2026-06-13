@@ -69,10 +69,14 @@ def run_gate(merged_csv: str, out_json: str, n_boot: int = 5000, alpha: float = 
 
     report, decision = {}, {}
     noise_rates = {}
+    # Cluster the gate-feeding bootstrap by cat_id so the one-sided 95% LB respects
+    # within-cat correlation (pilot positives concentrate in few cats, e.g. CAT_01);
+    # image-i.i.d. resampling would inflate the LB and make the gate too easy (THE LAW).
+    groups = df["cat_id"].to_numpy() if "cat_id" in df.columns else None
     for au in AU_NAMES:
         y_vlm = df[f"{au}_vlm"].to_numpy()
         y_vet = df[f"{au}_vet"].to_numpy()
-        k, lb = bootstrap_qwk_lb(y_vlm, y_vet, n_boot=n_boot, alpha=alpha)
+        k, lb = bootstrap_qwk_lb(y_vlm, y_vet, n_boot=n_boot, alpha=alpha, groups=groups)
         floor = floors.get(au, DEFAULT_FLOORS[au])
         # nan lb = every bootstrap resample was degenerate (near-constant AU) — a
         # power/degeneracy outcome, NOT a VLM-quality FAIL; surfaced separately.

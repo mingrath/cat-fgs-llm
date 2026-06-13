@@ -33,12 +33,15 @@ RULES:
 - Set image_quality='unusable' only if the whole face cannot be assessed.
 - You may NOT output a total score or any pain/treatment decision. Output only the 5 AU records."""
 
-# Cache-controlled system block. Default 5m TTL; switch to
-# {"type": "ephemeral", "ttl": "1h"} for a long batch window.
+# Cache-controlled system block. ttl="1h" (not the 5m default): the async Message
+# Batches window runs for hours, and a 5-minute TTL with silent edit-invalidation
+# collapses the rubric-cache hit-rate so every request re-pays full input-token price
+# for the rubric. 1h TTL may require the beta header extended-cache-ttl-2025-04-11 on
+# some model ids. Single-sourced here -> propagates to batch_submit.py and call.py.
 SYSTEM_BLOCKS = [
     {
         "type": "text",
         "text": RUBRIC,
-        "cache_control": {"type": "ephemeral"},
+        "cache_control": {"type": "ephemeral", "ttl": "1h"},
     }
 ]

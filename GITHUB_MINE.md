@@ -192,3 +192,46 @@ Honest read: **nothing on public GitHub threatens the core thesis.** Components 
 **The Gate 1-B VLM-vs-vet per-AU quadratic-κ pilot** (~120 images, ≥50 pain-positive), instrumented with three borrowed pieces at once: (a) `Arize-ai/phoenix` forced-tool-use enum schema (parse-failure-free 5-AU calls); (b) `m-rewardbench` row-paired κ **with `weights="quadratic"`**; (c) `prometheus-eval` ordinal Krippendorff α over N≥3 repeated VLM runs for a vet-free self-consistency column.
 
 Highest leverage because it is the GO/NO-GO gate every downstream claim rides on (BUILD_PLAN §0.5, §3.4), needs no GPU/backbone (pure API + sklearn/krippendorff on M4), and produces the first-in-field weak-label-reliability number that is the spine of the wrapper. If muzzle/whiskers κ collapses, the α pre-screen and the binary-plus-abstention floor — the likely v1 ship that stands today regardless — both cover us — pure information gain, no project-killing downside.
+
+---
+
+# Mining Pass 3 (2026-06-13) — daily.dev real-time literature scan
+
+> Passes 1–2 mined **GitHub** ("what data/code can we clone?" / "what techniques make us unique?"). This pass mines the **live daily.dev developer-content feed** ("what *recently-published* ideas should we adopt to stay current?"). Produced by a 70-agent dynamic Workflow (7 module groups → 105 unique candidates discovered via `/recommend/keyword` + `/search/posts`, time=year → adversarial LAW gate). **Engagement caveat:** niche AI/research posts carry 0–5 upvotes, so recency + source drove ranking, not vote counts.
+
+**Headline:** the recent literature **corroborates the settled design, it does not displace it.** The adversarial gate returned **0 hard-adopt, 18 trial (16 after URL-dedup), 87 skip** across 105 candidates — the LAW held against every one. The `src/data` module drew **0 trials / 13 skips** (`StratifiedGroupKFold`-by-`cat_id` is already current best practice). A whole cluster of DINOv3 / Canopy-Height / diffusion-REPA "frozen-DINO works downstream!" posts was correctly skipped as **backbone story** (web-scale pretrain, GPU, custom loss — out of regime; engine is conceded plumbing). The single *new actionable correctness* item is P3.1 #1.
+
+## P3.1 New & actionable (not already in Pass 1–2)
+
+| # | Idea | File | Effort | Source (date) | Why it's new |
+|---|------|------|--------|---------------|--------------|
+| **1 ⭐** | **Cluster-bootstrap the κ CI by `cat_id`.** VERIFIED code gap: `eval/bootstrap.py:58` `bootstrap_ci` has a `groups=` path that resamples whole cats, but `eval/kappa.py` `bootstrap_qwk_lb`/`bootstrap_qwk_ci` (lines 81, 111) resample IMAGES i.i.d. — within-cat correlation inflates the κ lower bound feeding the gate. Add a `groups=cat_id` path behind a min-cats degeneracy guard (CAT_01 LOIO can collapse). | `src/eval/kappa.py` | low | freecodecamp cluster-randomization (2026-05-22) | Correctness fix on the headline κ protocol; not in any prior pass |
+| 2 | **Judge-bias perturbation template** for the confound protocol — borrow DiffuJudge-AV's 7 named bias perturbations + its "r=0.753 hides κ=0.057" datapoint as *evidence for* the κ-over-Pearson gate; harvest the eugeneyan LLM-as-Judge bias catalog (position/verbosity/self-enhancement) as documented checks. | `src/eval/confound.py` | low–med | towardsdatascience 2026-05-28; eugeneyan | Extends Pass-2 confound audit (P2.1 #2/#3 = *background* counterfactuals) along a new *judge-bias* axis |
+| 3 | **Cross-model disagreement** as an *epistemic* abstention signal — current `consistency.py` Krippendorff α (P2.1 #4) is temperature-only (aleatoric); a second cheap VLM's disagreement adds epistemic spread. Feeds abstention only — never the banned "guaranteed" framing. | `src/vlm/consistency.py` | med | MIT News, 2026-03-19 | New angle on the already-adopted α self-consistency column |
+| 4 | **Per-AU split prompts** vs the single 5-AU `FGS_TOOL` (Netflix: one prompt scoring many criteria hurts accuracy). Falsifiable; multiplies batch cost — A/B before committing. | `src/vlm/schema.py` | med | netflixtechblog, 2026-04-10 | New experiment on the VLM rater prompt shape |
+| 5 | **Decision-tree rubric** + calibration exemplars: convert the flat 0/1/2 AU descriptors in `rubric.py` into a decision tree to lift VLM-vs-vet agreement on weak AUs (muzzle/whiskers). Pilot first. | `src/vlm/rubric.py` | low | eugeneyan labeling-guidelines | Rubric-authoring lever, complementary to the CatFACS anchor in §4 |
+
+## P3.2 Tactical hardening (cheap, no new claim)
+
+| Idea | File | Source |
+|------|------|--------|
+| **Prompt-cache TTL check** — verify `ttl=1h` is set for long async Batches windows (5-min TTL + silent edit-invalidation collapse hit-rate). | `src/vlm/rubric.py` | alexcloudstar, 2026-04-24 |
+| **DINOv2 reg-vs-plain artifact A/B** justification + test-time-register caveat (backbone.py already *plans* this A/B on cached features). | `src/model/backbone.py` | towardsdatascience, 2026-01-14 |
+| **kNN / linear-separability probe** on cached frozen features as a pre-train Gate-4 sanity baseline (held-out features only — circularity). | `src/model/cache_features.py` | q42, 2026-01-26 |
+| **Calibrate RF-DETR confidence** before `select_threshold` — *only if* the wrapper's `p_pain` stage doesn't already own calibration (don't double-calibrate). | `src/detect/decision.py` | towardsdatascience, 2026-05-26 |
+| **Claude native Structured Outputs** — re-check whether enums are now preserved (schema.py's C48/C49 min/max-strip workaround). | `src/vlm/schema.py` | container-solutions, 2026-03-06 |
+
+## P3.3 Corroborates an already-adopted Pass-2 item (don't double-count as novel)
+
+- **MAPIE custom non-conformity / conditional coverage** (towardsdatascience, 2024) — reinforces P2.1 #1's risk-controlled abstention; note MAPIE's API has since moved to `risk_control` (which P2.1 #1 already targets). Corroboration, not a new lever.
+- **cleanlab / confident-learning** (sitepoint, 2026-05-15) — already in §3 / P2 as the weak-label audit; daily.dev re-surfaces it as a *baseline comparator* to co-teaching. Trial-not-adopt: assumes class-conditional noise, may fight the *vet-clean-never-dropped* invariant; τ still from Gate-1-B.
+- **Total-variance decomposition** (promptlayer, 2026-05-30) — a principled way to set `n_runs` for the existing N≥3 self-consistency pass (P2.1 #4). Measurement refinement only.
+
+## P3.4 Gated / speculative (correct but blocked at our scale)
+
+- **MemAlign few-shot judge alignment** (mlflow, 2026-02-03, up=5) — few-shot NL alignment of the VLM-AU-rater to the vet rubric without fine-tuning fits the scarce-anchor regime *exactly*, **but is GATED**: only runnable after the per-AU vet anchor lands, and must NOT contaminate the κ anchor (circularity firewall). Strongest future lever once Gate-1-B clears. → `src/vlm/rubric.py`
+- **Venn-Abers self-calibrating conformal** (marktechpost, 2024) — finite-sample-valid `p_pain` calibration feeding the NPV bound + decision curve; regression-framed, speculative benefit at 120–300 labels. Trial on the calibration split before any claim. → `src/wrapper/operating_point.py`
+
+## P3.5 Bottom line
+
+daily.dev adds **no idea that overturns the strategy** — its main value this pass is (a) one verified correctness fix (P3.1 #1 cluster-bootstrap κ), (b) a new *judge-bias* axis for the confound method (P3.1 #2), and (c) independent corroboration that the κ-over-correlation gate, frozen-DINO + light-heads engine, and conformal/selective abstention wrapper are the current-best choices, not stale ones. Implementing any P3 item remains a follow-up decision, not an automatic step.

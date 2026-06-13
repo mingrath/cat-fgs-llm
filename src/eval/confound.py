@@ -5,7 +5,7 @@ underpowered to RULE IT OUT. Every output string says "no confound detected at t
 power" — NEVER "ruled out", never "guaranteed". The deliverable is the reusable
 PROTOCOL, not the claim "CAT_01 is confounded".
 
-Two probes:
+Three probes (all one-directional):
   - bg_gap()  : FGS-BG-Gap background counterfactual. Mean |score shift| on a background
                 swap over the 0-10 sum, PLUS the pain-flip rate (fraction whose 0.39
                 binary decision flips on bg swap), per AU. A large gap on a specific AU =
@@ -15,6 +15,12 @@ Two probes:
                 ear head fire on the ear?" — per-AU localization faithfulness. If landmark
                 coverage is partial, EBPG is reported only on the covered subset (state
                 the denominator).
+  - judge_bias() : JUDGE-side confound axis for the VLM-as-AU-rater. Mean |0/1/2 shift| +
+                AU-flip rate when the rater's OWN prompt is perturbed in content-preserving
+                ways (position-swap of the AU order, verbosity inflation, self-enhancement
+                preamble). Covers the LLM-as-judge biases that bg_gap/ebpg (image-side
+                confounds) do not. Compares the rater to itself, so it needs NO vet anchor
+                and is NOT gated by the pending per-AU vet anchor.
 """
 
 from __future__ import annotations
@@ -98,3 +104,62 @@ def bg_gap_per_au(
         for au in score_orig_by_au
     }
     return {"per_au": table, "note": NO_CONFOUND_MSG}
+
+
+# Named, content-preserving perturbations of the VLM-as-AU-rater prompt (a DiffuJudge-
+# style named-perturbation template). The probe CONSUMES scores from a baseline prompt
+# and from each named perturbed rerun — it never calls the model itself, so it stays a
+# pure, unit-testable attribution function like bg_gap().
+JUDGE_BIAS_PERTURBATIONS = (
+    "position",          # permute the AU enumeration order (ear,orbital,muzzle,whiskers,head)
+    "verbosity",         # verbosity-inflated rubric text — longer descriptors, same meaning
+    "self_enhancement",  # self-referential "you are an expert" preamble before scoring
+)
+
+
+def judge_bias_shift(score_baseline, score_perturbed) -> dict:
+    """One judge-bias cell: mean |0/1/2 score shift| + AU-flip rate under one perturbation.
+
+    score_baseline, score_perturbed: [N] per-AU ordinal scores from the baseline prompt
+    and from ONE named perturbation of the VLM-as-AU-rater prompt. A large shift means the
+    rater's score depends on prompt framing, not the cat — a JUDGE-side confound DETECTED
+    here. ONE-DIRECTIONAL: a small shift is only NO_CONFOUND_MSG, never "no bias".
+    """
+    sb = np.asarray(score_baseline, dtype=float)
+    sp = np.asarray(score_perturbed, dtype=float)
+    return {
+        "shift": float(np.abs(sp - sb).mean()),
+        "flip_rate": float((sb != sp).mean()),
+        "n": int(len(sb)),
+        # ONE-DIRECTIONAL: a small shift does NOT rule out a judge bias, it only fails to
+        # detect one at this power.
+        "note": NO_CONFOUND_MSG,
+    }
+
+
+def judge_bias(baseline_by_au: dict, perturbed_by_au: dict) -> dict:
+    """Judge-bias confound axis over the VLM-as-AU-rater (extends the confound protocol).
+
+    Probes whether the rater's per-AU 0/1/2 scores move under named, content-preserving
+    perturbations of its OWN prompt — the LLM-as-judge biases (position / verbosity /
+    self-enhancement) that the image-side bg_gap/ebpg probes do not cover. Compares the
+    rater to itself, so it needs NO vet anchor and is NOT gated by the pending per-AU vet
+    anchor (distinct from the kappa-validation question).
+
+    baseline_by_au[au]:        [N] scores from the baseline prompt.
+    perturbed_by_au[pert][au]: [N] scores from named perturbation `pert` (one of
+                               JUDGE_BIAS_PERTURBATIONS), aligned row-for-row to baseline.
+
+    Returns {"per_perturbation": {pert: {au: judge_bias_shift(...)}}, "note"}.
+    ONE-DIRECTIONAL (NO_CONFOUND_MSG): a small shift fails to detect a judge confound at
+    this power; it does not rule one out.
+    """
+    table = {
+        pert: {
+            au: judge_bias_shift(baseline_by_au[au], pert_scores[au])
+            for au in baseline_by_au
+            if au in pert_scores
+        }
+        for pert, pert_scores in perturbed_by_au.items()
+    }
+    return {"per_perturbation": table, "note": NO_CONFOUND_MSG}
