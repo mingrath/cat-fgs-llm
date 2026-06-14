@@ -130,9 +130,10 @@ identity in it is a single label (\texttt{CAT\_01}, the lone known camera id).
 There is no second cohort, no second site, and no external validation set.
 Consequently we make \textbf{no external-cohort or cross-site generalization
 claim} of any kind: every reported number characterizes behaviour on this
-corpus only, and the portability we do claim lives in the \emph{methods} (the
-VLM-as-AU-rater kappa protocol and the confound-attribution protocol), which are
-released as runnable code that the next corpus can re-run --- not in any number
+corpus only, and the portability we do claim lives in the \emph{methods} ---
+chiefly the headline confound-attribution protocol, supported by the guarded
+VLM-as-AU-rater kappa reliability check --- which are released as runnable code
+that the next corpus can re-run --- not in any number
 this corpus produces.
 
 \paragraph{The vet-anchor budget wall.}
@@ -146,6 +147,20 @@ arithmetically undeliverable, and a data-fitted cross-AU error-correlation
 matrix would launder noise as rigor. We respond by budgeting the anchor up front
 and by demoting any claim the budget cannot support \emph{on paper now} rather
 than discovering its weakness later.
+
+\paragraph{Synthetic-and-planted-control validation; no real-cat run yet.}
+At the time of writing the released evidence is the protocol exercised on
+\emph{synthetic data with planted positive and negative controls}
+(\texttt{src/protocols/standalone\_test\_corpus.py}): the confound-attribution
+protocol is validated by showing it fires on a deliberately planted confound and
+stays silent on a deliberately clean control, not yet on real feline imagery. The
+data directory (\texttt{data/}) ships empty, no per-AU veterinary anchor exists, the
+corpus is Roboflow binary-only, and the $0.39$ operating point is currently a
+\texttt{reportable:false} placeholder at $n_{\text{pos}}{=}16$ --- below the
+pre-registered reportability floor. We therefore present this work as a
+methods/protocol paper on synthetic and planted controls; \textbf{application to a
+real-cat corpus is named explicitly as future work}, and no real-data number is
+claimed here.
 
 \paragraph{The graded layer is inspected-not-validated.}
 The $0$--$10$ ordinal CORN layer is built, but it ships as an internally
@@ -180,12 +195,15 @@ so a derived release stays CC~BY, and we use CatFLW for alignment and NME only,
 never as a graded anchor.
 
 \paragraph{The confound audit is one-directional.}
-The capture-condition confound-attribution protocol is well powered to
-\emph{detect} confounding but underpowered to \emph{rule it out} at the
-available $n$. We therefore report ``no confound detected at this power'' and
-never ``no confound.'' The protocol can raise an alarm; it cannot certify the
-absence of an alarm, and the released artifact is the portable protocol itself
-rather than any verdict about this specific corpus.
+The capture-condition confound-attribution protocol --- the work's headline
+contribution --- is well powered to \emph{detect} confounding but underpowered to
+\emph{rule it out} at the available $n$. We therefore report ``no confound detected
+at this power'' and never ``no confound,'' an audit-power discipline drawn from the
+fairness-audit literature~\cite{huanghooker2026fairness,singh2023samplesize} and
+consistent with the demonstrated limits of post-hoc explanations for ruling out
+unknown spurious correlations~\cite{adebayo2022posthoc}. The protocol can raise an
+alarm; it cannot certify the absence of an alarm, and the released artifact is the
+portable protocol itself rather than any verdict about this specific corpus.
 
 \paragraph{MPS-correctness dependency.}
 All local scoring runs on Apple-silicon MPS, where a silently incorrect kernel
@@ -222,6 +240,12 @@ frames the human-instrument landscape; it does not license a claim about ours.
     $\sim$50-positive vet-anchor budget &
     One small anchor shared across every graded claim &
     Gate-0 power calc fixes $n$ up front; unsupported claims demoted on paper now \\
+    \addlinespace
+    Synthetic + planted-control evidence only &
+    Empty \texttt{data/}, no vet anchor, Roboflow binary-only; $0.39$ point is
+    \texttt{reportable:false} at $n_{\text{pos}}{=}16$ &
+    Ship as a methods paper validated on planted positive/negative controls;
+    real-cat application named as future work \\
     \addlinespace
     Graded $0$--$10$ layer not validated &
     No independent per-AU gold set on the solo timeline &
@@ -321,5 +345,6 @@ the work is allowed to assert. They are limitations in the strict sense --- each
 removes a capability the instrument might otherwise appear to have --- but they
 are the limitations that make the remaining claims honest, portable, and
 solo-deliverable, and they are the reason the modal product is a
-binary-plus-wrapper triage instrument with two released portable methods rather
-than another cat-pain detector.
+binary-plus-wrapper triage instrument headlined by a released, portable
+confound-attribution protocol (with a guarded VLM-as-AU-rater kappa check below it)
+rather than another cat-pain detector.

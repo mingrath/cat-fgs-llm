@@ -92,7 +92,7 @@ These are stated as fact in the plan but were **never computed/sourced**:
 - **C11** — **VLM weak-labeling of the 5 FGS AUs has never been attempted.** Only adjacent work (Sci Rep 2025) *benchmarks* VLMs as direct raters, not as weak-labelers. **Confirmed.**
 - **C07** — **no automated-FGS work has shipped calibration, CIs, open artifacts, or measured training-label reliability.** Corroborating zero-hit evidence. **Confirmed.**
 
-**Genuinely unowned:** foundation-model/VLM engine + VLM AU weak-labeling + a calibration/CI/abstention validity wrapper on open artifacts.
+**Genuinely unowned (asymmetric, per FINAL_DIRECTION §8):** the **headline** is the assembled per-AU confound-attribution protocol (FGS-BG-Gap counterfactual + per-AU EBPG-as-confound-evidence + VLM judge-bias probe, framed one-directionally); **below it** sits the guarded VLM-as-AU-rater κ check (inspected-not-validated, CI-LB gated, pending an independent vet anchor); the foundation-model/VLM engine and the calibration/CI/abstention layer are **cited plumbing / supporting evidence**, not headline contributions. Novelty = the assembly + per-AU EBPG-as-confound-evidence + equivalence-style audit hygiene — never any individual primitive, never the κ CI-LB gate (textbook clinimetrics) or rubric-paraphrase guard (published), never the one-directional/power-conditioned/equivalence statistics themselves.
 
 **Must soften (two precise rescopings, or the framing is attackable):**
 1. **C06** → "automated exactly once **for the FGS per-AU 0/1/2→0–10 structure** (Steagall 2023)," explicitly citing **Feline SentiNet 2023** (5-category, 90%, CNN+RF) as adjacent graded-but-not-FGS work.

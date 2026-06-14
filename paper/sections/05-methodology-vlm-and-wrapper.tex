@@ -1,4 +1,4 @@
-\chapter{Methodology II: VLM Supervision and the Trustworthiness Wrapper (the Headline)}
+\chapter{Methodology II: VLM Supervision, the Confound-Attribution Headline, and the Trustworthiness Wrapper}
 \label{ch:vlm-wrapper}
 
 The preceding chapter specified the \emph{engine}: a frozen DINOv2 ViT-S/14
@@ -13,27 +13,39 @@ ordinal per-AU labels that the engine consumes, and (ii) the
 \emph{trustworthiness wrapper} --- the frame in which the system's outputs are
 reported, audited, and gated.
 
-Two of the components below are designated \textbf{portable methods}: they are
-dataset-agnostic protocols, released as runnable code, that any future
-facial-pain-scoring corpus can re-run. These are the headline deliverables of
-the project:
+The deliverables below are released as dataset-agnostic, runnable code that any
+future facial-pain-scoring corpus can re-run, and they are arranged
+\emph{asymmetrically} around a single headline:
 
 \begin{enumerate}
-  \item \textbf{Headline Method 1 --- VLM-as-AU-rater $\kappa$
-  (\S\ref{sec:vlm-au-rater-kappa}).} A \emph{protocol} for measuring whether a frozen VLM can
-  weak-label feline FGS action units at human-rater agreement (result pending the independent vet anchor of Gate~0), expressed as five
-  per-AU quadratic-weighted kappas against a veterinary anchor, gated on the
-  \emph{confidence-interval lower bound} (Gate~1-B).
-  \item \textbf{Headline Method 2 --- capture-condition confound-attribution
-  protocol (\S\ref{sec:confound-protocol}).} A one-directional audit
-  (\emph{FGS-BG-Gap} plus per-AU energy-based pointing game, EBPG) that detects
-  whether the scorer is reading acquisition context rather than grimace.
+  \item \textbf{Headline --- the capture-condition confound-attribution
+  protocol (\S\ref{sec:confound-protocol}).} A power-conditioned,
+  one-directional, \emph{per-AU} audit (\emph{FGS-BG-Gap} counterfactual plus
+  per-AU energy-based pointing game, EBPG, as saliency-as-confound-evidence,
+  with a VLM judge-bias probe) that detects whether the scorer is reading
+  acquisition context rather than grimace. This is the strong leg: it is
+  exercised today on planted positive and negative controls, and the novelty is
+  the \emph{assembly} plus the per-AU EBPG-as-confound-evidence step plus the
+  instantiation of equivalence-style audit hygiene --- never any individual
+  primitive and never the one-directional or power-conditioned statistics
+  themselves.
+  \item \textbf{Supporting reliability check --- VLM-as-AU-rater $\kappa$
+  (\S\ref{sec:vlm-au-rater-kappa}).} A guarded, inspected-not-validated check of
+  whether a frozen VLM can weak-label feline FGS action units at human-rater
+  agreement (result pending an independent vet anchor), expressed as five per-AU
+  quadratic-weighted kappas against a veterinary anchor, gated on the
+  \emph{confidence-interval lower bound}. The CI-lower-bound gate is textbook
+  clinimetrics and the rubric-paraphrase guard is published; neither is claimed
+  as a novel increment. The check is retained as kill-tree insurance --- it
+  becomes the sole-survivor headline only if the confound leg degrades --- and
+  is ranked below the confound protocol, not co-equal with it.
 \end{enumerate}
 
-Between these sit the wrapper pillars --- a welfare-asymmetric decision curve, a
-fixed-high-sensitivity operating point, and a defer-to-vet abstention boundary
-reported as a one-sided lower bound --- which together constitute the clinical
-framing that distinguishes this work from a generic pain detector.
+Supporting these is the \emph{cited trustworthiness wrapper} --- a
+welfare-asymmetric decision curve, a fixed-high-sensitivity operating point, and
+a defer-to-vet abstention boundary reported as a one-sided lower bound ---
+assembled from cited primitives as plumbing and supporting evidence, not as a
+headline contribution.
 
 \paragraph{Status of this chapter.} This is a methodology and evaluation
 protocol. No experiment has yet been run. Every quantitative claim in this
@@ -150,10 +162,10 @@ The full-corpus weak-labeling run is executed through the Message Batches API
 rubric block across all requests. One request is built per image; a
 self-consistency subset is run $N\geq 3$ times at raised temperature to support
 the ordinal Krippendorff $\alpha$ axis (\S\ref{sec:vlm-consistency}). The bulk
-run is \emph{blocked} until the kappa pilot (Gate~1-B,
+run is \emph{blocked} until the kappa reliability check (Gate~1-B,
 \S\ref{sec:vlm-au-rater-kappa}) returns \textsc{go}; on \textsc{no-go} the
-project ships the binary-plus-wrapper spine --- the likely v1 ship that stands today --- and the kappa protocol ships as
-a method regardless. All of this section is hosted-API-only --- no local
+project ships the binary-plus-wrapper spine --- the likely v1 ship that stands today --- with the confound-attribution headline intact, and the kappa check ships as
+a guarded reliability result regardless. All of this section is hosted-API-only --- no local
 VLM weights --- so it is identical on the Apple~M4 development machine or any
 cloud worker.
 
@@ -187,18 +199,29 @@ and that expectation feeds both the abstention curve and the per-AU confidence
 gating. Self-consistency $\alpha$ is never offered as validation of the $0.39$
 flag (\S\ref{sec:firewall}).
 
-\section{Headline Method 1: VLM-as-AU-rater kappa}
+\section{Supporting reliability check: VLM-as-AU-rater kappa}
 \label{sec:vlm-au-rater-kappa}
 
-The first portable contribution is a \emph{protocol}: can a frozen VLM
+The supporting reliability check asks a single question: can a frozen VLM
 weak-label feline FGS action units at human-rater agreement? The deliverable is
-the \emph{protocol; the result is pending the independent vet anchor that does not yet exist} --- released code that scores any face corpus's
-per-AU VLM labels against a veterinary anchor and reports five quadratic kappas
-with confidence-interval lower bounds. No numbers can be obtained on the present
-corpus, which is binary \texttt{pain}/\texttt{no\_pain} and cannot yield $0/1/2$ per-AU ground truth; the result is pending the independent vet anchor (Gate~0). The protocol is
-immune to the
-``routine hygiene'' critique precisely because no prior feline-pain work has
-measured it.
+a guarded, inspected-not-validated check --- the \emph{result is pending the
+independent vet anchor that does not yet exist} --- released code that scores any
+face corpus's per-AU VLM labels against a veterinary anchor and reports five
+quadratic kappas with confidence-interval lower bounds. No numbers can be
+obtained on the present corpus, which is binary \texttt{pain}/\texttt{no\_pain}
+and cannot yield $0/1/2$ per-AU ground truth; the result is pending the
+independent vet anchor. The check sits \emph{below} the confound-attribution
+headline of \S\ref{sec:confound-protocol}; it is retained as kill-tree insurance
+that would become the sole-survivor headline only if the confound leg degrades.
+Its machinery follows standard, published clinimetrics rather than introducing a
+novel statistic: the CI-lower-bound acceptance gate is textbook
+\cite{tractenberg2010kappa,donner2010kappa,simwright2005kappa}, the CI
+half-width planning uses \texttt{kappaSize}
+\cite{rotondi2018kappasize}, and the rubric-paraphrase independence guard is
+published \cite{weng2026policy}. What the check contributes is the
+\emph{instantiation} of this hygiene on the VLM-as-AU-rater question in the
+feline-FGS domain, where no prior feline-pain work has reported it
+\cite{evangelista2021fgs,cheng2020fgs}.
 
 \paragraph{Interpretation guard.} A high per-AU kappa measures weak-labeling
 \emph{capability} only if \emph{both} (i) the vet anchor is independent of the
@@ -209,7 +232,10 @@ Evangelista descriptors (\S\ref{sec:vlm-rubric}): if the anchoring veterinarian
 also scores from those same descriptors, a high kappa is consistent with shared
 rubric-following alone. Every reported kappa run must therefore state which of
 the two it measures, and the firewall (\S\ref{sec:firewall}) keeps either
-reading from being mistaken for validation of the $0.39$ flag.
+reading from being mistaken for validation of the $0.39$ flag. This
+rubric-paraphrase independence guard is a published reliability test, not a novel
+increment of this work \cite{weng2026policy}; here it is instantiated on the
+VLM-as-AU-rater question.
 
 \subsection{The veterinary anchor and the review loop}
 \label{sec:vet-anchor}
@@ -234,8 +260,8 @@ For each AU, agreement is the quadratic-weighted Cohen kappa~\cite{cohen1968kapp
 between the VLM level and the vet level, computed row-paired with
 \texttt{weights="quadratic"}. The quadratic weighting is what makes the statistic
 \emph{ordinal} --- it penalizes a $0$-versus-$2$ disagreement four times as
-heavily as a $0$-versus-$1$ disagreement --- and is the difference between a
-nominal agreement number and a contribution-grade ordinal one. A one-sided
+heavily as a $0$-versus-$1$ disagreement --- and is the standard ordinal
+agreement choice, not a novel statistic. A one-sided
 $95\%$ \emph{lower bound} on each per-AU kappa is obtained by case-resampling
 bootstrap (degenerate single-class resamples are skipped).
 
@@ -244,9 +270,14 @@ pilot sample size, a point estimate of $0.60$ is statistically
 indistinguishable from a true value of $0.47$; a point-estimate gate is
 therefore not a gate at all. The gate is evaluated against the
 \emph{confidence-interval lower bound}, with floors that are themselves backed
-by a power calculation. Table~\ref{tab:kappa-gate} states the pre-registered
+by a power calculation. Gating acceptance on a kappa CI lower bound is textbook
+clinimetric practice rather than a contribution of this work
+\cite{tractenberg2010kappa,donner2010kappa,simwright2005kappa}, and the
+canonical $0.60$ acceptable lower bound is adopted from that literature
+\cite{simwright2005kappa}. Table~\ref{tab:kappa-gate} states the pre-registered
 decision rule. The floors shown are the planning defaults that the Gate~0 power
-calculation may overwrite; they are never hard-coded in the gate logic.
+calculation (via \texttt{kappaSize} \cite{rotondi2018kappasize}) may overwrite;
+they are never hard-coded in the gate logic.
 
 \begin{table}[t]
 \centering
@@ -272,11 +303,12 @@ whiskers & $0.40$--$0.60$ acceptable-with-caveat; $<0.40 \to$ drop this AU's hea
 by this pilot --- each candidate model is run and the one with the higher per-AU
 kappa lower bounds is selected --- and \emph{no external citation} is invoked to
 justify the labeler. This deliberately removes a phantom-citation dependency at
-the root of the headline. A \textsc{no-go} on orbital/ear/head is a
+the root of the supervision pipeline. A \textsc{no-go} on orbital/ear/head is a
 \emph{pivot}, not a kill: the project drops the $0$--$10$ layer and ships the
-calibrated binary spine plus abstention plus the confound protocol, and the
-per-AU kappa protocol remains a publishable method --- one that yields a real
-method finding once the independent anchor exists, even at a mediocre kappa.
+calibrated binary spine plus abstention plus the headline confound protocol, and the
+per-AU kappa check remains a guarded, inspected-not-validated reliability result
+--- one that reports a real reliability finding once the independent anchor
+exists, even at a mediocre kappa.
 
 \section{The circularity firewall}
 \label{sec:firewall}
@@ -330,11 +362,13 @@ system from validating itself on its own weak supervision.}
 \label{fig:firewall}
 \end{figure}
 
-\section{Wrapper Pillar: the welfare-asymmetric decision curve}
+\section{Cited wrapper: the welfare-asymmetric decision curve}
 \label{sec:decision-curve}
 
-The wrapper's headline artifact is \emph{not} a calibration plot but a
-welfare-asymmetric decision curve. Pain assessment is a cost-asymmetric
+The wrapper's primary artifact is \emph{not} a calibration plot but a
+welfare-asymmetric decision curve, assembled from cited decision-theory
+primitives as supporting evidence rather than as a headline contribution. Pain
+assessment is a cost-asymmetric
 decision: failing to treat a painful cat (undertreatment) is a different and
 generally heavier harm than treating a comfortable one (overtreatment). A
 symmetric-cost operating point --- the Youden-$J$ knee or an $F_1$ optimum ---
@@ -350,10 +384,11 @@ with the \texttt{dcurves} implementation of net benefit, with the fixed-recall
 operating point (\S\ref{sec:operating-point}) annotated on it and a
 cat-grouped bootstrap ribbon for the confidence band. The claim the curve
 supports is that the model's net benefit exceeds both \emph{treat-all} and
-\emph{treat-none} across the welfare-relevant low-$p_t$ band; this is a
-clinical-decision-theory contribution that no prior cat-pain paper has made, and
-it is the floor that survives every downstream null. If the abstention power
-budget fails (Gate~0), this pillar becomes the primary clinical deliverable.
+\emph{treat-none} across the welfare-relevant low-$p_t$ band; this applies
+standard decision-curve analysis to the cat-pain setting as supporting clinical
+evidence, and it is the floor that survives every downstream null. If the
+abstention power budget fails (Gate~0), this curve becomes the primary clinical
+deliverable of the wrapper.
 
 \begin{figure}[t]
 \centering
@@ -388,7 +423,7 @@ The actual curve is to be produced from vet-confirmed held-out scores.}
 \label{fig:decision-curve}
 \end{figure}
 
-\section{Wrapper Pillar: the fixed pain-recall operating point}
+\section{Cited wrapper: the fixed pain-recall operating point}
 \label{sec:operating-point}
 
 The decision threshold is selected at a \emph{fixed pain-recall} of
@@ -407,7 +442,7 @@ modest per-rating error can collapse effective sensitivity when prevalence is
 low~\cite{chavoshi2025}; this motivates both the high-recall pin and the
 abstention channel of \S\ref{sec:abstention}.
 
-\section{Wrapper Pillar: defer-to-vet abstention as a one-sided NPV lower bound}
+\section{Cited wrapper: defer-to-vet abstention as a one-sided NPV lower bound}
 \label{sec:abstention}
 
 The abstention pillar reports a defer-to-vet boundary. Around the fixed $0.39$
@@ -459,23 +494,38 @@ scores.}
 \label{fig:abstention}
 \end{figure}
 
-\section{Headline Method 2: the confound-attribution protocol}
+\section{Headline: the confound-attribution protocol}
 \label{sec:confound-protocol}
 
-The second portable contribution is a capture-condition confound-attribution
-protocol: a reusable, one-directional audit that any future facial-pain-scorer
-corpus can run to ask whether the scorer is reading acquisition context --- the
-cage, the clinic, the lighting --- rather than the grimace itself. Single-source
-data makes this audit essential: pain and capture condition are plausibly
-entangled, and a scorer that exploits that entanglement would post strong
-accuracy while learning nothing about pain. The deliverable is the
-\emph{protocol}, released as code, not a verdict about this particular corpus.
+The headline contribution is a power-aware, per-AU capture-condition
+confound-attribution protocol: a reusable, one-directional audit that any future
+facial-pain-scorer corpus can run to ask whether the scorer is reading
+acquisition context --- the cage, the clinic, the lighting --- rather than the
+grimace itself. Single-source data makes this audit essential: pain and capture
+condition are plausibly entangled, and a scorer that exploits that entanglement
+would post strong accuracy while learning nothing about pain. The deliverable is
+the \emph{protocol}, released as code and exercised today on planted positive
+and negative controls, not a verdict about this particular corpus. The novelty
+is the \emph{assembly} of these components, the per-AU
+EBPG-as-confound-evidence step, and the instantiation of equivalence-style audit
+hygiene
+\cite{huanghooker2026fairness,singh2023samplesize}; no individual primitive is
+claimed as novel, and the one-directional, power-conditioned, and
+equivalence-style statistics themselves are adopted from that literature rather
+than introduced here. The protocol is distinct from the positively-framed
+per-AU saliency leg of prior animal-affect explainability work
+\cite{lencioni2025segment} and from background-context-bias audits in the human
+affect-VLM domain \cite{context2025becki}.
 
 \paragraph{One-directional by construction.} The audit is well-powered to
 \emph{detect} confounding but underpowered to \emph{rule it out}. Every report
 therefore reads ``no confound detected at this power'' --- never ``no
 confound.'' This asymmetry is stated as a fixed property of the method, not a
-caveat appended after the fact.
+caveat appended after the fact, and it is consistent with evidence that post-hoc
+explanations can fail to surface unknown spurious correlations
+\cite{adebayo2022posthoc}; the contribution is the disciplined,
+power-conditioned framing of that limit, not the statistical machinery behind
+it.
 
 The protocol has two components, summarized in Figure~\ref{fig:confound}.
 
@@ -486,17 +536,22 @@ clinic background; the score shift is measured. FGS-BG-Gap is reported as the
 mean $0$--$10$ shift plus the pain-flip rate, per AU, stratified by capture
 condition. A large gap on a specific AU indicates that head is reading the
 cage or clinic rather than the cat. This component adapts the
-background-robustness counterfactual framework~\cite{xiao2021background} to the
-FGS setting.
+background-robustness counterfactual primitive~\cite{xiao2021noise} (and the
+foreground/background sensitivity analyses of \citealp{moayeri2022comprehensive})
+to the FGS setting; the bg-swap primitive itself is prior work and is not claimed
+as novel.
 
 \paragraph{(b) Per-AU EBPG --- the energy-based pointing game.} Per-AU saliency
 (attention rollout or Score-CAM~\cite{wang2020scorecam} on the frozen backbone)
 is scored against an anatomical region of interest derived from CatFLW
 landmarks: the protocol reports $\text{energy-in-ROI} / \text{energy-whole}$ per
 AU, stratified by capture condition. This answers the question ``does the ear
-head fire on the ear?'' --- a per-AU localization-faithfulness measurement that
-no prior cat-pain work reports. Where landmark coverage is partial, EBPG is
-reported only on the covered subset with the denominator stated.
+head fire on the ear?'' --- a per-AU localization-faithfulness measurement
+re-purposed here \emph{as confound evidence}, which is the increment that
+distinguishes it from the positively-framed per-AU saliency leg of prior
+animal-affect explainability work \cite{lencioni2025segment}. Where landmark
+coverage is partial, EBPG is reported only on the covered subset with the
+denominator stated.
 
 \begin{figure}[t]
 \centering
@@ -545,9 +600,10 @@ calibration error~\cite{guo2017calibration}. These calibration quantities are
 \emph{supporting evidence only}. They are never a headline; no binned
 reliability diagram is drawn on the degenerate $11$-atom sum; and they never
 substitute for the welfare-asymmetric decision curve of
-\S\ref{sec:decision-curve}, which remains the headline wrapper artifact. This
-keeps the contribution clearly located in the two portable methods and the
-welfare framing, with generic calibration relegated to hygiene.
+\S\ref{sec:decision-curve}, which is the wrapper's primary artifact. This
+keeps the contribution clearly located in the headline confound-attribution
+protocol, supported by the guarded kappa reliability check and the cited
+wrapper, with generic calibration relegated to hygiene.
 
 \section{Summary}
 \label{sec:ch5-summary}
@@ -555,13 +611,18 @@ welfare framing, with generic calibration relegated to hygiene.
 This chapter specified the supervision and trustworthiness layers that carry the
 project's contribution. The VLM weak-labeler emits five rationale-before-score
 ordinal atoms under a forced-tool-use enum contract, with the sum and the $0.39$
-flag computed in code so the labeler never makes a clinical decision. Headline
-Method~1 measures per-AU VLM-versus-vet quadratic-weighted kappa, gated on the
-CI lower bound; Headline Method~2 is a one-directional, portable
-confound-attribution protocol. Between them, a welfare-asymmetric decision
-curve, a fixed pain-recall operating point, and a one-sided NPV-lower-bound
-abstention boundary constitute the clinical frame, while the circularity
-firewall ensures that validation rides on vet-confirmed labels only and that
-agreement-against-VLM is never mistaken for validation. The engine remains
-conceded plumbing; the contribution lives here, and every claim in this chapter
-is stated as a protocol and a decision rule, not as a result.
+flag computed in code so the labeler never makes a clinical decision. The
+headline is a power-conditioned, one-directional, per-AU confound-attribution
+protocol; the per-AU VLM-versus-vet quadratic-weighted kappa, gated on the CI
+lower bound, is a supporting, guarded, inspected-not-validated reliability check
+ranked below it and retained as kill-tree insurance. A welfare-asymmetric
+decision curve, a fixed pain-recall operating point, and a one-sided
+NPV-lower-bound abstention boundary are the cited wrapper that frames the
+clinical use, while the circularity firewall ensures that validation rides on
+vet-confirmed labels only and that agreement-against-VLM is never mistaken for
+validation. The engine remains conceded plumbing; the contribution lives here,
+and every claim in this chapter is stated as a protocol and a decision rule, not
+as a result. The kappa CI-lower-bound gate and the rubric-paraphrase guard are
+standard, published clinimetrics and reliability tests, not novel increments;
+the novelty is the assembly, the per-AU EBPG-as-confound-evidence step, and the
+instantiation of equivalence-style audit hygiene.

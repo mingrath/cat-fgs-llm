@@ -111,3 +111,97 @@ Pre-commit: unless the anchor delivers double-digit AU=2 cells, collapse the hig
 - **§3.4 Monte-Carlo GO under ρ=0 but NO-GO under ρ=0.3:** declare the gate fragile, say so, and default to the binary spine rather than claim a GO the correlation could flip.
 
 **Modal outcome to plan for as the default product:** binary-plus-wrapper + κ-as-method + confound-protocol + welfare decision curve + LB-abstention curve, with graded-CORN shipped as an inspected-not-validated artifact. That product is solo-deliverable on M4/MPS with one vet, and it is not another cat-pain detector.
+
+**Seam landed (2026-06-13 update, cross-reality check vs code):** The portable
+co-headline is now concretely embodied in `src/protocols/` (first-class surface
+with `__init__.py` re-exports of the κ/confound protocols, thin adapters for
+AU-override / col-map / generic non-FGS ordinal mode with no 0.39 assumption,
+and `standalone_test_corpus.py` — a deletion-safe, zero-torch, synthetic
+arbitrary-AU exerciser that can survive removal of engine/vlm/data). New central
+`src/gates/orchestrator.py` + Makefile `gate-e2e-synthetic` / `test-portable` /
+`gate-orchestrate` + e2e tests enforce strict gates (G0 power first, cat-disjoint
+G1/G3, one-dir G2, CI-LB G1-B, blocking G4, welfare asym baked, single-source
+decode via constants, inspected-not-validated graded). `src/model/decode.py`
+updated for portable N/k. Cache schema (_CACHE_SCHEMA + FEATURE_SCHEMA) and
+DINOv3 prep (backbone + richer patch_std per MCP context7) are explicit
+executable embodiments. This makes the "runnable protocol" / "portable
+methods" claims accurate, citable, and stronger than paper prose alone. Doc
+debt addressed by updates to paper/sections/04+06+00-abstract, README quickstart,
+and this note (P5/FreshPaperDocLandedSync cand7 fidelity 2026-06-14). Reality >
+prior docs (paper "protocol only" language now backed by importable seam + new
+orch + generalized decode + cache). Use `python -m src.protocols.standalone_test_corpus` and orchestrator synthetic for verification. Uniqueness vs priors (Steagall closed/handcrafted; Martvel video-only; zero prior public VLM per-AU κ protocol + confound attribution + welfare-asym + standalone + strict gate orch) holds per MCP grep/context7 polls on GitHub (no matching code patterns for the surface). DINOv3 successor prep documented for engine evolution.
+
+## 8. Decision record — framing + timeline (2026-06-14, MCP-grep + paper-scan grounded)
+
+Two open v1 decisions were resolved by a multi-agent debate grounded in (i) an MCP
+`grep__searchGitHub` + `context7` scan of public code and (ii) a non-GitHub paper
+scan (arXiv / Semantic Scholar / OpenReview / PubMed). Both judges and the paper
+scan **converge at medium confidence** and **confirm — do not flip — the §3.A
+asymmetric framing.**
+
+**DECISION A — Headline framing: ASYMMETRIC (resolved).**
+Lead with the one-directional, power-conditioned, **per-AU confound-attribution
+protocol** (FGS-BG-Gap counterfactual + per-AU EBPG saliency-as-confound-evidence
++ VLM judge-bias probe) as the demonstrable spine — it validates **today** on
+planted positive + negative controls in `src/protocols/standalone_test_corpus.py`,
+no vet anchor needed. Demote the **VLM-as-AU-rater κ** to a *guarded,
+adequately-powered-but-method-crowded* reliability check shipped
+inspected-not-validated (CI-LB gate + rubric-independence guard named as the
+specific increments *within* that leg, not a co-equal pillar). Demote the wrapper
+(Clopper-Pearson NPV-LB + welfare-asym DCA + LTT/MAPIE abstention) to **cited
+plumbing**, not a contribution. κ is **not deleted** — it remains kill-tree
+insurance per §7 lines 105–107 (sole-survivor headline if the confound leg
+degrades), only re-ranked below the confound protocol.
+
+*Exact headline wording to use:* "A portable, power-aware confound-attribution
+protocol for fine-grained animal-affect models, with a guarded VLM-as-AU-rater
+reliability check (CI-lower-bound gated, result pending an independent vet anchor)."
+
+*Why:* the κ-as-judge idea is crowded off-the-shelf (crowd-kit / gtmf / medkit IRR
+libs, AWS sample, and `laudos-ai/laibench-public` `calibrate.ts` a near-twin of the
+rubric-independence audit), so co-equal billing hands a reviewer a free kill; the
+assembled confound protocol returns **0 GitHub hits and 0 assembled-paper matches**
+(closest in-domain near-miss, Tech4Animals "segment-based framework" Sci Rep 2025,
+owns only ~1 of 3 legs and is positively framed). Novel-by-assembly survives.
+
+**DECISION B — Timeline: SHIP NOW as a methods/protocol paper (resolved), conditional on Decision A.**
+Submit on synthetic + planted positive/negative controls; target an
+**ML-eval/trustworthiness or clinical-ML-methods track, NOT a vet journal first.**
+Disclose empty `data/`, missing vet anchor, Roboflow-binary-only, and the
+`power.json calc_c_point_039 reportable:false (n_pos=16)` operating point as
+limitations, real-cat application named as future work. *Why:* synthetic-planted
+validation is the native, accepted mode for trustworthiness tooling (cleanlab
+`test_spurious_correlation.py` plants + asserts recovery; AIF360; MAPIE on
+synthetic streams); holding defends against a phantom scoop (0 open competitor code
+for graded cat-FGS); and Gate-0 rules forbid printing the one real number a vet
+sitting would buy. **B is load-bearing on A:** ship-now is only defensible under
+asymmetric framing.
+
+**Mandatory honesty constraints from the paper scan:**
+- Claim only the **assembly** + per-AU EBPG-as-confound-evidence + the
+  *instantiation* of equivalence-style audit hygiene — **NOT** any individual
+  primitive and **NOT** the power-conditioned / equivalence statistics themselves
+  (those are published: cite & credit Huang & Hooker 2026 arXiv:2605.11614; Singh
+  et al. NeurIPS 2023 RegML arXiv:2312.04745).
+- Brand neither the κ **CI-LB gate** nor the **rubric-paraphrase guard** as novel:
+  CI-LB acceptance on an ordinal scale is textbook clinimetrics (Tractenberg/Rosen
+  2010 PMC2924444; Donner & Rotondi 2010; Rotondi & Donner 2012; `kappaSize`;
+  Sim & Wright 2005); paraphrase-invariance for LLM raters is published (Weng et al.
+  "Policy Invariance" 2026 arXiv:2605.06161; JudgeSense arXiv:2604.23478).
+
+**Citations to cite-and-distinguish-from:** Tech4Animals segment-based framework
+(Sci Rep 15:13670, 2025) [owns per-AU saliency leg]; "Mitigating Context Bias in
+VLMs / BECKI" (Electronics 14(16):3311, 2025) [bg-context-bias in affect VLMs,
+human domain]; chatbot-vs-expert FGS agreement incl. Claude (Sci Rep
+s41598-025-27404-z, 2025) [plain limits-of-agreement, same domain]; Adebayo et al.
+ICLR 2023 (arXiv:2212.04629) [cite as *support* — justifies the one-directional
+"at this power" framing]; ImageNet-9 / Xiao 2021 + Moayeri CVPR 2022 + EBPG
+[primitives]; FGS ordinal-κ domain anchors Evangelista 2021 / Cheng-Evangelista-
+Steagall 2020.
+
+**Residual open item (only thing the scans could NOT close):** papers cannot be
+exhaustively swept like code; a very recent (2026) or paywalled animal-affect
+preprint assembling all three confound legs could exist undetected (five-angle
+convergence makes this unlikely). Re-run the targeted paper scan immediately before
+submission. This erodes nothing in Decision A's headline; (3) only further erodes
+the already-conceded κ side — which is itself an argument for the ship-now timing.

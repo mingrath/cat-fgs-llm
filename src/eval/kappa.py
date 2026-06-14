@@ -1,9 +1,26 @@
-"""HEADLINE METHOD #1 — VLM-as-AU-rater per-AU quadratic kappa (IMPLEMENTATION_PLAN §4.6 / §6.1).
+"""GUARDED VLM-as-AU-rater reliability check — per-AU quadratic kappa (FINAL_DIRECTION §8).
 
-Claim: a frozen VLM can weak-label feline FGS action units at human-rater agreement.
-This is a PROTOCOL WITH A RESULT PENDING — per-AU quadratic-weighted Cohen kappa of
-VLM-vs-vet, gated on the bootstrap CI LOWER BOUND. A result requires an independent
-vet anchor that does not yet exist; the artifact shipped today is the protocol.
+This is the SUPPORTING leg, NOT the headline. The headline / spine of the paper is the
+one-directional, power-conditioned confound-attribution protocol (src/eval/confound.py).
+The kappa here is a guarded, inspected-not-validated reliability check whose result is
+PENDING an independent vet anchor; it is ranked BELOW the confound protocol in prose and
+kept as kill-tree insurance (sole-survivor headline only if the confound leg degrades).
+
+PORTABLE / DATASET-AGNOSTIC reliability check (FINAL_DIRECTION §5/§8): scores any face
+corpus's per-AU VLM (or other rater) labels vs a vet anchor; reports quadratic κ + CI
+lower bound (cluster-bootstrap by groups e.g. cat_id recommended). Fires on CI-LB.
+The CI-lower-bound acceptance gate is TEXTBOOK CLINIMETRICS, not a novel increment
+(Tractenberg 2010; Donner & Rotondi 2010; Sim & Wright 2005). The rubric-independence
+guard below is a published reliability test (Weng 2026), likewise not branded as novel.
+A high κ measures weak-labeling capability ONLY if (i) anchor independent AND (ii) VLM
+rubric differs from vet's (otherwise rubric-following). Borrowed clean patterns:
+m-rewardbench (add quadratic weights), prometheus-eval (ordinal alpha complement).
+
+Claim under check: a frozen VLM can weak-label feline FGS action units at human-rater
+agreement. This is a CHECK WITH A RESULT PENDING — per-AU quadratic-weighted Cohen kappa
+of VLM-vs-vet, gated on the bootstrap CI LOWER BOUND. A result requires an independent
+vet anchor that does not yet exist; the artifact shipped today is the guarded check
+itself, disclosed as inspected-not-validated.
 
 CIRCULARITY FIREWALL (THE LAW, §4.7):
   - QWK-vs-VLM is NEVER validation. The kappa here measures VLM-vs-VET agreement, a
@@ -92,7 +109,9 @@ def bootstrap_qwk_lb(
 
     GATE ON THE LOWER BOUND, NOT THE POINT (§4.6.3): at the pilot n a 0.60 floor is
     statistically indistinguishable from a true 0.47, so a point-estimate gate is not
-    a gate.
+    a gate. This CI-lower-bound acceptance rule is standard clinimetric practice
+    (Tractenberg 2010; Donner & Rotondi 2010; Sim & Wright 2005), applied here as
+    a real engineering constraint on the reliability check — not claimed as novel.
     """
     y_vlm = np.asarray(y_vlm)
     y_vet = np.asarray(y_vet)

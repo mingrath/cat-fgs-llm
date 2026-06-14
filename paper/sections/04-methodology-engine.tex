@@ -20,10 +20,13 @@ and that we restate without euphemism: \emph{the engine is plumbing, not a
 contribution}. The frozen-backbone-plus-ordinal-heads design is a standard,
 defensible low-data transfer-learning recipe; we adopt it because it is correct
 for our regime, not because it is novel, and we never claim otherwise. The
-contributions of this work live entirely in the trustworthiness wrapper and the
-two portable methods built on top of the engine's outputs (the VLM-as-AU-rater
-$\kappa$ protocol and the capture-condition confound-attribution protocol),
-which are developed in later chapters. Everything specified here exists only to
+contribution of this work lives in a portable method built on top of the
+engine's outputs: the power-aware, per-AU capture-condition
+confound-attribution protocol, which is the headline and is developed in a later
+chapter. Supporting it are a guarded VLM-as-AU-rater $\kappa$ reliability check
+(inspected-not-validated, with its result pending an independent vet anchor) and
+the cited trustworthiness wrapper, which are developed in later chapters.
+Everything specified here exists only to
 produce calibrated scores for those methods to interrogate.
 
 Two framing commitments follow directly from that concession and recur
@@ -559,6 +562,34 @@ In sum, this chapter has specified a deliberately unremarkable engine ---
 detector, alignment-gated crop, frozen backbone with cached features,
 rank-consistent ordinal heads, distributional decode, and noise-robust training
 --- whose every design choice is the conservative one for a low-data,
-single-machine, single-vet regime. Its outputs feed the trustworthiness wrapper
-and the two portable methods that carry this work's contribution. Nothing here
+single-machine, single-vet regime. Its outputs feed the headline confound-attribution
+protocol, the guarded VLM-as-AU-rater reliability check, and the cited
+trustworthiness wrapper that carry this work's contribution. Nothing here
 is offered as novel, and nothing here is reported as a result.
+
+The portable method surface --- the headline capture-condition
+confound-attribution protocol and the supporting VLM-as-AU-rater $\kappa$
+reliability check --- is dataset-agnostic code in \texttt{src/protocols/}
+(with thin adapters for AU override, column mapping, and generic non-FGS ordinal
+mode; see \texttt{src/protocols/adapters.py} and re-exports in
+\texttt{src/protocols/\_\_init\_\_.py}). The standalone test corpus
+(\texttt{src/protocols/standalone\_test\_corpus.py}) exercises the surface on
+synthetic arbitrary-AU data with zero torch leakage and is deletion-safe
+(imports only the protocols layer); the headline confound leg is additionally
+validated today on planted positive and negative controls. The engine remains
+conceded plumbing. See also the evaluation protocol
+chapter for the gate-enforced usage contract and \texttt{Makefile} targets
+\texttt{test-portable} / \texttt{gate-e2e-synthetic}.
+
+The protocols seam (portable pmf derives re-exported del-safe from decode for arbitrary AU via adapters/generic_ordinal_mode; N/k from len/shape, no hard 5/11 in portable path), generalized decode (engine path), DINOv3 prep, and cache schema are the
+executable embodiments of portable: use \texttt{src.protocols} adapters +
+\texttt{get\_au\_names(override)} + \texttt{generic\_ordinal\_mode} (no 0.39 assumption) for arbitrary ordinal corpora; point-decision
+0.39 remains FGS-compat only (single-source in constants). The frozen backbone and feature cache
+(\texttt{src/model/backbone.py}, \texttt{src/model/cache\_features.py}) are
+DINOv3-ready (SUPPORTED\_VARIANTS includes dinov3\_*; richer patch\_std pooling
+per fresh MCP context7 /facebookresearch/dinov3 for localized AU cues; explicit
+\_CACHE\_SCHEMA + FEATURE\_SCHEMA with version/n\_aus/k/feature\_dim/patch\_mode
++ full PROVENANCE.json for portable repro across backbones; dinov commit/device/torch
+captured). These, with the central orchestrator and standalone exerciser, make the
+``portable method'' claim accurate and citable. The engine itself stays
+conceded plumbing.

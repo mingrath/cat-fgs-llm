@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-"""Gate 1-B — per-AU VLM-vs-vet quadratic kappa PROTOCOL, GATED ON THE CI LOWER BOUND (§4.6.3).
+"""Gate 1-B — per-AU VLM-vs-vet quadratic kappa CHECK, GATED ON THE CI LOWER BOUND (§4.6.3).
 
-HEADLINE METHOD #1 PROTOCOL (result pending independent vet anchor). Reads per-AU kappa floors
-from the Gate-0 power manifest (data/manifests/power.json -> "au_kappa_floors"), falling back to
-the FINAL_DIRECTION defaults (orbital/ear/head 0.60, muzzle/whiskers 0.40) ONLY when Gate 0 has
-not yet committed them. Writes a JSON report measuring VLM-vs-vet agreement; interpretation guard
-(anchor independence + rubric divergence) must be stated in the report.
+GUARDED, INSPECTED-NOT-VALIDATED reliability check (result pending an independent vet anchor) —
+NOT the paper's headline. The headline / spine is the power-conditioned per-AU confound-attribution
+protocol (see scripts/gate2_confound.py); this kappa sits BELOW it as a supporting reliability
+check and kill-tree insurance (it becomes the sole-survivor headline only if the confound leg
+degrades). The CI-lower-bound gate is textbook clinimetrics (Tractenberg 2010; Donner & Rotondi
+2010; Sim & Wright 2005) and the rubric-independence guard is published (Weng et al. 2026) — neither
+is branded as a novel increment. Reads per-AU kappa floors from the Gate-0 power manifest
+(data/manifests/power.json -> "au_kappa_floors"), falling back to the FINAL_DIRECTION defaults
+(orbital/ear/head 0.60, muzzle/whiskers 0.40) ONLY when Gate 0 has not yet committed them. Writes a
+JSON report measuring VLM-vs-vet agreement; interpretation guard (anchor independence + rubric
+divergence) must be stated in the report.
 
 GATE ON THE LOWER BOUND, NOT THE POINT (§4.6.3 / §6.1): at the pilot n a 0.60 floor is
 statistically indistinguishable from a true 0.47, so a point-estimate gate is not a gate.
 graded_go requires orbital/ear/head LB >= floor. muzzle/whiskers below their floor are
 flagged drop_head, not a hard fail.
 
-CIRCULARITY FIREWALL: this kappa is VLM-vs-VET agreement — a labeler-quality method
-(a protocol; result pending the independent vet anchor). It is NEVER validation of the
+CIRCULARITY FIREWALL: this kappa is VLM-vs-VET agreement — a guarded labeler-quality
+check (result pending the independent vet anchor). It is NEVER validation of the
 0.39 flag (QWK-vs-VLM is never validation).
 
 Only VET-CONFIRMED rows enter the kappa. Augmented copies never enter the pilot N.
@@ -36,6 +42,17 @@ if str(ROOT) not in sys.path:
 
 from src.eval.kappa import AU_NAMES, bootstrap_qwk_lb  # noqa: E402
 POWER_JSON = ROOT / "data" / "manifests" / "power.json"
+
+# FreshPowerG0ManifestsEnforcer: hard G0-first at load; manifests single source.
+if not POWER_JSON.exists():
+    raise SystemExit(
+        "G0 power/vet-budget must precede; see data/manifests/power.json committed from gate0_power"
+    )
+_pj = json.loads(POWER_JSON.read_text())
+if int(_pj.get("vet_budget_integer", 0)) < 50:
+    raise SystemExit(
+        "G0 power/vet-budget must precede; see data/manifests/power.json committed from gate0_power"
+    )
 
 # FINAL_DIRECTION / BUILD_PLAN defaults — placeholders ONLY; Gate 0 overwrites them.
 DEFAULT_FLOORS = {
@@ -106,7 +123,8 @@ def run_gate(merged_csv: str, out_json: str, n_boot: int = 5000, alpha: float = 
         for au in CAVEAT_AUS
     }
     decision["on_core_fail"] = (
-        "PIVOT to binary spine (drop the 0-10 layer); kappa-as-method headline still stands"
+        "PIVOT to binary spine (drop the 0-10 layer); confound-attribution headline is "
+        "unaffected, and this kappa check remains kill-tree insurance"
         if not decision["graded_go"]
         else None
     )
@@ -154,6 +172,11 @@ def main() -> None:
     ap.add_argument("--n-boot", type=int, default=5000)
     ap.add_argument("--alpha", type=float, default=0.05)
     args = ap.parse_args()
+
+    # FreshFullGateWiringManifestsEnforcer cand1: G0 hard in gate1b (before compute/load; audit had fallback only). Require committed power, no default.
+    power = ROOT / "data" / "manifests" / "power.json"
+    if not power.exists() or not power.is_file():
+        raise SystemExit("G0 must precede; committed manifests required: data/manifests/power.json missing. Run gate0_power.py (floors committed; no default fallback for full wiring).")
     run_gate(args.merged_csv, args.out_json, n_boot=args.n_boot, alpha=args.alpha)
 
 

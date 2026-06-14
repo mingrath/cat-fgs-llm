@@ -18,9 +18,12 @@ checklist $G0\ldots G6$ plus $G1\text{-}B$ (\S\ref{sec:gates}), the reproducibil
 (\S\ref{sec:repro}), and the anti-benchmark reporting rules (\S\ref{sec:anti-benchmark}) as a
 single, executable evaluation contract.
 
-A note on terminology used throughout. The instrument's \emph{validated} claims concern the
-binary pain decision and the two portable methods (the per-action-unit (AU) VLM-as-rater
-$\kappa$ protocol and the capture-condition confound-attribution protocol). The graded
+A note on terminology used throughout. The instrument's headline contribution is the
+\emph{capture-condition, power-conditioned, per-action-unit (AU) confound-attribution
+protocol}; the per-AU VLM-as-rater $\kappa$ is a guarded, inspected-not-validated reliability
+check, gated on its confidence-interval lower bound and held in reserve as kill-tree insurance
+rather than advanced as a co-equal second pillar. The binary pain decision and the
+trustworthiness wrapper are validated and cited supporting evidence respectively. The graded
 $0\text{--}10$ Feline Grimace Scale (FGS) sum is reported as an
 \emph{inspected-not-validated} artifact; wherever a metric is computed on the graded sum, it is
 labelled inspection-only and is never advanced as evidence for a validated claim.
@@ -69,7 +72,7 @@ for tr, va in sgkf.split(X=images[m], y=labels[m], groups=cat_id[m]):
 The per-fold disjointness assertion is a hard runtime check, not a comment: a violation aborts
 the run. The per-fold positive counts are recomputed after carving out \texttt{CAT\_01} and
 grouping by individual; the gate requires that no fold falls at zero or one positive, so that
-subject-exclusive cross-validation remains feasible without empty strata. All preprocessing, threshold selection, temperature scaling, and abstention calibration
+subject-exclusive cross-validation remains feasible without empty strata. Gate 1 implements early dedup (collapse\_exact\_dups + neardup) + is\_vet\_clean filter from G0 manifests/power.json (pre build\_folds/SGKF/LOIO, following standard medical pre-split hygiene); G0 power manifests are enforced first-class (orchestrator PRECONDS + folds.py strict load from manifests/power ONLY, no fallback). All preprocessing, threshold selection, temperature scaling, and abstention calibration
 are fit \emph{inside each training fold only} (nested); the validation fold sees only frozen,
 already-fit transforms. Out-of-fold predictions are pooled, and every reported rate is
 accompanied by its bootstrap $95\%$ confidence interval, with the interval \emph{width} stated
@@ -96,7 +99,7 @@ threshold-tuning run that can read the test manifest}, and the hold-out evaluati
 refuses to run if the working tree's fold CSV was mutated after the freeze. This converts the
 discipline of ``never look at the test set during selection'' from a promise into an enforced
 structural property: the only code path that may read the hold-out is the final evaluation,
-executed once. This is the \emph{CI-abort} contract of Gate~3.
+executed once. This is the \emph{CI-abort} contract of Gate~3. Reproducibility contract includes cross-env deletion-safe portable protocols surface (CI matrix ubuntu/macos + py 3.11/3.12 + make test-portable survives rm -rf engine; pre-commit-strict on G0 manifests/power) + MPS G4 correctness (blocking logit parity + CORN decode on conceded DINOv2/CORN engine before any quantitative). A DINOv3 successor seam is prepared for richer localized patch features but is not on the critical path.
 
 \subsection{Honest denominators and confidence intervals}
 
@@ -151,20 +154,26 @@ five cat-grouped folds, plus pooled bootstrap intervals.
 \section{Phase~B metrics: AU agreement, calibration, decision, and abstention}
 \label{sec:phaseB-metrics}
 
-Phase~B evaluates the AU-level engine output and the trustworthiness wrapper. Exactly one
-Phase~B quantity is governed by a \emph{gated, validated} protocol --- the per-AU VLM-vs-vet
-agreement $\kappa$ --- but that protocol yields no number until an independent per-AU vet anchor
-exists ($G0$); until then method~1 ships as a runnable protocol with its result pending, not as a
-delivered measurement. Everything concerning the graded $0\text{--}10$ sum is computed and reported as
-inspection-only.
+Phase~B evaluates the AU-level engine output and the trustworthiness wrapper. The headline
+Phase~B contribution is the capture-condition confound-attribution protocol
+(\S\ref{sec:phaseA-metrics} continues into the per-AU EBPG analysis below); the per-AU VLM-vs-vet
+agreement $\kappa$ is a guarded reliability check whose result is pending --- it yields no number
+until an independent per-AU vet anchor exists ($G0$), so until then it ships as a runnable,
+CI-lower-bound-gated protocol rather than a delivered measurement, and it is held as kill-tree
+insurance rather than presented as a co-equal pillar. Everything concerning the graded
+$0\text{--}10$ sum is computed and reported as inspection-only.
 
-\subsection{Per-AU VLM-as-rater quadratic kappa (headline method~1)}
+\subsection{Per-AU VLM-as-rater quadratic kappa (guarded reliability check)}
 
-The first portable method asks whether a frozen vision-language model can weak-label the five
+This guarded check asks whether a frozen vision-language model can weak-label the five
 FGS action units at human-rater agreement. It is a protocol, and its result is pending: no per-AU
 $\kappa$ can be reported until an independent per-AU veterinary anchor exists ($G0$), which the
 current binary corpus does not supply, so what ships today is the runnable protocol rather than a
-number. For each AU the protocol computes the quadratic-weighted
+number. Neither the CI-lower-bound acceptance gate (standard
+clinimetrics~\cite{tractenberg2010kappa,donner2010kappa,simwright2005kappa}) nor the
+rubric-paraphrase independence guard (published as a reliability test for LLM
+judges~\cite{weng2026policy}) is claimed as a novel increment; both are instantiated here as
+audit hygiene. For each AU the protocol computes the quadratic-weighted
 agreement \cite{cohen1968kappa} between the model's $\{0,1,2\}$ rating and a veterinary
 anchor, \emph{bootstraps its confidence interval, and gates and reports on the CI lower bound}
 rather than the point estimate. This lower-bound discipline is forced by the sample size: at
@@ -273,7 +282,7 @@ Phase~A / decision \\
 Quadratic $\kappa$ \cite{cohen1968kappa} &
 $1 - \dfrac{\sum_{ij} w_{ij}\,O_{ij}}{\sum_{ij} w_{ij}\,E_{ij}}$, $w_{ij}=(i-j)^2$; gate on
 \textbf{bootstrap CI lower bound} &
-Phase~B headline (gated) \\
+Phase~B guarded reliability check (gated) \\
 \addlinespace
 RPS on $0\text{--}10$ sum &
 $\sum_{k=0}^{10}\big(\mathrm{CDF}_{\hat{p}}(k) - \mathrm{CDF}_{y}(k)\big)^2$ &
@@ -381,7 +390,7 @@ Fall back to per-clip grouping with re-ID flagged as a limitation \\
 $G2$ & Confound result logged as ``no confound \emph{detected at this power}''; FGS-BG-Gap +
 per-AU EBPG computed (one-directional) &
 CPU, no vet &
-Portable protocol $\Rightarrow$ proceed/co-headline; non-portable $\Rightarrow$
+Portable protocol $\Rightarrow$ proceed (this is the headline leg); non-portable $\Rightarrow$
 threat-to-validity \\
 \addlinespace
 $G3$ & Hashed cat-disjoint test manifest (\texttt{test\_ids.sha256}) + CI guard that aborts
@@ -424,10 +433,12 @@ rather than pain.
 
 \paragraph{The modal product.} The gate system is designed so that the most probable outcome is
 not a failure but a well-characterised \emph{binary-plus-wrapper} instrument:
-binary pain decision $+$ the $\kappa$-as-method protocol (result pending the independent vet anchor) $+$ the confound-attribution protocol
-$+$ the welfare decision curve $+$ the lower-bound abstention curve, with graded-CORN shipped as
-an inspected-not-validated artifact. Every gate either advances this product or pivots cleanly
-onto it.
+binary pain decision $+$ the headline confound-attribution protocol $+$ the guarded
+$\kappa$ reliability check (result pending the independent vet anchor, retained as kill-tree
+insurance) $+$ the welfare decision curve $+$ the lower-bound abstention curve, with graded-CORN
+shipped as an inspected-not-validated artifact. Every gate either advances this product or pivots
+cleanly onto it; if the confound leg degrades, the $\kappa$ check becomes the sole-survivor
+headline.
 
 \section{Reproducibility contract}
 \label{sec:repro}
@@ -500,11 +511,39 @@ Concretely, the discipline requires that:
         trigger; the negative class is documented as an unknown mixture (possibly sedated or
         post-operative).
   \item The DINOv2$+$CORN engine is stated to be \textbf{conceded plumbing, not a novel
-        contribution}; the claimed contributions are the two portable methods and the
-        welfare-asymmetric wrapper.
+        contribution}; the headline contribution is the power-conditioned, per-AU
+        confound-attribution protocol, supported by a guarded VLM-as-AU-rater $\kappa$
+        reliability check and a cited welfare-asymmetric wrapper. Novelty is claimed for the
+        \emph{assembly} and the per-AU EBPG-as-confound-evidence instantiation, never for any
+        individual primitive or for the underlying audit statistics.
 \end{enumerate}
 
 Taken together, the cross-validation design, the blocking gate order, the reproducibility
 contract, and the anti-benchmark rules form a single evaluation contract whose purpose is to
 make the eventual results \emph{believable in proportion to what the data can actually
 support} --- and to make any overclaim structurally impossible to ship.
+
+The portable methods surface is implemented in \texttt{src/protocols/} (re-exports
+of the $\kappa$ and confound protocols from \texttt{src/eval/} plus adapters for
+generic reuse; see \texttt{src/protocols/standalone\_test\_corpus.py} for the
+deletion-safe, zero-torch, synthetic arbitrary-AU exerciser that can survive
+removal of the engine). The central gate orchestrator (\texttt{src/gates/orchestrator.py},
+invoked via \texttt{make gate-orchestrate}, \texttt{gate-pipeline}, or
+\texttt{gate-e2e-synthetic --synthetic}) enforces the strict run-order, writes
+immutable per-run artifacts (\texttt{artifacts/gates\_run\_*.json}), aborts on
+first failure, and supports synthetic toy data for CI/repro (G0 power-first,
+cat-disjoint, one-directional G2, CI-LB G1-B, hash G3, blocking G4, etc.).
+\texttt{Makefile} also exposes \texttt{test-portable}. These are the landed
+executable embodiments of the evaluation protocol; the paper's "runnable
+protocol" language is now backed by an importable, standalone, gate-enforced
+surface (see also \texttt{README} quickstart and \texttt{FINAL\_DIRECTION.md}).
+
+Concretely: \texttt{src/gates/orchestrator.py} (and synthetic mode) + e2e tests
+(\texttt{tests/test\_e2e\_gates\_pipeline.py}) + CI manifests (hashed test\_manifest.sha256,
+folds, power/severity) + \texttt{test-portable} (standalone + monkeypatch deletion
+isolation + au\_order) + \texttt{gate-e2e-synthetic} deliver the full strict
+gate-enforced contract as runnable code. This matches the evaluation chapter's
+discipline and makes the confound-attribution protocol (and the guarded $\kappa$ check)
+replication-survivable: the protocol surface imports and runs even if the engine
+directory is deleted. A DINOv3 engine successor seam is wired into the same cache
+boundary for a future A/B, off the critical path.

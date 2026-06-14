@@ -26,8 +26,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from src.constants import AU_ORDER
+from src.model.cache_features import _CACHE_SCHEMA
 
-_POOLS = ("cls", "patch_mean")
+_POOLS = ("cls", "patch_mean", "patch_std")  # patch_std exposed for richer DINOv3 A/B per MCP dinov3 + schema enforcement
 
 
 def _labels(data, task: str) -> np.ndarray:
@@ -73,7 +74,40 @@ def probe_separability(
     """
     if pool not in _POOLS:
         raise ValueError(f"pool must be one of {_POOLS}, got {pool!r}")
-    data = np.load(npz_path, allow_pickle=False)
+    data = np.load(npz_path, allow_pickle=True)  # allow object for test synthetic npz (schema_version etc as U or str scalars); prod caches from cache_features use primitive arrays so safe either way. Enables the stricter _CACHE_SCHEMA enforce while keeping separability tests working.
+
+    # Enforce schema_version + cross-prov + dim hygiene on read (builds on
+    # protocols adapters + importlib-style seam for portable versioned caches; uniform with train_heads).
+    # Supports A/B dinov3 richer (patch_std/layer/patch_mode per MCP). Preserves small-data repro. Hard on mismatch (no legacy tolerate).
+    if "schema_version" not in data:
+        raise ValueError(f"cache schema_version missing (uniform enforce): {npz_path}; run fresh cache build (supports richer intermed/L2)")
+    # Full _CACHE_SCHEMA keys + PROVENANCE cross (FreshDINOv3RicherEnforcer tiny #1; uniform with train_heads). Supports A/B dinov3 richer (patch_std/layer/patch_mode per MCP). Hard on mismatch (no legacy tolerate).
+    # PRACTICAL A/B uniform hard enforce: fixed keys exact match to _CACHE_SCHEMA; variable (variant/layer/patch_mode) require presence (actual value from build, cross prov for hash); supports intermed n=list mean+std richer + dinov3_vits16 vs v2_reg
+    fixed_keys = ("n_aus", "au_hash", "k", "feature_dim")
+    for k in fixed_keys:
+        if k not in data or data[k] != _CACHE_SCHEMA[k]:
+            raise ValueError(f"_CACHE_SCHEMA key mismatch on {k} (enforce)")
+    for k in ("variant", "layer", "patch_mode"):
+        if k not in data:
+            raise ValueError(f"_CACHE_SCHEMA key missing {k} (uniform enforce no legacy)")
+    # optional prov cross for A/B hash (layer/patch_mode/variant drive from corn.yaml)
+    if "provenance" in data:
+        prov = data["provenance"] if isinstance(data["provenance"], dict) else {}
+        for k in ("variant", "layer", "patch_mode"):
+            if k in prov and data.get(k) != prov.get(k):
+                raise ValueError(f"PROVENANCE cross mismatch on {k} (full hash enforce)")
+    n_au = len(AU_ORDER)
+    if "y" in data:
+        yarr = np.asarray(data["y"])
+        if yarr.ndim > 1 and yarr.shape[1] != n_au:
+            raise ValueError(f"cache y dim {yarr.shape[1]} != AU_ORDER len {n_au}")
+    # PROVENANCE sidecar cross (variant/registers/layer/patch_mode if present)
+    if "provenance" in data and "variant" in data["provenance"] and data.get("variant") != data["provenance"]["variant"]:
+        raise ValueError("PROVENANCE variant cross mismatch (full enforce)")
+    # n_aus cross with protocols (generic surface)
+    from src.protocols.adapters import get_au_names
+    if len(get_au_names()) != n_au:
+        raise ValueError("n_aus mismatch vs protocols generic (portable tie)")
 
     X = np.asarray(data[pool], dtype=np.float32)
     y = _labels(data, task)

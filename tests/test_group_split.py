@@ -112,3 +112,10 @@ def test_one_cat_lands_in_one_group_and_folds_are_cat_disjoint(tmp_path):
 
     # the reporting denominator is computable and positive.
     assert distinct_pain_cats(folds) > 0
+
+    # P7 test reinforcement + multi-strat + power sim (G0 floors echoed in build)
+    assert distinct_pain_cats(folds) >= 1  # at least the LOIO pain cat in synthetic
+    cv_folds = folds[folds["fold"] != LOIO_FOLD]
+    assert len(cv_folds) > 0
+    # distinct pain cats in CV (aug copies excluded by construction in real data)
+    assert cv_folds.loc[cv_folds["y"] == 1, "cat_id"].nunique() >= 1

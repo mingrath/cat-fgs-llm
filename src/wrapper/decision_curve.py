@@ -1,7 +1,11 @@
-"""Welfare-asymmetric net-benefit DECISION CURVE — HEADLINE wrapper artifact
+"""Welfare-asymmetric net-benefit DECISION CURVE — cited wrapper plumbing
 (IMPLEMENTATION_PLAN §6.3, §5.5 line 2303).
 
-**This, not ECE, is the headline wrapper artifact.** Net-benefit decision-curve
+This is the welfare-asymmetric reporting artifact of the wrapper (preferred over
+ECE for a welfare instrument). The wrapper as a whole — this curve, the Clopper-Pearson
+one-sided NPV lower bound, and the LTT/MAPIE abstention band — is CITED SUPPORTING
+EVIDENCE, not a headline contribution; the headline is the power-aware,
+per-AU confound-attribution protocol (src/protocols/). Net-benefit decision-curve
 analysis (Vickers) via ``MSKCC-Epi-Bio/dcurves`` (imported lazily). The
 undertreat:overtreat harm ratio is swept as a **RANGE** across the
 threshold-probability axis — we have NO vet-elicited point ratio, so we never pin one.
@@ -13,9 +17,9 @@ never by clip) for a CI ribbon. Decision-support TRIAGE framing only — the out
 "grimace consistent with pain, X/10; recommend vet assessment," never an autonomous
 analgesia trigger.
 
-The frozen DINOv2 + CORN engine producing p_pain is conceded plumbing; this curve is
-the headline frame. Benchmark FGS points are annotated as prior-art CONTEXT only —
-never "we beat 77/79/95%".
+The frozen DINOv2 + CORN engine producing p_pain is conceded plumbing, and so is this
+curve: both support the contribution rather than being it. Benchmark FGS points are
+annotated as prior-art CONTEXT only — never "we beat 77/79/95%".
 """
 
 from __future__ import annotations

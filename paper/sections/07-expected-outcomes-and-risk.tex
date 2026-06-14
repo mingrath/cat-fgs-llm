@@ -49,8 +49,9 @@ band (\S\ref{sec:rho-band}), and the literature anchors we cite as background
 We plan the repository, the evaluation protocol, and the write-up for the
 \emph{modal} outcome --- the product we expect to ship --- not the optimistic one.
 The modal deliverable is a \textbf{binary-pain decision-support instrument with a
-trustworthiness wrapper}, accompanied by two portable methods, shipped on an
-explicitly-conceded engine. The graded $0$--$10$ Feline Grimace Scale (FGS) layer
+trustworthiness wrapper}, headlined by a power-conditioned, per-AU
+confound-attribution protocol and accompanied by a guarded VLM-as-AU-rater $\kappa$
+reliability check, shipped on an explicitly-conceded engine. The graded $0$--$10$ Feline Grimace Scale (FGS) layer
 is present strictly as an \emph{inspected-not-validated} artifact. The single
 governing rule on the prose: \textbf{the abstract must hold with the graded layer
 dropped}, and the word ``graded'' is struck from every validated-claim sentence.
@@ -74,12 +75,12 @@ means estimated against vet-confirmed labels under the circularity firewall.}
 1 & Calibrated binary decision &
   Per-image pain decision at a \emph{fixed pain-recall} $\geq 0.90$ operating
   point (after \citealp{evangelista2019}); never Youden-$J$/$F_1$ & Yes \\
-2 & $\kappa$-as-method &
+2 & Confound-attribution protocol &
+  FGS-BG-Gap $+$ per-AU EBPG \citep{xiao2021noise,moayeri2022comprehensive,adebayo2022posthoc},
+  \emph{one-directional} (``no confound detected at this power'') & Yes (headline) \\
+3 & $\kappa$ reliability check &
   Per-AU VLM-vs-vet quadratic-weighted $\kappa$ \citep{cohen1968kappa} reported on
-  its \emph{CI lower bound}; the protocol is the deliverable & Yes (headline~1) \\
-3 & Confound-attribution protocol &
-  FGS-BG-Gap $+$ per-AU EBPG \citep{wang2020scorecam,xiao2021background},
-  \emph{one-directional} (``no confound detected at this power'') & Yes (headline~2) \\
+  its \emph{CI lower bound}; guarded, inspected-not-validated & Yes (guarded check) \\
 4 & Welfare-asymmetric decision curve &
   Net-benefit decision-curve analysis \citep{vickers2006dca} with the
   undertreat:overtreat harm ratio swept as a \emph{range} & Yes \\
@@ -93,11 +94,16 @@ means estimated against vet-confirmed labels under the circularity firewall.}
 \end{tabular}
 \end{table}
 
-The two \emph{portable methods} --- Component~2 (VLM-as-AU-rater $\kappa$) and
-Component~3 (the confound-attribution protocol) --- are the only claimed
-contributions, and both ship as released, runnable, dataset-agnostic code. The
-calibration, RPS, ClasswiseECE, and conformal machinery are \emph{supporting
-evidence}, never headlines. The engine (frozen DINOv2 ViT-S/14 --- with the \texttt{\_reg}
+The headline contribution is Component~2 (the power-conditioned, per-AU
+confound-attribution protocol); Component~3 (the VLM-as-AU-rater $\kappa$) is a
+guarded reliability check held below it as kill-tree insurance, not a co-equal
+second pillar. Both ship as released, runnable, dataset-agnostic code. Novelty is
+claimed for the \emph{assembly} and the per-AU EBPG-as-confound-evidence
+instantiation of equivalence-style audit hygiene, never for any individual primitive
+or the one-directional / power-conditioned statistics themselves
+\citep{huanghooker2026fairness,singh2023samplesize}. The calibration, RPS,
+ClasswiseECE, and conformal machinery are \emph{cited supporting evidence}, never
+headlines. The engine (frozen DINOv2 ViT-S/14 --- with the \texttt{\_reg}
 register variant (\texttt{dinov2\_vits14\_reg}) the field default, A/B'd before
 locking ViT-S/14 because registers suppress attention artifacts that hurt the
 dense, localized per-AU features
@@ -143,7 +149,7 @@ gives the kill/pivot crosswalk in full.
 \node[gate, below=of g4] (g5) {G5 alignment / NME\\\scriptsize(BLOCKING)};
 \node[gate, below=of g5] (g1b) {G1-B $\kappa$ pilot\\\scriptsize(CI lower bound)};
 \node[gate, below=of g1b] (g6) {G6 severity cells};
-\node[ship, below=of g6] (modal) {Modal product:\\binary $+$ wrapper $+$ $\kappa$-method\\$+$ confound protocol\\$+$ graded (inspected-only)};
+\node[ship, below=of g6] (modal) {Modal product:\\binary $+$ wrapper\\$+$ confound protocol (headline)\\$+$ guarded $\kappa$ check\\$+$ graded (inspected-only)};
 
 \foreach \a/\b in {g0/g1, g1/g2, g2/g3, g3/g4, g4/g5, g5/g1b, g1b/g6, g6/modal}
   \draw[flow] (\a) -- (\b);
@@ -168,8 +174,8 @@ gives the kill/pivot crosswalk in full.
 spine is the \textsc{go} path through gates G0$\to$G6 terminating in the modal
 product. The right column shows the pre-registered branch at each gate. Note that
 no branch is a project-killing null: a G1-B \textsc{pivot} drops the graded layer
-but still ships the calibrated binary spine, the $\kappa$-as-method headline, and
-the confound protocol (dashed arrow). G4/G5 are blocking correctness gates --- a
+but still ships the calibrated binary spine, the headline confound protocol, and
+the guarded $\kappa$ check (dashed arrow). G4/G5 are blocking correctness gates --- a
 failure halts reporting until fixed, never silently degrades a number.}
 \label{fig:gate-tree}
 \end{figure}
@@ -194,19 +200,19 @@ G0(b) &
   deliverable onto the welfare decision curve. \\[2pt]
 G2 &
   Audit damning but yields only ``CAT\_01 is confounded'' (non-portable) &
-  Demote the audit to a threat-to-validity paragraph; the $\kappa$ method then
-  carries the headline alone. If G1-B \emph{also} fails, the honest paper is a
-  confound/audit note (venue pre-registered now). \\[2pt]
+  Demote the audit to a threat-to-validity paragraph; the guarded $\kappa$ check
+  becomes the sole-survivor headline (kill-tree insurance). If G1-B \emph{also}
+  fails, the honest paper is a confound/audit note (venue pre-registered now). \\[2pt]
 G2 &
   Confounding detected as a \emph{transportable protocol} &
-  \textsc{proceed} --- a publishable co-headline even if everything downstream is
-  null \citep{xiao2021background}. \\[2pt]
+  \textsc{proceed} --- this is the headline leg, publishable even if everything
+  downstream is null \citep{xiao2021noise,moayeri2022comprehensive}. \\[2pt]
 G1-B &
   $\kappa$ CI lower bound below floor on orbital/ear/head &
   \textsc{pivot} to binary spine: \emph{drop graded entirely}; ship calibrated
-  binary $+$ abstention $+$ confound audit. $\kappa$-as-method and the wrapper
-  still stand (a real first per-AU $\kappa$ protocol is publishable, with its result
-pending the independent vet anchor). \\[2pt]
+  binary $+$ abstention $+$ the headline confound protocol. The guarded $\kappa$
+  check and the cited wrapper still stand (the $\kappa$ protocol remains runnable,
+  with its result pending the independent vet anchor). \\[2pt]
 G1-B &
   Passes orbital/ear/head; fails muzzle/whiskers &
   \textsc{proceed} on the surviving AUs; state how dropping $2$ of $5$ heads
@@ -223,24 +229,25 @@ G6 &
   \S\ref{sec:severity-collapse}). \\[2pt]
 $\rho$-band &
   Monte-Carlo \textsc{go} under $\rho=0$ but \textsc{no-go} under $\rho=0.3$ &
-  Declare the gate \emph{fragile}; default to the binary spine rather than
+  Declare the gate \emph{fragile}; default to the binary fallback rather than
   claim a \textsc{go} the correlation could flip (\S\ref{sec:rho-band}). \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The structural property we want from Table~\ref{tab:kill-crosswalk} is that
-\emph{no branch is a project-killing null}. The two portable methods are designed
-to be independently publishable: a runnable per-AU $\kappa$ protocol is still the
-first protocol for measuring whether a frozen vision-language model can weak-label
-feline FGS action units at human-rater agreement (the result is pending an
-independent per-AU vet anchor, and is only a weak-labeling-capability measurement
-if that anchor is independent and the VLM's rubric differs from the vet's ---
-otherwise it measures rubric-following), and a confounding signal detected as a
-transportable protocol is a publishable co-headline regardless of downstream
-outcomes. The binary-plus-wrapper spine is the floor that stands today --- the
-likely v1 ship --- with the graded layer as upside conditional on the Gate-1-B
-$\kappa$ pilot passing.
+\emph{no branch is a project-killing null}. The headline confound-attribution
+protocol is designed to be independently publishable: a confounding signal detected
+as a transportable, power-conditioned protocol stands regardless of downstream
+outcomes. Below it, the guarded per-AU $\kappa$ check is a runnable protocol for
+measuring whether a frozen vision-language model can weak-label feline FGS action
+units at human-rater agreement (the result is pending an independent per-AU vet
+anchor, and is only a weak-labeling-capability measurement if that anchor is
+independent and the VLM's rubric differs from the vet's --- otherwise it measures
+rubric-following); it is retained as kill-tree insurance, becoming the
+sole-survivor headline only if the confound leg degrades. The binary-plus-wrapper
+spine is the floor that stands today --- the likely v1 ship --- with the graded
+layer as upside conditional on the Gate-1-B $\kappa$ pilot passing.
 
 %====================================================================
 \section{Power-Calculation-Conditioned Framing of Abstention}
@@ -312,7 +319,7 @@ and once under a pinned uniform correlation ($\rho = 0.3$), and the gate returns
 The decision rule is pre-registered (Table~\ref{tab:kill-crosswalk}, final row):
 if the Monte-Carlo is \textsc{go} under $\rho = 0$ but \textsc{no-go} under
 $\rho = 0.3$, we declare the gate \emph{fragile}, say so explicitly, and default to
-the binary spine rather than claim a \textsc{go} that a plausible correlation
+the binary fallback rather than claim a \textsc{go} that a plausible correlation
 could flip. A pinned $\rho$ is an honest sensitivity analysis; a noisily-fit
 matrix would be a false claim of empirical precision. The two-point band is the
 conservative substitute that we can defend at this sample size; the full matrix is
@@ -378,6 +385,7 @@ distinct-pain-cat denominator and a Clopper--Pearson or bootstrap confidence
 interval, sensitivity and specificity at the $0.39$ cutoff will be estimated on
 vet-confirmed labels only (the circularity firewall), and the agreement between
 the model and the weak-labeling VLM will never be presented as validation. The
-modal product --- the binary-plus-wrapper instrument with the two portable methods
-and an inspected-not-validated graded layer --- is the outcome we plan for, and it
+modal product --- the binary-plus-wrapper instrument headlined by the
+confound-attribution protocol, with the guarded $\kappa$ check below it and an
+inspected-not-validated graded layer --- is the outcome we plan for, and it
 stands even if the graded layer is dropped entirely.

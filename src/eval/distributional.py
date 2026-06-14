@@ -24,11 +24,13 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-# Import the soft pmf path from the engine to avoid drift (single source of truth).
+# Import the soft pmf path from the engine to avoid drift (single source of truth for
+# portable decode/sum; 0.39 flag separate in constants/aggregate).
 from src.model.decode import au_pmf_from_cumprobs, sum_pmf
 from src.model.corn import corn_cumprobs
 
 # sum_pmf is re-exported via the import above (single source of truth = the engine).
+# Generalized for N AUs (portable).
 __all__ = ["au_pmf", "sum_pmf", "rps_sum_one", "rps_sum", "classwise_ece_per_au"]
 
 

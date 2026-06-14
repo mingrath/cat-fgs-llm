@@ -1,8 +1,8 @@
 """Vendored CORN ordinal loss + decode (IMPLEMENTATION_PLAN §5.4).
 
 CONCEDED PLUMBING. The frozen DINOv2 + CORN engine is NEVER claimed as novel
-(FINAL_DIRECTION §A); it exists only to carry the binary-plus-wrapper spine and
-the two portable-method headlines.
+(FINAL_DIRECTION §A); it exists only to carry the binary-plus-wrapper spine, the
+headline confound-attribution protocol, and the guarded kappa check.
 
 Vendored verbatim (MIT, ludwig-ai/ludwig `corn.py`, torch + F only) so the
 datasheet shows exactly what trained the heads. Cross-checked ONCE against

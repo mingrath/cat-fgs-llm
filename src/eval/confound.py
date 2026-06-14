@@ -1,9 +1,33 @@
-"""HEADLINE METHOD #2 — confound-attribution PROTOCOL (IMPLEMENTATION_PLAN §6.5, portable).
+"""HEADLINE / SPINE — power-aware confound-attribution PROTOCOL (FINAL_DIRECTION §8, portable).
 
-ONE-DIRECTIONAL BY CONSTRUCTION (THE LAW): well-powered to DETECT confounding,
-underpowered to RULE IT OUT. Every output string says "no confound detected at this
-power" — NEVER "ruled out", never "guaranteed". The deliverable is the reusable
-PROTOCOL, not the claim "CAT_01 is confounded".
+This is the strong leg and the paper's headline contribution: a portable, power-aware
+confound-attribution protocol for fine-grained animal-affect models. The supporting
+VLM-as-AU-rater kappa (src/eval/kappa.py) is a guarded reliability check ranked BELOW
+this protocol; the abstention wrapper is cited plumbing. This module is what the paper
+leads with — validated TODAY on planted positive + negative controls
+(src/protocols/standalone_test_corpus.py).
+
+WHAT IS NEW (honesty constraint — claim only the assembly, never a primitive): the
+contribution is the ASSEMBLY of FGS-BG-Gap + per-AU EBPG-as-confound-evidence +
+VLM-judge-bias probing into one power-conditioned audit, plus the instantiation of
+equivalence-style audit hygiene. No individual primitive is claimed as novel, and the
+one-directional / power-conditioned / equivalence STATISTICS themselves are NOT claimed
+as novel — they are credited to prior audit work (Adebayo 2022 for the "at this power"
+framing; Huang & Hooker 2026 and Singh 2023 for the power-conditioned audit idea).
+
+PORTABLE / DATASET-AGNOSTIC (FINAL_DIRECTION §5/§8): FGS-BG-Gap + per-AU EBPG (+ judge-bias
+extension) reusable on ANY future facial-pain corpus. ONE-DIRECTIONAL BY CONSTRUCTION
+(THE LAW): well-powered to DETECT confounding, underpowered to RULE IT OUT. Every output
+string says "no confound detected at this power" — NEVER "ruled out", never "guaranteed".
+The deliverable is the reusable PROTOCOL, not the claim "CAT_01 is confounded".
+
+Borrowed public clean primitives (none claimed as novel): MadryLab backgrounds_challenge /
+visinf/beyond-accuracy for the BG-swap counterfactual (Xiao 2021; Moayeri 2022),
+haofanwang/Score-CAM for the saliency map (EBPG); see GITHUB_MINE for exact file patterns.
+DISTINGUISH from prior per-AU saliency in animal affect (Lencioni 2025, positively framed,
+owns only the saliency leg) and from context-bias work in affect VLMs (BECKI / context2025becki,
+human domain): the increment here is wiring per-AU EBPG in as one-directional CONFOUND
+EVIDENCE inside a power-conditioned audit, not saliency as an explanation.
 
 Three probes (all one-directional):
   - bg_gap()  : FGS-BG-Gap background counterfactual. Mean |score shift| on a background
@@ -35,9 +59,10 @@ NO_CONFOUND_MSG = "no confound detected at this power"
 def ebpg(sal_map, roi_mask) -> float:
     """Energy-based pointing game: fraction of saliency energy inside the ROI (§6.5(b)).
 
+    PORTABLE: roi_mask from ANY landmarker/annotator (CatFLW 48-pt is one example; not required).
     sal_map, roi_mask: both HxW, sal_map >= 0 (saliency / attention-rollout / Score-CAM),
-    roi_mask is 0/1 over the AU box from the CatFLW 48-landmark map. Returns
-    energy_in_ROI / energy_whole in [0,1]. Higher = the head localizes onto its AU.
+    roi_mask is 0/1 over the AU region. Returns energy_in_ROI / energy_whole in [0,1].
+    Higher = the head localizes onto its AU. Use via src.protocols or direct.
     """
     sal = np.asarray(sal_map, dtype=float)
     roi = np.asarray(roi_mask, dtype=float)

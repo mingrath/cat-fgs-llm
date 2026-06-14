@@ -22,6 +22,7 @@ abstention are Phase C, fit on VET-CONFIRMED labels only (circularity firewall).
 """
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -42,6 +43,17 @@ from src.model.train_heads import (  # noqa: E402
     train,
     train_binary_pain,
 )
+
+# FreshPowerG0ManifestsEnforcer: hard G0-first; manifests single source (no drift)
+if not os.path.exists("data/manifests/power.json"):
+    raise SystemExit(
+        "G0 power/vet-budget must precede; see data/manifests/power.json committed from gate0_power"
+    )
+_pj = json.loads(open("data/manifests/power.json").read())
+if int(_pj.get("vet_budget_integer", 0)) < 50:
+    raise SystemExit(
+        "G0 power/vet-budget must precede; see data/manifests/power.json committed from gate0_power"
+    )
 
 
 def _bootstrap_ci(vals, n_boot=10000, alpha=0.05, seed=42):
@@ -86,6 +98,12 @@ def main() -> None:
                     help="where trained heads + the sweep summary are persisted")
     ap.add_argument("--device", default=None)
     args = ap.parse_args()
+
+    # FreshFullGateWiringManifestsEnforcer (cand1): hard G0 power/vet floors + committed manifests required BEFORE any compute (per audit + kickoff).
+    # (Preserves G0-first, leak resist etc vs ad-hoc priors; complements existing gate1b_go + G3 abort.)
+    power = ROOT / "data" / "manifests" / "power.json"
+    if not power.exists() or "manifests" not in str(power):
+        raise SystemExit("G0 must precede; committed manifests required: data/manifests/power.json missing/ drift. Run gate0_power.py first (orchestrator enforces for full pipeline).")
 
     # Gate-3 firewall: a training run that can read the frozen test manifest is a
     # leak by construction — refuse before any head trains.

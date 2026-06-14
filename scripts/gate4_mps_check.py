@@ -23,6 +23,10 @@ import pathlib
 import subprocess
 import sys
 
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 def run_pytests(repo_root, test_files):
     """Run the Gate-4 pytest files; return (ok, captured_text)."""

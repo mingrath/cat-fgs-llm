@@ -1,15 +1,23 @@
-"""Production face-crop pipeline + manifest (IMPLEMENTATION_PLAN §3.5).
+"""Production face-crop pipeline + manifest (IMPLEMENTATION_PLAN §3.5; FoldsCacheAugSpecialist).
 
 detect -> quality-gate -> expand -> (align) -> letterbox -> resize 518 RGB.
 
-Produces the exact crop tensor the frozen DINOv2 ViT-S/14 engine consumes (the
-``_reg`` register variant ``dinov2_vits14_reg`` is the field default — registers
-suppress attention artifacts that hurt the dense, localized per-AU features),
+Produces the exact crop tensor the frozen DINOv2/DINOv3-ready ViT-S/14 engine consumes (the
+``_reg`` register variant ``dinov2_vits14_reg`` (or dinov3) is the field default — registers
+suppress attention artifacts that hurt the dense, localized per-AU features; context7
+confirms patch+cls for localization on facial cues),
 plus ``crop_manifest.parquet`` (one row per source image). Rows with
 ``route_vet=True`` are EXCLUDED from feature caching and from every sens/spec/κ
 denominator downstream (§3.5) — "detector/quality failure -> defer-to-vet" is an
 explicit, counted abstention channel, not a silent drop. Augmented copies never
 enter any reported N (anti-benchmark; §3.5).
+
+FGS-safe: THIS STAGE IS DETERMINISTIC CLEAN CROPS ONLY (no aug). Light geometry
+only upstream in detector (see train_yolo FGS_SAFE_AUG + expand). Heavy aug
+banned — would destroy whiskers/orbital/ear AUs (Steagall alignment insight).
+Test-time aug (TTA) for robustness at infer: apply light hflip/scale at Phase B
+wrapper/decision time (never pollutes cache or denominators). Copy-paste pain
+with care: detector imbalance only.
 
 This is conceded preprocessing plumbing, not a claimed-novel artifact (§3).
 """

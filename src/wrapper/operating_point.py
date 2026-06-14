@@ -8,9 +8,11 @@ CIRCULARITY FIREWALL (IMPLEMENTATION_PLAN §6.3 / line 2302): sens/spec at the 0
 point are estimated on **VET-CONFIRMED labels ONLY**. QWK-vs-VLM is never validation.
 This module refuses to estimate sens/spec on any row that is not vet-confirmed.
 
-The frozen DINOv2 + CORN engine that produces these scores is conceded plumbing; this
-wrapper is the headline frame. We report the SPECIFICITY the fixed-recall cutoff buys
-(with bootstrap CIs) and the cutoff's fold-to-fold variance — never a "we beat X%" claim.
+The frozen DINOv2 + CORN engine that produces these scores is conceded plumbing, and
+this wrapper is cited supporting evidence — not the headline (the headline is the
+power-aware per-AU confound-attribution protocol in src/protocols/). We report the
+SPECIFICITY the fixed-recall cutoff buys (with bootstrap CIs) and the cutoff's
+fold-to-fold variance — never a "we beat X%" claim.
 """
 
 from __future__ import annotations

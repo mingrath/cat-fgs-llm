@@ -41,33 +41,45 @@ automated pipeline of Steagall et al.\ \cite{steagall2023} --- but that a frozen
 backbone with a binary pain head and a handful of standard reliability metrics
 would be \emph{indistinguishable} from prior work once a reviewer mentally swapped
 the backbone and added an extra metric. We therefore relocated the contribution
-away from the engine and onto two transportable methods and one welfare-aware
-operating discipline, and we conceded the engine in writing.
+away from the engine and onto a single headline transportable protocol --- a
+power-conditioned, per-AU confound-attribution audit --- supported by a guarded
+reliability check and a welfare-aware operating discipline, and we conceded the
+engine in writing.
 
 The thesis the document defends is stated in
 Chapter~\ref{ch:introduction} and recapitulated here in its load-bearing form:
-this is not another cat-pain detector because its headline deliverables are
-\textbf{two transportable methods that no prior feline-pain work produced} ---
+this is not another cat-pain detector because its headline deliverable is a
+\textbf{transportable confound-attribution protocol}, supported by a guarded
+reliability check ---
 
 \begin{enumerate}
-  \item a \textbf{per-AU \mbox{VLM-as-AU-rater} agreement protocol}: a protocol for
-  measuring whether a frozen vision--language model can weak-label FGS action units at
-  human-rater agreement (the result is pending an independent per-AU veterinary anchor,
-  and measures weak-labeling capability only if that anchor is independent and the VLM
-  rubric differs from the vet's --- otherwise it measures rubric-following), reported as
-  five per-AU quadratic $\kappa$ values
-  \emph{gated on the confidence-interval lower bound} against a veterinary anchor,
-  with released code that runs the same comparison on any face corpus; and
-  \item a \textbf{capture-condition confound-attribution protocol}
+  \item the headline: a \textbf{capture-condition confound-attribution protocol}
   (FGS-BG-Gap plus per-AU energy-based pointing-game faithfulness), framed
   one-directionally --- well-powered to \emph{detect} a capture-condition confound,
   explicitly under-powered to \emph{rule one out} --- and reusable on the next
-  dataset rather than a verdict about this one ---
+  dataset rather than a verdict about this one. Its novelty is the \emph{assembly}
+  and the per-AU EBPG-as-confound-evidence instantiation of equivalence-style audit
+  hygiene \cite{huanghooker2026fairness,singh2023samplesize,adebayo2022posthoc}, not
+  any individual primitive or the one-directional / power-conditioned statistics
+  themselves; and
+  \item below it, a guarded \textbf{per-AU \mbox{VLM-as-AU-rater} reliability check}:
+  a protocol for measuring whether a frozen vision--language model can weak-label FGS
+  action units at human-rater agreement (the result is pending an independent per-AU
+  veterinary anchor, and measures weak-labeling capability only if that anchor is
+  independent and the VLM rubric differs from the vet's --- otherwise it measures
+  rubric-following), reported as five per-AU quadratic $\kappa$ values
+  \emph{gated on the confidence-interval lower bound} against a veterinary anchor.
+  The CI-lower-bound gate is standard clinimetrics and the rubric-paraphrase guard is
+  published \cite{tractenberg2010kappa,donner2010kappa,weng2026policy}; neither is
+  claimed as a novel increment. The check is retained as kill-tree insurance ---
+  becoming the sole-survivor headline only if the confound leg degrades --- and runs
+  the same comparison on any face corpus ---
 \end{enumerate}
 
 \noindent shipped on an \textbf{explicitly-conceded \mbox{DINOv2$+$CORN} engine}
-\cite{oquab2023dinov2,shi2023corn} that we never claim as novel, and wrapped in an
-\textbf{honest binary-plus-abstention floor}: a welfare-asymmetric operating point
+\cite{oquab2023dinov2,shi2023corn} that we never claim as novel, and wrapped in a
+cited-plumbing \textbf{binary-plus-abstention floor} (supporting evidence, not a
+headline contribution): a welfare-asymmetric operating point
 selected at a fixed pain-recall $\geq 0.90$ (anchored to
 Evangelista et al.\ \cite{evangelista2019}) with the undertreat-to-overtreat harm
 ratio swept as a range over a decision curve, and a defer-to-vet boundary reported
@@ -86,7 +98,8 @@ distributionally, and inspected qualitatively, but the word ``graded'' is struck
 from every validated-claim sentence in the document, and the abstract is required
 to hold with the graded layer dropped entirely. The thing we cannot validate at
 the available sample size, we do not assert. What survives that subtraction --- a
-calibrated binary decision-support instrument, two portable methods, and a
+calibrated binary decision-support instrument, the headline confound-attribution
+protocol with a guarded $\kappa$ reliability check below it, and a cited
 welfare-aware operating discipline --- is the contribution, and it is not another
 cat-pain detector.
 
@@ -229,7 +242,8 @@ honest input that requires only more data, not a new method.
 \bigskip
 \noindent In sum, the modal product this proposal plans to ship --- a calibrated
 binary decision-support instrument with a welfare-asymmetric decision curve and a
-one-sided-$95\%$-NPV abstention curve, two portable methods, and an
+one-sided-$95\%$-NPV abstention curve, headlined by the confound-attribution
+protocol with a guarded $\kappa$ reliability check below it, and an
 inspected-not-validated graded layer on a conceded engine --- is solo-deliverable
 and stands on its own. The future work above is not a list of things missing from
 that product but a schedule of well-defined, sample-size-gated upgrades, each of

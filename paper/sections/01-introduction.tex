@@ -159,25 +159,32 @@ without pretending to data we do not have.
 \section{Objectives}
 \label{sec:intro-objectives}
 
-The thesis pursues four numbered objectives, ordered from the two headline
-\emph{portable methods} down to the conceded engineering substrate.
+The thesis pursues four numbered objectives, ordered from the headline
+\emph{portable method} down to the conceded engineering substrate.
 
 \begin{enumerate}
-  \item \textbf{Measure VLM--vet agreement on FGS action units.} Determine whether
+  \item \textbf{Build a portable, power-aware confound-attribution protocol.}
+    Construct a reusable, one-directional capture-condition audit (the
+    FGS--BG--Gap, the per-AU energy-based pointing-game read as
+    saliency-as-confound-evidence, EBPG, and a VLM judge-bias probe) that any
+    future facial-pain-scorer corpus can run, at a pre-registered power, to
+    detect---never to ``rule out''---entanglement between the pain label and
+    acquisition context. Reporting is one-directional at this
+    power~\autocite{adebayo2022posthoc}: the only honest conclusion is ``no
+    confound detected at this power.'' This is the headline contribution, and it
+    is validated today on planted positive and negative controls.
+  \item \textbf{Provide a guarded VLM-as-AU-rater reliability check.} As a
+    subordinate, inspected-not-validated reliability check, determine whether
     a frozen vision--language model (VLM) can weak-label the five FGS action units
     at \emph{human-rater agreement}---a $\kappa$ that measures weak-labelling
     capability only when the vet anchor is independent and the rubric handed to
     the VLM differs from the rubric the vet scored from, and otherwise measures
     rubric-following, so each run must state which it measures---quantified as a per-AU quadratic-weighted
     Cohen's $\kappa$ against a veterinary anchor, reported with a confidence-interval
-    lower bound. This is a forward-looking method finding---\emph{can} a frozen
-    VLM weak-label feline FGS AUs at rater agreement---not an audit of one
-    corpus's particular labels.
-  \item \textbf{Build a portable confound-attribution protocol.} Construct a
-    reusable, one-directional capture-condition audit (the FGS--BG--Gap and
-    per-AU energy-based pointing-game, EBPG) that any future facial-pain-scorer
-    corpus can run to detect---never to ``rule out''---entanglement between the
-    pain label and acquisition context.
+    lower bound. The CI-lower-bound gate is textbook clinimetrics and the
+    rubric-paraphrase guard is published practice; neither is claimed as novel.
+    This check is retained as kill-tree insurance---the sole-survivor headline
+    should the confound leg degrade---not as a co-equal second pillar.
   \item \textbf{Ship a welfare-asymmetric binary-plus-abstention decision floor.}
     Deliver a calibrated binary pain decision at a \emph{fixed} high-sensitivity
     operating point (pain-recall $\geq 0.90$, anchored to
@@ -192,11 +199,14 @@ The thesis pursues four numbered objectives, ordered from the two headline
     plumbing; it is never advanced as a validated graded claim.
 \end{enumerate}
 
-Objectives~1 and~2 are the two transportable contributions of the thesis;
-Objective~3 is the honest decision floor that stands on its own even if the graded
-layer is dropped; Objective~4 is built for completeness and future extension but
-is firewalled out of every validated results table. The contribution map is
-summarised in Figure~\ref{fig:contribution-map}.
+Objective~1 is the headline transportable contribution; Objective~2 is the
+guarded reliability check that rides below it and serves as kill-tree insurance;
+Objective~3 is the cited trustworthiness wrapper, an honest decision floor that
+stands on its own even if the graded layer is dropped, but is supporting
+evidence rather than a headline contribution; Objective~4 is built for
+completeness and future extension but is firewalled out of every validated
+results table. The contribution map is summarised in
+Figure~\ref{fig:contribution-map}.
 
 % ---------------------------------------------------------------------------
 % Figure 1.2 — Thesis contribution map (TikZ).
@@ -208,20 +218,21 @@ summarised in Figure~\ref{fig:contribution-map}.
       box/.style={draw, rounded corners, minimum height=1.0cm, align=center,
                   text width=3.7cm, inner sep=4pt},
       head/.style={box, fill=gray!14, very thick},
+      guard/.style={box, fill=gray!8},
       frame/.style={box, fill=gray!6},
       engine/.style={box, dashed, fill=white},
       lbl/.style={font=\scriptsize\itshape, gray},
     ]
-    % two portable methods (the headline)
-    \node[head] (m1) {\textbf{Method 1}\\VLM-as-AU-rater\\per-AU quadratic $\kappa$\\vs.\ vet (CI-lower-bound-gated)};
-    \node[head, right=1.0cm of m1] (m2) {\textbf{Method 2}\\Capture-condition\\confound-attribution\\(FGS-BG-Gap + per-AU EBPG)};
-    \node[lbl, above=0.15cm of m1.north east] {portable, dataset-agnostic --- the claimed contributions};
+    % headline portable method (left) + guarded subordinate check (right)
+    \node[head] (m1) {\textbf{Headline method}\\Power-aware confound-\\attribution protocol\\(FGS-BG-Gap + per-AU\\EBPG + VLM judge-bias)};
+    \node[guard, right=1.0cm of m1] (m2) {\emph{Guarded check}\\VLM-as-AU-rater\\per-AU quadratic $\kappa$\\vs.\ vet (CI-LB-gated;\\inspected-not-validated)};
+    \node[lbl, above=0.15cm of m1.north east] {headline portable method (left) + guarded subordinate $\kappa$ check (right)};
     % the wrapper frame underneath
     \node[frame, below=1.2cm of m1, text width=3.7cm] (op)
       {Welfare-asymmetric decision curve\\@ pain-recall $\geq 0.90$};
     \node[frame, below=1.2cm of m2, text width=3.7cm] (ab)
       {One-sided $95\%$ NPV\\lower-bound abstention};
-    \node[lbl, below=0.1cm of op.south east] {trustworthiness wrapper --- the frame};
+    \node[lbl, below=0.1cm of op.south east] {trustworthiness wrapper --- cited supporting plumbing};
     % conceded engine at the base, centred under the two wrapper frames
     \node[engine, below=1.5cm of op.south east, anchor=north, text width=8.4cm] (eng)
       {\textbf{Conceded engine (plumbing --- never claimed novel):}
@@ -235,13 +246,16 @@ summarised in Figure~\ref{fig:contribution-map}.
     \draw[-{Latex[length=2mm]}, gray] (op) -- (m1);
     \draw[-{Latex[length=2mm]}, gray] (ab) -- (m2);
   \end{tikzpicture}
-  \caption[Thesis contribution map]{Contribution map. The two headline
-    deliverables are \emph{portable methods} (top): a VLM-as-AU-rater per-AU
-    $\kappa$ protocol and a capture-condition confound-attribution protocol. The
-    trustworthiness wrapper (middle) supplies the welfare-asymmetric operating
-    point and the abstention floor. The DINOv2$+$CORN engine (bottom) is conceded
-    plumbing and is never claimed as a contribution; its graded output ships
-    inspected-not-validated. (Placeholder schematic.)}
+  \caption[Thesis contribution map]{Contribution map. The single headline
+    deliverable is a portable, power-aware capture-condition
+    confound-attribution protocol (top left). The VLM-as-AU-rater per-AU
+    $\kappa$ protocol (top right) is a guarded, inspected-not-validated
+    reliability check that rides below it as kill-tree insurance, not a co-equal
+    second pillar. The trustworthiness wrapper (middle) supplies the
+    welfare-asymmetric operating point and the abstention floor and is cited
+    supporting plumbing rather than a headline. The DINOv2$+$CORN engine
+    (bottom) is conceded plumbing and is never claimed as a contribution; its
+    graded output ships inspected-not-validated. (Placeholder schematic.)}
   \label{fig:contribution-map}
 \end{figure}
 
@@ -373,42 +387,54 @@ and depicted in Figure~\ref{fig:gate-flow}.
 A kill/pivot rule is attached to the gate order: if the orbital, ear, or head
 $\kappa$ lower bound at G1-B falls below its pre-registered floor, the graded
 layer is dropped entirely and the project ships the calibrated
-binary-plus-abstention floor with the confound protocol; the two portable-method
-headlines still stand, because the $\kappa$ protocol---once the independent
-per-AU vet anchor exists---measures a real fact whether the result is strong or
-mediocre.
+binary-plus-abstention floor with the confound protocol; the headline confound
+protocol still stands, because it is validated independently of the $\kappa$
+result. Conversely, the $\kappa$ check is retained as kill-tree insurance: should
+the confound leg itself degrade, the $\kappa$ check---once the independent per-AU
+vet anchor exists---becomes the sole-survivor headline, because it measures a
+real fact whether the result is strong or mediocre.
 
 \section{Expected benefits and contributions}
 \label{sec:intro-contributions}
 
 The thesis is designed so that its value does not depend on any single experiment
-firing favourably. Its expected contributions are three released, dataset-agnostic
-artefacts, each of which stands as a portable method rather than a corpus-bound
-number:
+firing favourably. Its expected contributions are one headline released,
+dataset-agnostic method, a guarded reliability check below it, and a cited
+supporting wrapper:
 
 \begin{enumerate}
-  \item \textbf{A VLM-as-AU-rater $\kappa$ protocol (result pending the
-    independent vet anchor).} Released code that
+  \item \textbf{A portable, power-aware capture-condition confound-attribution
+    protocol (the headline).} The one-directional FGS--BG--Gap plus per-AU
+    EBPG-as-confound-evidence audit, augmented by a VLM judge-bias probe and run
+    at a pre-registered power, runnable on any future facial-pain-scorer corpus,
+    whose deliverable is the protocol itself rather than a verdict about one
+    dataset. It is validated today on planted positive and negative controls and
+    reports one-directionally at this power~\autocite{adebayo2022posthoc}. The
+    claimed novelty is the assembly, the per-AU
+    EBPG-as-confound-evidence reading, and the instantiation of
+    equivalence-style audit hygiene---never any individual primitive or the
+    underlying statistics.
+  \item \textbf{A guarded VLM-as-AU-rater $\kappa$ reliability check (subordinate;
+    result pending the independent vet anchor).} Released code that
     scores any face corpus's per-AU VLM labels against a veterinary anchor and
     reports five quadratic-weighted $\kappa$ values with confidence-interval lower
-    bounds. The forked corpus's numbers merely \emph{instantiate} the protocol;
-    the deliverable is the reusable measurement protocol; the number it will
+    bounds. The forked corpus's numbers merely \emph{instantiate} the check;
+    the deliverable is the reusable machinery; the number it will
     eventually produce---whether a frozen VLM weak-labels feline FGS action
     units at human-rater agreement---remains pending the independent per-AU
     vet anchor (Gate 0), since the current binary corpus cannot yield $0/1/2$
-    AU ground truth.
-  \item \textbf{A capture-condition confound-attribution protocol.} The
-    one-directional FGS--BG--Gap plus per-AU EBPG audit, runnable on any future
-    facial-pain-scorer corpus, whose deliverable is the protocol itself rather
-    than a verdict about one dataset.
-  \item \textbf{A welfare-asymmetric decision-curve and abstention floor.} An
+    AU ground truth. The CI-lower-bound gate is textbook clinimetrics and the
+    rubric-paraphrase guard is published; neither is a novel increment. This check
+    is kill-tree insurance, not a co-equal headline.
+  \item \textbf{A welfare-asymmetric decision-curve and abstention floor (cited
+    supporting plumbing).} An
     operating point fixed at high sensitivity with the undertreat-to-overtreat
     harm ratio swept as a range, plus a defer-to-vet boundary reported with
     finite-sample one-sided lower bounds. This is the clinical-decision
-    contribution that distinguishes the trustworthiness wrapper from generic
+    component that distinguishes the trustworthiness wrapper from generic
     calibration, and it makes the low-prevalence error-propagation concern of
     \textcite{chavoshi2025} an explicit, reported quantity rather than a hidden
-    failure mode.
+    failure mode. It is supporting evidence, not a headline contribution.
 \end{enumerate}
 
 Taken together these artefacts answer the three gaps of

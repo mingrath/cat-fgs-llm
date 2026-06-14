@@ -7,11 +7,18 @@ backbone:
   # torch.hub id consumed by src.model.backbone (reg = field default; plain = A/B comparator).
   # _reg registers suppress attention artifacts that hurt dense, localized per-AU FGS
   # features (orbital/ear/muzzle); A/B vs plain dinov2_vits14 before locking.
+  # DINOv3: dinov3_vits16 (MCP: same forward_features x_norm_clstoken/patchtokens + get_intermediate_layers
+  # for dense localized AU cues; frozen no-FT small data per context7).
   name: dinov2_vits14_reg
   frozen: true
   hidden_dim: 384
   patch_size: 14
   crop_edge: 518            # crop input edge (518 = 37 patches * 14)
+  # A/B knob for richer patch per MCP dinov3 (mean_std default; l2 or intermed for orbital/ear localization; dinov3_vits16 primary successor per FINAL A/B + context7 'dense w/o FT' 'oob' for small/medical/facial/ordinal; exact forward x_norm + get_intermed n=list/L2/mean(patch))
+  patch_mode: mean_std      # mean_std | l2 | intermed  (updates cache build + load pool support; patch_std richer for localized AU)
+  layer: last               # or n=[-4,-3,-2,-1] (list/seq/range) via get_intermediate_layers (MCP n=... for multi-layer dense); dinov3_vits16 A/B primary (compat default v2_reg)
+  # dinov3_vits16 promote: backbone load + corn A/B + e2e portable matrix probe (MCP 374 snips + landed contract)
+  # Enforce richer (per DINOv3RicherEnforcer): intermed n=list -> mean+std concat in backbone extract + cache; L2 option; uniform no-legacy asserts + A/B hash in cache/train; dinov3_vits16 primary for dense oob frozen small-N imbal ordinal AU (orbital/ear/muzzle) vs priors no FM. Full schema embed + prov cross. 
 
 decode:
   mode: distributional      # DEFAULT: P(rank>k)=cumprod(sigmoid(logits)) -> per-AU pmf -> convolve to 0-10 sum pmf

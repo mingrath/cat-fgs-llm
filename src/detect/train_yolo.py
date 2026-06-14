@@ -21,7 +21,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = ROOT / "configs" / "detect_yolo.yaml"
 
-# FGS-safe augmentation knobs (§2.3). flipud BANNED; degrees<=10; hsv_h~0.
+# FGS-safe augmentation knobs (§2.3 + FoldsCacheAugSpecialist upgrade).
+# LIGHT GEOMETRY ONLY: no heavy that destroy AUs (whiskers/orbital/ear cues).
+# Steagall alignment: preserve subtle grimace geometry; copy-paste pain with care
+# (detector imbalance only; never on Phase B clean crops for cache).
+# Test-time aug (TTA) for robustness at infer: recommended in wrapper/decision
+# (e.g. hflip ensemble on crops at inference time; not baked into cache source).
 FGS_SAFE_AUG = {
     "fliplr": 0.5,      # safe (face is L/R symmetric)
     "flipud": 0.0,      # BANNED — inverts grimace geometry
@@ -32,6 +37,8 @@ FGS_SAFE_AUG = {
     "hsv_s": 0.4,       # modest
     "hsv_v": 0.3,       # modest
     "close_mosaic": 10,  # final epochs see the real distribution
+    # TTA note: at infer, lightweight hflip/scale jitter on detector crops before
+    # Phase B cache/infer improves robustness without retraining cache.
 }
 
 

@@ -35,7 +35,7 @@ dependencies = [
 
 [dependency-groups]
 detect = ["rfdetr>=1.6.0", "ultralytics>=8.3"]   # RF-DETR accepts device="mps"; YOLOv11s runner-up
-dev    = ["pytest>=8.0", "ruff>=0.6"]
+dev    = ["pytest>=8.0", "ruff>=0.6", "pre-commit>=3.7"]
 
 [tool.uv]
 default-groups = ["dev"]       # `uv sync` installs dev; detect is opt-in (heavier)
@@ -43,6 +43,13 @@ default-groups = ["dev"]       # `uv sync` installs dev; detect is opt-in (heavi
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+  "portable: portable protocols / deletion-safe / zero-torch isolation tests (P2)",
+  "e2e: end-to-end gate orchestrator + synthetic full seq + wrapper (P1/P7)",
+  "gate: gate blocking / order / artifact / power-first (G0-G6)",
+  "enforcement: manifests / schema / dedup / power floor / deprecate fail paths (P7)",
+  "real_manifests: tests requiring/ exercising committed manifests paths (not pure synthetic)",
+]
 
 [tool.ruff]
 line-length = 100

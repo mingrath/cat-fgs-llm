@@ -12,9 +12,10 @@ concise technical primer that fixes the vocabulary used throughout the rest of
 this document (Section~\ref{sec:bg-primer}), and a per-paper survey of the
 feline and animal facial-pain literature that situates our work
 (Section~\ref{sec:bg-related}). It closes with a synthesis
-(Section~\ref{sec:bg-synthesis}) that contrasts prior work against the two
-\emph{portable methods} this project headlines, and makes the
-\enquote{not-a-replicate} argument explicit by enumerating the replication
+(Section~\ref{sec:bg-synthesis}) that contrasts prior work against the headline
+\emph{portable method} this project advances---a power-aware confound-attribution
+protocol---together with its guarded VLM-as-AU-rater reliability check, and makes
+the \enquote{not-a-replicate} argument explicit by enumerating the replication
 traps a single-corpus cat-pain study must avoid.
 
 A framing rule governs the whole chapter and is stated once here so it need not
@@ -23,7 +24,10 @@ backbone feeding rank-consistent ordinal heads---is treated as conceded
 \emph{plumbing} and is never claimed as a novel contribution. The primer
 therefore describes these components only to the depth needed to read the
 method, not as from-scratch tutorials, and the synthesis is careful to locate
-novelty exclusively in the two measurement protocols, not in the architecture.
+the claimed novelty in the \emph{assembly} of the confound-attribution protocol
+and its per-AU saliency-as-confound-evidence reading---not in the architecture,
+not in any individual primitive, and not in the underlying audit statistics
+themselves.
 
 \section{Technical background}
 \label{sec:bg-primer}
@@ -164,14 +168,17 @@ forced tool-use schema to return five ordinal AU scores, each a closed
 enumeration over $\{0,1,2\}$, with a rationale produced before each score. The
 VLM is therefore a \emph{weak labeller} that proposes per-AU FGS scores at
 scale and cheaply, which a veterinarian then accepts or corrects. The central
-empirical question this raises---and the first headline of this work---is
+empirical question this raises---posed by the guarded reliability check that
+rides below this work's headline---is
 whether such a frozen VLM can weak-label feline FGS action units at
 human-rater agreement, measured against a veterinary anchor---a measurement that
 reflects weak-labelling capability only when the anchor is independent and the
 rubric handed to the VLM differs from the one the vet scored from, and otherwise
 reflects rubric-following, so each run must state which it measures. That
-measurement, not the act of prompting a VLM, is the contribution; the rater is selected by
-its measured agreement rather than asserted to be adequate.
+measurement, not the act of prompting a VLM, is what the check delivers; the
+rater is selected by its measured agreement rather than asserted to be adequate.
+The check ships inspected-not-validated and is retained as kill-tree insurance,
+not as a co-equal headline alongside the confound protocol.
 
 \subsection{Calibration and the expected calibration error}
 \label{subsec:bg-calibration}
@@ -203,8 +210,9 @@ errors, allowing a model to be judged across a \emph{range} of harm ratios
 rather than at a single symmetric-cost operating point. Because we have no
 veterinarian-elicited undertreat:overtreat ratio, we sweep the ratio as a range
 along the threshold-probability axis. This welfare-asymmetric decision curve is
-the headline artifact of the trustworthiness wrapper---a clinical-decision
-contribution that distinguishes the wrapper from generic calibration---and the
+the central artifact of the trustworthiness wrapper---which is cited supporting
+plumbing rather than a headline contribution, but is the component that
+distinguishes the wrapper from generic calibration---and the
 operating point itself is selected at a fixed pain-recall $\geq 0.90$ anchored
 to the FGS validation study, never at a symmetric Youden-$J$ or $F_1$ knee.
 
@@ -229,13 +237,28 @@ Agreement between two raters on an ordinal scale is measured with the
 quadratically weighted kappa \cite{cohen1968kappa}, which penalises
 disagreements by the squared distance between levels and is therefore the
 correct statistic for the three-level AUs (a nominal kappa over
-$\{0,1,2\}$ without weights is a bug to avoid). The headline method of this
-project is exactly such a per-AU quadratic weighted kappa between the VLM and
-the veterinary anchor---shipped as a runnable protocol, with the number itself
+$\{0,1,2\}$ without weights is a bug to avoid). The guarded reliability check of
+this project---subordinate to the headline confound protocol---is exactly such a
+per-AU quadratic weighted kappa between the VLM and
+the veterinary anchor---shipped as a runnable check, with the number itself
 pending the independent per-AU vet anchor (Gate 0)---gated on its confidence-interval \emph{lower bound}
 rather than the point estimate, because at the small anchor sizes available a
 point estimate of $0.6$ is statistically indistinguishable from a true value of
-$0.47$. Separately, Krippendorff's alpha \cite{krippendorff2004} in its ordinal
+$0.47$. Gating on the CI lower bound rather than the point estimate is
+\emph{textbook clinimetrics}, not a novel increment: it is the standard
+kappa-acceptance discipline established for clinical ratings
+\cite{tractenberg2010kappa,simwright2005kappa} and its sample-size planning
+counterpart \cite{donner2010kappa,rotondi2012kappa,rotondi2018kappasize}; the
+same ordinal-AU kappa/ICC-with-CI practice anchors the feline-pain domain
+\cite{cheng2020fgs,evangelista2021fgs}. A rubric-paraphrase independence guard
+(handing the VLM a reworded rubric so the check measures weak-labelling rather
+than rubric-following) follows published policy-invariance practice for LLM
+judges \cite{weng2026policy} and is likewise not claimed as novel. The
+in-domain precedent for chatbot--expert FGS agreement reports plain
+limits-of-agreement without a CI-lower-bound acceptance gate
+\cite{chatbotfgs2025}; our only increment over it is the CI-lower-bound gate and
+the rubric-independence guard, both of which are standard practice rather than
+contributions. Separately, Krippendorff's alpha \cite{krippendorff2004} in its ordinal
 form measures the self-consistency of the VLM across repeated runs at non-zero
 temperature; this is a vet-free reliability pre-screen and an abstention signal,
 and it complements but never substitutes for the vs-vet kappa.
@@ -256,21 +279,41 @@ to the veterinarian first, maximising label corrections per review minute.
 A face-pain classifier can appear accurate while reading the wrong signal---
 lighting, background, or capture conditions correlated with the pain label
 rather than the face itself. The backgrounds-challenge line of work
-\cite{xiao2021background} demonstrates that models routinely exploit such
-spurious foreground/background cues and provides the conceptual basis for our
-\emph{capture-condition confound audit}: a trivial classifier built on
+\cite{xiao2021background,xiao2021noise} demonstrates that models routinely
+exploit such spurious foreground/background cues, and the complementary
+foreground/background/attribute sensitivity analysis of
+\cite{moayeri2022comprehensive} quantifies how much each contributes; together
+they provide the primitive on which our
+\emph{capture-condition confound audit} is built: a trivial classifier built on
 brightness, blur, aspect ratio, and generic embedding features is trained to
 predict pain, and if it beats chance the label is entangled with acquisition
-context. Complementarily, the energy-based pointing game from the Score-CAM line
+context. The energy-based pointing game from the Score-CAM line
 \cite{wang2020scorecam} quantifies saliency \emph{faithfulness}---how much of a
-saliency map's energy falls inside the relevant region---and underlies the
-per-AU energy-based pointing game (EBPG) we report alongside the
-foreground/background gap (FGS-BG-Gap). Crucially this audit is
-\emph{one-directional}: it is well powered to \emph{detect} confounding but
+saliency map's energy falls inside the relevant region---and we re-read it
+\emph{per AU} as saliency-as-confound-evidence: the per-AU energy-based pointing
+game (EBPG) reported alongside the foreground/background gap (FGS-BG-Gap). We do
+not claim either primitive as novel; the claimed novelty is their assembly into a
+single audit and the per-AU EBPG-as-confound-evidence reading. We
+distinguish three neighbours that touch parts of this surface but do not
+assemble the same protocol. \textcite{lencioni2025segment} build a segment-based
+explainability framework for animal affective computing, but own only the per-AU
+saliency leg and frame it \emph{positively} (which regions explain the
+prediction) rather than as one-directional confound evidence.
+Background-context bias in affect vision--language models has been mitigated
+\cite{context2025becki}, but in the \emph{human} emotion-recognition domain and
+as a mitigation method, not a portable cross-corpus audit. Crucially this audit
+is \emph{one-directional}: it is well powered to \emph{detect} confounding but
 underpowered to rule it out, so its only honest conclusion is \enquote{no
-confound detected at this power,} never \enquote{no confound.} The
-\emph{protocol}---FGS-BG-Gap plus per-AU EBPG, runnable on any future
-facial-pain corpus---is the second headline contribution, distinct from any
+confound detected at this power,} never \enquote{no confound}---a stance that
+post-hoc explanations alone cannot license, since they can miss unknown spurious
+correlations \cite{adebayo2022posthoc}. We instantiate this at a
+\emph{pre-registered power}, borrowing equivalence/power-conditioned audit
+hygiene from algorithmic-fairness testing
+\cite{huanghooker2026fairness,singh2023samplesize}; the statistics themselves are
+not ours. The
+\emph{protocol}---FGS-BG-Gap plus per-AU EBPG plus VLM judge-bias probe, runnable
+on any future facial-pain corpus and validated today on planted positive and
+negative controls---is the headline contribution of this work, distinct from any
 verdict about a particular dataset.
 
 \section{Related feline and animal pain work}
@@ -357,16 +400,28 @@ accuracy figure on their own corpus
 \cite{steagall2023,feighelstein2023}, and the instrument/measurement context
 that frames them \cite{evangelista2019,leesteagall2026,chavoshi2025} plus the
 landmark scaffolding \cite{martvel2024catflw}. Our contribution is deliberately
-\emph{not} a better detector. It is two transportable measurement protocols that
-no prior feline-pain study produced: (i) a protocol for measuring whether a
-frozen VLM can weak-label FGS action units at human-rater agreement, expressed as five
-per-AU quadratic weighted kappas against a veterinary anchor and gated on the
-confidence-interval lower bound; and (ii) a reusable capture-condition
-confound-attribution protocol (FGS-BG-Gap plus per-AU EBPG), one-directional by
-construction. The DINOv2-plus-CORN engine carrying these methods is conceded as
+\emph{not} a better detector. The headline is a single transportable protocol
+that no prior feline-pain study assembled: a reusable, power-aware
+capture-condition confound-attribution protocol (FGS-BG-Gap plus per-AU
+EBPG-as-confound-evidence plus a VLM judge-bias probe), one-directional by
+construction and validated today on planted controls. Its claimed novelty is the
+\emph{assembly}, the per-AU EBPG-as-confound-evidence reading, and the
+instantiation of equivalence-style audit hygiene at a pre-registered
+power---never any individual primitive
+\cite{xiao2021noise,moayeri2022comprehensive,wang2020scorecam} and never the
+one-directional / power-conditioned audit statistics themselves
+\cite{adebayo2022posthoc,huanghooker2026fairness,singh2023samplesize}.
+Subordinate to it, as a guarded, inspected-not-validated reliability check and
+kill-tree insurance rather than a co-equal pillar, is the VLM-as-AU-rater per-AU
+quadratic weighted kappa against a veterinary anchor, gated on the
+confidence-interval lower bound---a gate that is textbook clinimetrics
+\cite{tractenberg2010kappa,simwright2005kappa,donner2010kappa}, with a
+published rubric-paraphrase guard \cite{weng2026policy}, neither claimed as a
+novel increment. The DINOv2-plus-CORN engine carrying these methods is conceded as
 plumbing and is never claimed as novel; the binary-plus-wrapper spine ships with
 a welfare-asymmetric decision curve and a one-sided NPV lower-bound abstention
-curve, while the $0$--$10$ ordinal layer ships inspected-but-not-validated.
+curve as cited supporting plumbing, while the $0$--$10$ ordinal layer ships
+inspected-but-not-validated.
 Table~\ref{tab:positioning} contrasts the prior work with this positioning, with
 accuracy treated explicitly as an anti-benchmark and a column marking whether a
 contribution is a \emph{portable method}.
@@ -411,15 +466,15 @@ contribution is a \emph{portable method}.
       & $\sim 53\%$ eff.\ sens.\ at $10\%$ prevalence
       & Theory & Yes (transfers) \\
     \midrule
-    \textbf{This work (i)}
-      & VLM-as-AU-rater, vs.-vet kappa
-      & \emph{CI-lower-bound-gated per-AU QWK (to be measured)}
-      & AU rating & \textbf{Yes} \\
-    \textbf{This work (ii)}
-      & Confound-attribution protocol
-      & \emph{FGS-BG-Gap + per-AU EBPG (one-directional)}
+    \textbf{This work (headline)}
+      & Power-aware confound-attribution protocol
+      & \emph{FGS-BG-Gap + per-AU EBPG + VLM judge-bias (one-directional)}
       & Audit & \textbf{Yes} \\
-    \textbf{This work (frame)}
+    \textbf{This work (guarded check)}
+      & VLM-as-AU-rater, vs.-vet kappa
+      & \emph{CI-lower-bound-gated per-AU QWK (pending vet anchor)}
+      & AU rating & \textbf{Yes} \\
+    \textbf{This work (cited plumbing)}
       & Welfare-asymmetric DCA + LB-abstention
       & \emph{net benefit (range); one-sided 95\% NPV LB}
       & Binary wrapper & \textbf{Yes} \\
@@ -441,7 +496,7 @@ methods chapter can be read as a list of deliberate avoidances:
     ordinal heads precisely to not retread it.
   \item \textbf{Binary-detector replication.} Producing a backbone-swapped
     re-run of the Feighelstein binary detector \cite{feighelstein2023}; the
-    portable methods, not the detector, are the headline.
+    portable confound-attribution protocol, not the detector, is the headline.
   \item \textbf{Video/temporal replication.} Borrowing temporal landmark-track
     machinery; out of scope and not what the corpus supports.
   \item \textbf{External-cohort overclaim.} Asserting cross-cohort
@@ -461,7 +516,8 @@ methods chapter can be read as a list of deliberate avoidances:
 
 Avoiding these eight traps is what converts a single-corpus study into a
 contribution that survives the obvious \enquote{swap the backbone and add
-metrics} critique: the two surviving claims are a reusable VLM-vs-vet
-kappa protocol (whose result is pending the independent per-AU vet anchor) and a
-reusable audit protocol, both portable to
-the next dataset, riding on an explicitly conceded engine.
+metrics} critique: the headline surviving claim is the reusable, power-aware
+confound-attribution protocol (validated today on planted controls), with the
+VLM-vs-vet kappa as a guarded reliability check below it (whose result is pending
+the independent per-AU vet anchor) and kept as kill-tree insurance---both
+portable to the next dataset, riding on an explicitly conceded engine.

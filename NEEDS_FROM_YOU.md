@@ -52,8 +52,12 @@ rationale**. You **accept or correct**, you do NOT score from scratch.
       Estimated effort: ~4–5 hours. Fill the `vet_*` columns (the template will spell out which).
 - [ ] (Optional) Where the VLM and you disagree, a one-line note helps the datasheet.
 
-When that CSV comes back, **Gate 1-B** fires: per-AU VLM-vs-vet quadratic κ on the CI lower bound →
-GO (add the graded 0-10 layer as upside on top of the floor) or HOLD at the floor (the binary-plus-abstention spine that ships today either way). Either outcome is publishable.
+When that CSV comes back, **Gate 1-B** fires: the per-AU VLM-vs-vet quadratic κ on the CI lower bound.
+This κ is the project's **guarded, inspected-not-validated reliability check**, not the headline — the
+headline is the power-aware, per-AU confound-attribution protocol. Gate 1-B → GO (add the graded 0-10
+layer as upside on top of the floor) or HOLD at the floor (the binary-plus-abstention spine that ships
+today either way). The κ check stays in either case as kill-tree insurance. Both outcomes are
+publishable as a methods/protocol paper.
 
 > **Interpretation guard:** a high κ here measures weak-labeling *capability* only if the
 > vet anchor is independent **and** the rubric handed to the VLM is not the same rubric the

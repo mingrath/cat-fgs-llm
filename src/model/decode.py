@@ -1,5 +1,8 @@
 """Distributional decode (IMPLEMENTATION_PLAN §5.5).
 
+PORTABLE PLUMBING — supporting infrastructure for the headline confound-attribution
+protocol and its guarded kappa check, not a contribution in its own right.
+
 DEFAULT path (FINAL_DIRECTION §E.1): keep soft cumulative P(rank>k); build each
 AU's pmf over {0,1,2}; convolve the 5 pmfs into one pmf over the 0-10 sum. From
 that distribution come RPS-on-the-sum (one scalar, bootstrap CI) + per-AU
@@ -45,3 +48,28 @@ def point_sum(logits_list):              # hard decode for the decision ONLY
     labels = [corn_label_from_logits(lg) for lg in logits_list]   # 5 x [B]
     s = torch.stack(labels, dim=1).sum(1)        # [B] in 0..10
     return s, analgesia_flag(s.float())          # painful flag
+
+
+def pmf_entropy(pmf):
+    """Entropy of pmf (scalar or per-row).
+
+    Used for active VLM/abstention: high entropy = high uncertainty (CORN pmf driver).
+    Per-AU: call on au_pmf_from_cumprobs output; image-level: on sum_pmf output.
+    Preserves atoms-only contract: unc computed in code, never from VLM.
+    Pure-np portable derive (N/k from input shape; use protocols + adapters.generic_ordinal_mode for non-FGS).
+    """
+    p = np.asarray(pmf, dtype=float)
+    if p.ndim == 1:
+        p = p / (p.sum() + 1e-12)
+        p = np.clip(p, 1e-12, 1.0)
+        return float(-np.sum(p * np.log(p)))
+    else:
+        # batch: per-row entropy
+        p = p / (p.sum(axis=-1, keepdims=True) + 1e-12)
+        p = np.clip(p, 1e-12, 1.0)
+        return -np.sum(p * np.log(p), axis=-1)
+
+
+def au_pmf_entropies(au_pmfs_list):
+    """List of per-AU mean entropy over batch (for triage/score)."""
+    return [float(np.mean(pmf_entropy(au))) for au in au_pmfs_list]

@@ -19,23 +19,58 @@ specificity~$86.6\%$ above a $\geq 0.39$ threshold~\cite{evangelista2019}, with
 subsequent landmark-and-geometry pipelines reporting comparable
 accuracy~\cite{steagall2023, feighelstein2023} --- so a further accuracy
 re-implementation would contribute nothing. Those figures are background only,
-attributed to their authors, and are never restated as ours. Instead, our two
-\emph{claimed} contributions are deliberately \emph{portable methods}, each
-intended to transfer to the next facial-pain corpus rather than to characterize
-a single dataset: \textbf{(i)} a \emph{VLM-as-AU-rater} protocol that scores a
-frozen vision--language model's per-action-unit (per-AU) weak labels against a
-veterinary anchor by quadratic-weighted Cohen's kappa, gated on the
-\emph{lower bound} of the kappa confidence interval rather than its point
-estimate --- a protocol whose result is pending an independent per-AU
-veterinary anchor that does not yet exist (the current binary pain/no-pain
-labels cannot yield $0/1/2$ AU ground truth), so it ships today as a
-runnable protocol rather than a reported number; and \textbf{(ii)} a \emph{capture-condition confound-attribution
+attributed to their authors, and are never restated as ours. Instead, the
+\emph{headline} contribution is a single portable method, intended to transfer
+to the next facial-pain corpus rather than to characterize a single dataset: a
+\emph{power-aware, one-directional capture-condition confound-attribution
 protocol} (an FGS-versus-background gap statistic, FGS-BG-Gap, together with a
-per-AU energy-based pointing-game measure, EBPG) that any future corpus can
-re-run as a one-directional audit, reporting ``no confound detected at this
-power'' rather than asserting the absence of confounding.
+per-AU energy-based pointing-game measure, EBPG read as per-AU
+saliency-as-confound-evidence, and a VLM judge-bias probe) that any future
+corpus can re-run as a one-directional audit, reporting ``no confound detected
+at this power'' rather than asserting the absence of confounding. This protocol
+is validated today on planted positive and negative controls. Supporting it,
+and explicitly subordinate to it, is a \emph{guarded} \emph{VLM-as-AU-rater}
+reliability check: it scores a frozen vision--language model's per-action-unit
+(per-AU) weak labels against a veterinary anchor by quadratic-weighted Cohen's
+kappa, gated on the \emph{lower bound} of the kappa confidence interval rather
+than its point estimate. We frame this check as inspected-not-validated rather
+than as a co-equal second contribution: its result is pending an independent
+per-AU veterinary anchor that does not yet exist (the current binary
+pain/no-pain labels cannot yield $0/1/2$ AU ground truth), so it ships today as
+a runnable reliability check rather than a reported number, and is retained as
+kill-tree insurance --- the sole-survivor headline should the confound leg
+degrade. The kappa CI-lower-bound gate is textbook clinimetrics and the
+rubric-paraphrase independence guard is published practice; neither is claimed
+as a novel increment. The novelty we do claim is the \emph{assembly}, the
+per-AU EBPG-as-confound-evidence reading, and the instantiation of
+equivalence-style audit hygiene at a pre-registered power --- never any
+individual primitive or the underlying statistics
+themselves~\cite{adebayo2022posthoc}.
 
-These two methods are shipped on an explicitly \emph{conceded} engine: a frozen
+The protocol and the reliability check are released as dataset-agnostic,
+importable, gate-enforced executable embodiments (the ``portable methods
+seam''): surfaced in \texttt{src/protocols/} (re-exports plus thin adapters for
+AU override / column mapping / a generic non-FGS ordinal mode with no $0.39$
+assumption; see \texttt{src/protocols/adapters.py} and
+\texttt{src/protocols/\_\_init\_\_.py}), exercised by the deletion-safe
+zero-torch standalone test corpus
+(\texttt{src/protocols/standalone\_test\_corpus.py}, which validates the
+confound protocol on planted positive and negative controls), and enforced by
+the central gate orchestrator (\texttt{src/gates/orchestrator.py}) plus the
+\texttt{Makefile} targets \texttt{test-portable} / \texttt{gate-e2e-synthetic}
+/ \texttt{gate-orchestrate} that write immutable artifacts
+(\texttt{artifacts/gates\_run\_*.json}) and support synthetic CI/repro. The
+engine remains conceded plumbing, with a frozen-backbone successor path
+documented separately. The standing engineering invariants are preserved:
+G0-first manifest power (\texttt{power.json} emitted by Gate~0), early dedup and
+vet filtering in Gate~1 before the cat-disjoint split (leak resistance), and the
+MPS compute-correctness gate on the conceded engine. See the
+\texttt{README} quickstart (including the \texttt{src.protocols} standalone
+quickstart), \texttt{FINAL\_DIRECTION.md}, and the evaluation chapter for the
+full gate-enforced contract.
+
+The confound protocol, the reliability check, and the wrapper are shipped on an
+explicitly \emph{conceded} engine: a frozen
 DINOv2 ViT-S/14 backbone~\cite{oquab2023dinov2} (the register variant,
 dinov2\_vits14\_reg, is the field default---registers suppress attention
 artifacts that hurt the dense, localized per-AU features, A/B'd against the
@@ -63,7 +98,14 @@ sentence in this work rests upon it. What we report in the results chapters is
 therefore not a table of our accuracies but the evaluation \emph{protocol}, the
 gate-conditioned expected outcomes, and the pre-registered decision rules
 (power-calc budget, kappa CI-lower-bound floors, severity-cell collapse, and
-the binary-plus-abstention floor as the likely v1 ship) under which each artifact ships or is demoted. The
+the binary-plus-abstention floor as the likely v1 ship) under which each artifact ships or is demoted. This
+document is therefore framed as a methods / protocol paper, demonstrated on
+synthetic data and planted controls and targeted at a machine-learning
+evaluation / trustworthiness or clinical-ML-methods venue rather than an
+animal-welfare or veterinary journal as its first outlet; the empty data
+directory, the missing independent vet anchor, the Roboflow-binary-only
+substrate, and the non-reportable $n_{\text{pos}}=16$ operating point are
+disclosed as limitations, with real-cat application named as future work. The
 intended product is a decision-support triage instrument --- ``grimace
 consistent with pain; recommend veterinary assessment'' --- and never an
 autonomous analgesia trigger.

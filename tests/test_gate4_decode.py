@@ -63,7 +63,7 @@ def test_pmf_sums_to_one():
 def test_sum_pmf_is_distribution_over_0_10():
     cums = [corn_cumprobs(torch.randn(4, 2)) for _ in range(5)]
     pmfs = [au_pmf_from_cumprobs(c).numpy() for c in cums]
-    S = sum_pmf(pmfs)                                 # [4,11]
+    S = sum_pmf(pmfs)                                 # [4, 2*5+1=11] ; portable for N AUs
     assert S.shape == (4, 11)
     assert np.allclose(S.sum(1), 1.0, atol=1e-5)
 

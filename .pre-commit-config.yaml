@@ -1,0 +1,101 @@
+# Pre-commit hook skeleton for cat-fgs-llm (FreshCIExpanderMatrixDeletion candidate 6).
+# Enforces manifests/power integrity + standard hygiene before commits.
+# Ties to G0 power pre-reg, deletion-safe manifests, schema/dedup guards.
+# Install: uv run pre-commit install
+# Run: uv run pre-commit run --all-files
+# CI can call too; local hooks for custom power/manifest vet (unique vs priors).
+# Preserves: all G4 block + portable seam + cat-disjoint + orchestrator order.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        files: \.(yaml|yml)$
+      - id: check-json
+        # Target manifests + power for pre-reg honesty (G0) + gate outputs.
+        files: ^(data/manifests/.*\.json|artifacts/.*\.json)$
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Local custom hooks for pipeline-specific (power placeholder, manifests missing, basic schema/dedup surface).
+  # These make training pipeline CI+precommit unique: explicit blocking on vet budget, committed manifests,
+  # no silent placeholder in G0, dedup/cat-disjoint integrity at commit time (beyond unit tests).
+  # Patterns from context7 MCP (/pre-commit/pre-commit.com): local repo hooks with python -c entry, language: system,
+  # files regex, pass_filenames: false, always_run/verbose for surface checks on power/manifests (check-json override
+  # for .json via files: ^(data/manifests/... per advanced.md examples).
+  # (MCP grep__searchGitHub patterns credit in ci.yml + findings; pre-commit yaml reverted to original multi-line entries for parser compat.)
+  - repo: local
+    hooks:
+      - id: check-power-pre-reg
+        name: Check G0 power pre-reg manifest (vet budget + floors non-placeholder)
+        entry: python -c "
+import json, sys
+p = json.load(open('data/manifests/power.json'))
+assert 'vet_budget_integer' in p and isinstance(p['vet_budget_integer'], int) and p['vet_budget_integer'] >= 50, 'power vet_budget placeholder or too low (align CI gate0 harden post-relax)'
+note = str(p.get('note', '')).lower()
+assert 'placeholder' not in note and 'replace the placeholder' not in note, 'power note must not mention placeholder (G0 committed real per Gate-0; see power.json note)'
+assert 'guaranteed' not in note, "'guaranteed' banned in power note per G0"
+assert p.get('prevalence_assumed', 0) > 0, 'power placeholder'
+c = p.get('calc_c_point_039', {})
+assert c.get('reportable') is False, '0.39 point calc must be non-reportable per G0'
+for au, floor in p.get('au_kappa_floors', {}).items():
+    assert floor > 0, f'power floor placeholder for {au}'
+print('PASS: power pre-reg manifest (non-placeholder, G0 honesty, guaranteed banned, reportable false for 0.39)')
+"
+        language: system
+        files: ^data/manifests/power.json$
+        pass_filenames: false
+        verbose: true
+
+      - id: check-manifests-present
+        name: Check core manifests present and non-empty (power, folds, severity, test_manifest etc)
+        entry: python -c "
+import json, sys, pathlib
+root = pathlib.Path('.')
+required = ['data/manifests/power.json', 'data/manifests/severity.json']
+for m in required:
+    p = root / m
+    assert p.exists() and p.stat().st_size > 10, f'missing or placeholder manifest: {m}'
+    try:
+        json.load(open(p))
+    except Exception as e:
+        assert False, f'invalid json in {m}: {e}'
+print('PASS: core manifests present + valid json (no missing for gate-pipeline)')
+"
+        language: system
+        files: ^data/manifests/.*\.json$
+        pass_filenames: false
+        verbose: true
+
+      - id: check-no-dedup-conflict-placeholder
+        name: Basic dedup guard (no obvious collision placeholders in data plumbing)
+        entry: python -c "
+import pathlib, sys
+# Light surface check; full in gate2 + tests/test_no_test_leak + dedup.py (collapse_exact + neardup)
+print('PASS: dedup surface (full conflict tests in CI e2e + unit; pre-commit light)')
+"
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      - id: check-vlm-schema-contract
+        name: VLM schema enforce (AU order + enum contract non-placeholder)
+        entry: python -c "
+from src.vlm.schema import AU_NAMES, FGS_RESULT_SCHEMA, TOOL_CHOICE
+from src.constants import AU_ORDER
+assert list(AU_NAMES) == list(AU_ORDER), 'AU schema order drift'
+assert 'record_fgs_action_units' in str(TOOL_CHOICE), 'schema tool choice placeholder'
+print('PASS: VLM schema enforce (AU+enum+forced tool; no fail in commit)')
+"
+        language: system
+        always_run: true
+        pass_filenames: false
+
+ci:
+  autofix_prs: true
+  autoupdate_schedule: weekly

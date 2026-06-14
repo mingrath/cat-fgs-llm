@@ -8,7 +8,9 @@ labelled a diagnostic floor, never a validated number.
 import numpy as np
 import pytest
 
+from src.constants import AU_ORDER
 from src.eval.separability import probe_separability
+from src.model.cache_features import _CACHE_SCHEMA, SCHEMA_VERSION
 
 
 def _build_npz(path, leak=False, seed=0):
@@ -18,7 +20,8 @@ def _build_npz(path, leak=False, seed=0):
     `leak`, which puts c0 in both folds to trip the circularity guard.
     """
     rng = np.random.default_rng(seed)
-    dim = 8
+    cs = _CACHE_SCHEMA
+    dim = cs["feature_dim"]  # use real dim (e.g. 384) so saved feature_dim exactly matches enforce check
     cls, cat, fold, ypain = [], [], [], []
     plan = [("c0", "0"), ("c1", "0"), ("c2", "1"), ("c3", "1")]
     if leak:
@@ -33,12 +36,29 @@ def _build_npz(path, leak=False, seed=0):
             ypain.append(pain)
     cls = np.asarray(cls, dtype=np.float32)
     n = len(ypain)
+    au_order_arr = np.array(AU_ORDER, dtype="U20")
+    au_hash = hash(tuple(AU_ORDER))
+    cat_id_arr = np.array(cat, dtype="U10")
+    fold_arr = np.array(fold, dtype="U10")
+    # embed FULL _CACHE_SCHEMA keys (exact values) so load enforce in separability/train passes
+    # (added for DINOv3 richer uniform no-legacy; test data must satisfy n_aus, au_hash, k, feature_dim, variant, layer, patch_mode)
+    # Use fixed-width unicode arrays for str fields so np.load(allow_pickle=False) succeeds (no object arrays)
     np.savez(
         path,
+        schema_version=np.array(SCHEMA_VERSION, dtype="U10"),
+        n_aus=cs["n_aus"],
+        au_hash=au_hash,
+        k=cs["k"],
+        feature_dim=dim,
+        variant=np.array(cs["variant"], dtype="U30"),
+        layer=np.array(cs["layer"], dtype="U10"),
+        patch_mode=np.array(cs["patch_mode"], dtype="U10"),
+        au_order=au_order_arr,
         cls=cls,
         patch_mean=cls.copy(),
-        cat_id=np.array(cat),
-        fold=np.array(fold),
+        patch_std=cls.copy() * 0.0,  # synthetic zero-std for test
+        cat_id=cat_id_arr,
+        fold=fold_arr,
         y=np.full((n, 5), -1, dtype=np.int64),
         y_pain=np.array(ypain, dtype=np.int64),
     )

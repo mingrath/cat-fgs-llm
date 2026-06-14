@@ -11,7 +11,9 @@ Runnable with only torch + numpy.
 import torch
 
 from src.model.decode import point_sum
-from src.vlm.aggregate import POINT_DECISION_THRESHOLD, analgesia_flag
+from src.constants import POINT_DECISION_THRESHOLD
+from src.vlm.aggregate import analgesia_flag  # wrapper re-exports logic; const is canonical in constants
+
 
 
 def test_threshold_constant_is_039():

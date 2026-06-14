@@ -40,6 +40,16 @@ def load_split(npz, train_folds=(0, 1, 2), pool="cls"):
     Returns (X, y, clean, y_pain) tensors for the selected folds.
     """
     d = np.load(npz, allow_pickle=True)
+    # uniform hard _CACHE_SCHEMA no legacy (per FreshHandoffDINOv3RicherTiny + round_fresh_4 table#1 enforce; align separability)
+    from src.model.cache_features import _CACHE_SCHEMA, SCHEMA_VERSION
+    if d.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"cache schema_version mismatch (uniform enforce no legacy): {npz}")
+    for k in ("n_aus", "au_hash", "k", "feature_dim"):
+        if k not in d or d[k] != _CACHE_SCHEMA[k]:
+            raise ValueError(f"_CACHE_SCHEMA key mismatch on {k} (enforce)")
+    for k in ("variant", "layer", "patch_mode"):
+        if k not in d:
+            raise ValueError(f"_CACHE_SCHEMA key missing {k} (uniform enforce no legacy)")
     feat = d[pool]                          # "cls" or "patch_mean" -> [N,384]
     fold = d["fold"].astype(int)
     y = d["y"]                              # [N,5], -1 = AU not scored

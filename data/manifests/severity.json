@@ -1,0 +1,20 @@
+{
+  "single_digit_threshold": 10,
+  "severe_cell_counts": {
+    "ear": 5,
+    "orbital": 15,
+    "muzzle": 13,
+    "whiskers": 11,
+    "head": 11
+  },
+  "collapse_decision": {
+    "ear": "collapse-high-end",
+    "orbital": "keep-0-1-2",
+    "muzzle": "keep-0-1-2",
+    "whiskers": "keep-0-1-2",
+    "head": "keep-0-1-2"
+  },
+  "gate6_fired": true,
+  "scale_after_collapse": "painful / not-above-threshold (AU 1+2 merged)",
+  "note": "Pre-committed STRUCTURAL decision (not a caveat). Counts are from VET-CONFIRMED labels only. No per-cell severe sens/calibration number is emitted: at single-digit n the CI spans ~[0.35,0.97]."
+}

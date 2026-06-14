@@ -170,13 +170,15 @@ def build_report(cfg, vet_budget, min_pain_pos, au_kappa_floors):
 
 def main():
     repo_root = pathlib.Path(__file__).resolve().parents[1]
+    # FreshPowerG0ManifestsEnforcer: this is the single producer of the committed manifests target.
+    # All other entrypoints now hard SystemExit without it (or placeholder vet budget).
     ap = argparse.ArgumentParser(description="Gate 0 — zero-data power calcs + vet-budget pre-registration.")
     ap.add_argument("--config", default=str(repo_root / "configs" / "power.yaml"),
                     help="power.yaml with kappa/npv_lb/point_decision targets + vet_budget_integer.")
     ap.add_argument("--floors-config", default=str(repo_root / "configs" / "vlm_fgs.yaml"),
                     help="vlm_fgs.yaml carrying kappa_floors (the single floor source).")
     ap.add_argument("--out", default=str(repo_root / "data" / "manifests" / "power.json"),
-                    help="output JSON in the COMMITTED manifests dir; Gate-1-B reads au_kappa_floors here.")
+                    help="output JSON in the COMMITTED manifests dir; Gate-1-B reads au_kappa_floors here. STRICT target.")
     args = ap.parse_args()
 
     cfg = yaml.safe_load(open(args.config))

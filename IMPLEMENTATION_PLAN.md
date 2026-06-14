@@ -9,9 +9,9 @@ This document is the end-to-end engineering build spec for cat-fgs-llm: the repo
 
 ## Supersedes / relationship
 
-- **`FINAL_DIRECTION.md` is the authoritative strategy** and governs every contested decision (the two portable-method headlines, the conceded engine, the binary-plus-wrapper spine, the inspected-not-validated graded layer, the operating point, the circularity firewall, the gate order, and the kill/pivot rules). Where this document and `FINAL_DIRECTION.md` disagree on *strategy*, `FINAL_DIRECTION.md` wins.
+- **`FINAL_DIRECTION.md` is the authoritative strategy** and governs every contested decision (the confound-attribution headline, the guarded kappa reliability check demoted below it, the conceded engine, the wrapper as cited supporting plumbing, the binary-plus-wrapper spine, the inspected-not-validated graded layer, the operating point, the circularity firewall, the gate order, and the kill/pivot rules). Where this document and `FINAL_DIRECTION.md` disagree on *strategy*, `FINAL_DIRECTION.md` wins.
 - **This document is the build spec** — it fixes file layout, environment pins, command sequences, code skeletons, and the exact artifacts each gate writes. `BUILD_PLAN.md` carries deltas that are folded in here.
-- Nothing in this spec re-litigates strategy. The DINOv2+CORN engine is conceded plumbing throughout; the headline lives in the two portable methods (VLM-as-AU-rater per-AU quadratic kappa, gated on the CI lower bound; and the capture-condition confound-attribution protocol).
+- Nothing in this spec re-litigates strategy. The DINOv2+CORN engine is conceded plumbing throughout; the headline is the capture-condition confound-attribution protocol (FGS-BG-Gap + per-AU EBPG + VLM judge-bias probe), with the VLM-as-AU-rater per-AU quadratic kappa (gated on the CI lower bound) demoted to a guarded, inspected-not-validated reliability check, and the welfare wrapper cited as supporting plumbing.
 
 ---
 
@@ -47,7 +47,7 @@ These are the environment, data, and budget assumptions this build spec rests on
 
 - [0. Overview, deliverables & repo/env scaffold](#0-overview-deliverables--repoenv-scaffold)
   - [0.1 The modal deliverable](#01-the-modal-deliverable-plan-for-this-as-the-default-product)
-  - [0.2 The two portable-method headlines](#02-the-two-portable-method-headlines)
+  - [0.2 The headline + the guarded reliability check](#02-the-headline--the-guarded-reliability-check)
   - [0.3 Repo directory layout](#03-repo-directory-layout)
   - [0.4 Python environment (uv-pinned; M4/MPS local)](#04-python-environment-uv-pinned-m4mps-local)
   - [0.5 MLOps spine — W&B + Roboflow](#05-mlops-spine--wb--roboflow)
@@ -101,13 +101,13 @@ These are the environment, data, and budget assumptions this build spec rests on
   - [5.6 Training method — co-teaching small-loss](#56-training-method--co-teaching-small-loss-on-vlm-mass--clean-vet-anchor)
   - [5.7 MPS logit parity + Gate-4 decode unit test](#57-mps-logit-parity--gate-4-corn-decodesum039-unit-test-blocking)
   - [5.8 Outputs of Phase B](#58-outputs-of-phase-b-and-what-is--isnt-claimed)
-- [6. The trustworthiness wrapper (the headline) — every metric, defined](#6-the-trustworthiness-wrapper-the-headline--every-metric-defined)
+- [6. The trustworthiness layer — every metric, defined](#6-the-trustworthiness-layer--every-metric-defined)
   - [6.0 Setup — environment, inputs, files](#60-setup--environment-inputs-files)
-  - [6.1 Pillar 1 — VLM-as-AU-rater κ (HEADLINE METHOD #1)](#61-pillar-1--vlm-as-au-rater-κ-headline-method-1)
+  - [6.1 Pillar 1 — VLM-as-AU-rater κ (GUARDED RELIABILITY CHECK)](#61-pillar-1--vlm-as-au-rater-κ-guarded-reliability-check)
   - [6.2 Pillar 2 — Ordinal calibration (supporting)](#62-pillar-2--ordinal-calibration-supporting-the-010-layer--inspected-not-validated)
-  - [6.3 Pillar 3 — Welfare-asymmetric DECISION CURVE (HEADLINE artifact)](#63-pillar-3--welfare-asymmetric-decision-curve-headline-wrapper-artifact)
+  - [6.3 Pillar 3 — Welfare-asymmetric DECISION CURVE (cited supporting plumbing)](#63-pillar-3--welfare-asymmetric-decision-curve-cited-supporting-plumbing)
   - [6.4 Pillar 4 — Defer-to-vet ABSTENTION](#64-pillar-4--defer-to-vet-abstention-one-sided-95-npv-lower-bound)
-  - [6.5 Pillar 5 — Confound-attribution PROTOCOL (HEADLINE METHOD #2)](#65-pillar-5--confound-attribution-protocol-headline-method-2-portable)
+  - [6.5 Pillar 5 — Confound-attribution PROTOCOL (THE HEADLINE)](#65-pillar-5--confound-attribution-protocol-the-headline-portable)
   - [6.6 Run order & kill-criteria crosswalk](#66-run-order--kill-criteria-crosswalk)
 - [7. Gates, evaluation protocol, end-to-end pipeline & build sequence](#7-gates-evaluation-protocol-end-to-end-pipeline--build-sequence)
   - [7.0 Repository layout & conventions](#70-repository-layout--conventions)
@@ -125,7 +125,7 @@ These are the environment, data, and budget assumptions this build spec rests on
 
 This section is the engineering ground floor: what the repo ships, how the directories map to the build sequence, the exact `uv`-pinned Python environment (M4/MPS local, CUDA confined to Colab), the W&B + Roboflow MLOps spine, and a reproducibility contract every downstream gate inherits. It fixes *what to build and lay out*; strategy is settled in `FINAL_DIRECTION.md` and not re-litigated here.
 
-**One framing rule that governs every file in this repo:** the DINOv2+CORN engine is **plumbing, conceded, never claimed novel**. The headline lives in two *portable methods* (0.2). Directory names, module docstrings, artifact tags, and W&B run names must never imply the engine is the contribution.
+**One framing rule that governs every file in this repo:** the DINOv2+CORN engine is **plumbing, conceded, never claimed novel**. The headline is the **confound-attribution protocol**, with the kappa reliability check guarded and ranked below it and the welfare wrapper as cited supporting plumbing (0.2). Directory names, module docstrings, artifact tags, and W&B run names must never imply the engine is the contribution.
 
 ### 0.1 The modal deliverable (plan for this as the default product)
 
@@ -134,22 +134,22 @@ Lay out the repo for the **modal outcome**, not the optimistic one. The shippabl
 | # | Component | What it is | Where it lives | Validated? |
 |---|---|---|---|---|
 | 1 | **Calibrated binary pain decision** | RF-DETR/YOLO detector → per-image pain decision at a **fixed pain-recall ≥0.90** operating point (Evangelista anchor), **never** Youden-J/F1 | `src/detect/`, `src/wrapper/operating_point.py` | YES — vet-confirmed labels only (circularity firewall) |
-| 2 | **κ-as-method** | Per-AU VLM-vs-vet quadratic weighted kappa with **CI lower bound**; the *protocol* is the deliverable; **a result is pending the independent per-AU vet anchor** (Gate 0 — the current binary dataset cannot yield 0/1/2 ground truth, so no κ number is reported yet). QWK-vs-VLM is **never** validation of the decision | `src/vlm/`, `src/eval/kappa.py` | YES (headline #1) |
-| 3 | **Confound-attribution protocol** | FGS-BG-Gap + per-AU EBPG, **one-directional** ("no confound detected at this power") | `src/eval/confound.py` | YES (headline #2) |
-| 4 | **Welfare-asymmetric decision curve** | dcurves net-benefit, sweeping undertreat:overtreat as a **range** (no vet-elicited point ratio) — the **headline wrapper artifact, not ECE** | `src/wrapper/decision_curve.py` | YES |
-| 5 | **LB-abstention curve** | One-sided **95% NPV lower bound** at each abstention rate; the word **"guaranteed" is banned**. Demoted to exploratory if the G0 power budget for the NPV-LB is not met | `src/wrapper/abstention.py` | YES (exploratory if G0 budget unmet) |
+| 2 | **Confound-attribution protocol** | FGS-BG-Gap + per-AU EBPG + VLM judge-bias probe, **one-directional / power-conditioned** ("no confound detected at this power"); validated today on planted +/- controls | `src/eval/confound.py` | YES (**THE HEADLINE**) |
+| 3 | **κ reliability check (guarded)** | Per-AU VLM-vs-vet quadratic weighted kappa with **CI lower bound**; a guarded, inspected-not-validated check ranked **below** the confound headline (not co-equal); kill-tree insurance. The *protocol* is the deliverable; **a result is pending the independent per-AU vet anchor** (Gate 0 — the current binary dataset cannot yield 0/1/2 ground truth, so no κ number is reported yet). CI-LB gate = standard clinimetrics; rubric guard = published; neither branded novel. QWK-vs-VLM is **never** validation of the decision | `src/vlm/`, `src/eval/kappa.py` | YES (guarded check) |
+| 4 | **Welfare-asymmetric decision curve** | dcurves net-benefit, sweeping undertreat:overtreat as a **range** (no vet-elicited point ratio) — the wrapper's reported artifact (replaces ECE); **cited supporting plumbing, not a headline** | `src/wrapper/decision_curve.py` | YES |
+| 5 | **LB-abstention curve** | One-sided **95% NPV lower bound** at each abstention rate; the word **"guaranteed" is banned**; cited supporting plumbing. Demoted to exploratory if the G0 power budget for the NPV-LB is not met | `src/wrapper/abstention.py` | YES (exploratory if G0 budget unmet) |
 | 6 | **Inspected graded-CORN** | 5 per-AU CORN heads → 0–10 sum → distributional pmf; shipped **inspected-not-validated** | `src/model/`, `src/eval/distributional.py` | **NO — never a validated claim** |
 
 Component 6 is gated, labeled, and walled out of every validated results table. Its outputs feed only `src/eval/distributional.py` for inspection, never a headline number.
 
-### 0.2 The two portable-method headlines
+### 0.2 The headline + the guarded reliability check
 
-These are the only claimed contributions; both are **dataset-agnostic** and ship as released, runnable code:
+The claimed contribution is **one headline leg** plus a guarded check ranked below it; both are **dataset-agnostic** and ship as released, runnable code:
 
-1. **VLM-as-AU-rater κ protocol (result pending the independent vet anchor)** (`src/vlm/` + `src/eval/kappa.py`): scores any face corpus's per-AU VLM labels against a vet anchor, reports 5 quadratic κ with **CI lower bounds**. Forward-looking method finding ("can a frozen VLM weak-label feline FGS AUs at human-rater agreement"), **not** an audit of CAT_01's specific labels. Fires on the **CI lower bound** (Gate 1-B). The labeler choice is **self-justified by this pilot**; no external weak-label citation is invoked to justify it.
-2. **Capture-condition confound-attribution protocol** (`src/eval/confound.py`): FGS-BG-Gap + per-AU EBPG, a **one-directional** audit any future facial-pain-scorer corpus can run. Deliverable is the *protocol*, not "CAT_01 is confounded."
+1. **Capture-condition confound-attribution protocol (THE HEADLINE)** (`src/eval/confound.py`): FGS-BG-Gap counterfactual + per-AU EBPG saliency-as-confound-evidence + VLM judge-bias probe, a **one-directional, power-conditioned** audit any future facial-pain-scorer corpus can run. The strong leg — validated today on planted positive+negative controls (`src/protocols/standalone_test_corpus.py`). Deliverable is the *protocol*, not "CAT_01 is confounded." The novelty is the **assembly + per-AU EBPG-as-confound-evidence + equivalence-style audit hygiene** — never an individual primitive (bg-swap, saliency) and never the one-directional/power-conditioned/equivalence statistics themselves.
+2. **VLM-as-AU-rater κ reliability check (GUARDED, inspected-not-validated; result pending the independent vet anchor)** (`src/vlm/` + `src/eval/kappa.py`): scores any face corpus's per-AU VLM labels against a vet anchor, reports 5 quadratic κ with **CI lower bounds**. A guarded reliability check ranked **below** the confound protocol, **not** a co-equal second pillar; kept as kill-tree insurance (sole-survivor headline if the confound leg degrades). Forward-looking method finding ("can a frozen VLM weak-label feline FGS AUs at human-rater agreement"), **not** an audit of CAT_01's specific labels. Fires on the **CI lower bound** (Gate 1-B) — a textbook clinimetrics gate, not a novel increment; the rubric-paraphrase guard is published, also not novel. The labeler choice is **self-justified by this pilot**; no external weak-label citation is invoked to justify it.
 
-Calibration / RPS / ClasswiseECE / MAPIE are **supporting evidence**, never headlines. There is **no binned reliability diagram on the 11-atom 0–10 sum** anywhere in the repo (distributional path uses RPS-on-sum + per-AU ClasswiseECE only).
+The welfare wrapper (decision curve + abstention) is **cited supporting plumbing, never a headline.** Calibration / RPS / ClasswiseECE / MAPIE are **supporting evidence**, never headlines. There is **no binned reliability diagram on the 11-atom 0–10 sum** anywhere in the repo (distributional path uses RPS-on-sum + per-AU ClasswiseECE only).
 
 ### 0.3 Repo directory layout
 
@@ -245,7 +245,7 @@ dependencies = [
   # --- supervision (VLM weak-label) ---
   "anthropic>=0.40",            # Claude 5-AU rater, Message Batches API, prompt caching
   "pydantic>=2.7",              # structured-output schema (enum [0,1,2])
-  # --- wrapper + eval (THE HEADLINE FRAME) ---
+  # --- wrapper + eval (eval hosts the headline confound protocol; wrapper = cited plumbing) ---
   "scikit-learn>=1.5",          # StratifiedGroupKFold, PR-AUC
   "krippendorff>=0.6",          # inter-rater agreement (alongside QWK)
   "netcal>=1.3",                # ClasswiseECE (per-AU); NO binned diagram on the 0-10 sum
@@ -338,7 +338,7 @@ def seed_everything(seed: int = 42):
 
 The directory/script layout encodes the **strict gate run-order** (each gate blocks downstream): **G0** `gate0_power.py` (power calcs + vet-budget integer; blocks all quantitative work) → **G1** `gate1_merge.py` (per-CAT merge vs `CAT_` ids, not raw CLIP/pHash) → **G2** `gate2_confound.py` (one-directional capture-condition audit) → **G3** `gate3_holdout.py` (frozen hashed cat-disjoint hold-out + CI abort) → **G4** `gate4_mps_check.py` (MPS↔CPU logit parity + CORN decode→sum→0.39, **BLOCKING**) → **G5** `gate5_nme.py` (alignment / NME) → **G1-B** κ pilot (`run_vlm_labels.py` + `eval/kappa.py`, fires on **CI lower bound**, self-justifies the labeler) → **G6** severity-cell collapse (if AU=2 cells single-digit, collapse high end).
 
-A `Makefile` target per gate makes the order executable: `make gate0`, `make gate1`, …, plus `make test` (Gate 4 must be green before any quantitative target runs). Nothing in `src/model/` (the conceded engine) produces a claimed-novel artifact — its outputs feed `src/wrapper/` (the frame) and `src/eval/` (the two portable methods). **Kill/pivot:** if orbital/ear/head κ-LB falls below the G1-B floor, drop graded entirely and ship calibrated binary + abstention + confound audit; κ-as-method and the confound protocol still stand.
+A `Makefile` target per gate makes the order executable: `make gate0`, `make gate1`, …, plus `make test` (Gate 4 must be green before any quantitative target runs). Nothing in `src/model/` (the conceded engine) produces a claimed-novel artifact — its outputs feed `src/wrapper/` (the frame, cited supporting plumbing) and `src/eval/` (the confound-attribution headline + the guarded kappa check). **Kill/pivot:** if orbital/ear/head κ-LB falls below the G1-B floor, drop graded entirely and ship calibrated binary + abstention + the confound audit; the confound protocol carries the headline alone and the guarded kappa check is recorded as not-met.
 
 ---
 
@@ -379,7 +379,7 @@ Add to `.gitignore` (already present in repo): `datasets/`, `models/`, `.env`. *
 
 ### 1.1 (a) Forked Roboflow cat-pain — the binary spine
 
-**Purpose.** The one in-domain corpus. Trains the binary pain detector (Phase A) and supplies the **tight head crops** that feed the frozen DINOv2 encoder (Phase B). ~2040 records / ~1547 distinct images, ~12–13% prevalence. This is the corpus the headline methods are *instantiated on*; it is **not** itself a contribution.
+**Purpose.** The one in-domain corpus. Trains the binary pain detector (Phase A) and supplies the **tight head crops** that feed the frozen DINOv2 encoder (Phase B). ~2040 records / ~1547 distinct images, ~12–13% prevalence. This is the corpus the headline confound protocol (and the guarded kappa check) is *instantiated on*; it is **not** itself a contribution.
 
 **License.** CC BY 4.0 (project metadata, FACTCHECK confirmed). Releasable — but keep it walled from the CC BY-NC CatFLW images so a derived release stays CC BY.
 
@@ -495,7 +495,7 @@ Treat near-duplicates (different hash, same scene) with `imagehash` Hamming ≤1
 
 ### 1.2 (b) The vet anchor — the ONLY graded-label source
 
-**Purpose.** The single source of trustworthy per-AU 0/1/2 labels. It powers the **headline κ measurement** (VLM-as-AU-rater vs vet, Gate 1-B), the **0.39 sensitivity/specificity** estimate (validated on these labels ONLY — the circularity firewall), and the abstention NPV lower bound. **It is not downloaded — it is produced.** Size is *not* a guess: it is the **single integer fixed by the Gate 0 power calc** before any vet hour is spent.
+**Purpose.** The single source of trustworthy per-AU 0/1/2 labels. It powers the **guarded κ reliability check** (VLM-as-AU-rater vs vet, Gate 1-B), the **0.39 sensitivity/specificity** estimate (validated on these labels ONLY — the circularity firewall), and the abstention NPV lower bound. **It is not downloaded — it is produced.** Size is *not* a guess: it is the **single integer fixed by the Gate 0 power calc** before any vet hour is spent.
 
 **Target (pre-Gate-0 placeholder, to be replaced by the power calc):** ~**120–150 confirmed images, ≥50 pain-positive**. This is the n that the κ CI half-width (≤0.15 via `kappaSize`), the MAPIE/LTT NPV-band calc, and the 0.39-CI reportability calc must all certify. If Gate 0 says the budget can't certify a useful NPV band, the abstention curve ships **exploratory** (the word "guaranteed" is banned regardless).
 
@@ -1510,7 +1510,7 @@ Always print the **distinct-pain-CAT denominator** next to every kappa (the pilo
 
 ## 5. Phase B — model architecture & training method (frozen DINOv2 + 5 CORN heads)
 
-> **Scope of this section.** This is the *engine* — frozen DINOv2 ViT-S/14 → 5 per-AU CORN ordinal heads → per-AU 0/1/2 → sum 0–10 → 0.39 point decision. Per FINAL_DIRECTION §A, **this engine is conceded as plumbing and is NEVER claimed as novel**; it exists only to carry the two portable-method headlines (VLM-as-AU-rater per-AU κ; confound-attribution protocol) and the binary-plus-wrapper spine. **The binary pain head + abstention is the v1 spine; the 0–10 CORN sum ships INSPECTED-NOT-VALIDATED** — the word "graded" is struck from every validated-claim sentence, and no sum QWK is ever reported as validation. This section specifies exactly what to *build* and *run* on an Apple M4 (MPS, no CUDA); the calibration/abstention/decision-curve wrapper is Phase C and is only hooked here.
+> **Scope of this section.** This is the *engine* — frozen DINOv2 ViT-S/14 → 5 per-AU CORN ordinal heads → per-AU 0/1/2 → sum 0–10 → 0.39 point decision. Per FINAL_DIRECTION §A, **this engine is conceded as plumbing and is NEVER claimed as novel**; it exists only to carry the confound-attribution headline, the guarded VLM-as-AU-rater per-AU κ reliability check, and the binary-plus-wrapper spine. **The binary pain head + abstention is the v1 spine; the 0–10 CORN sum ships INSPECTED-NOT-VALIDATED** — the word "graded" is struck from every validated-claim sentence, and no sum QWK is ever reported as validation. This section specifies exactly what to *build* and *run* on an Apple M4 (MPS, no CUDA); the calibration/abstention/decision-curve wrapper is Phase C and is only hooked here.
 
 ### 5.0 Prerequisites & gate position
 
@@ -1941,9 +1941,9 @@ Run the gate:
 
 ---
 
-## 6. The trustworthiness wrapper (the headline) — every metric, defined
+## 6. The trustworthiness layer — every metric, defined
 
-> **Read this first.** The engine (frozen DINOv2 ViT-S/14 → 5 per-AU CORN heads → 0/1/2 → sum 0–10 → 0.39 decision) is **conceded plumbing** — never claimed novel. *This* section is the contribution. The v1 spine is **binary-plus-wrapper**; the 0–10 layer is consumed here only for **inspected-not-validated** artifacts (RPS, ClasswiseECE, EBPG). Every validated number in pillars 1, 3, 4 rides on **vet-confirmed labels only** (circularity firewall); QWK-vs-VLM is *never* validation. All pillars run **post-hoc on cached held-out scores** — no backbone forward, M4/MPS-friendly, mostly CPU/sklearn/numpy. Each pillar ends with the **kill criterion** it feeds.
+> **Read this first.** The engine (frozen DINOv2 ViT-S/14 → 5 per-AU CORN heads → 0/1/2 → sum 0–10 → 0.39 decision) is **conceded plumbing** — never claimed novel. This section's **headline is the confound-attribution protocol (§6.5)**; the κ check (§6.1) is a **guarded reliability instrument** (CI-LB gate = textbook clinimetrics, not novel) and the calibration / abstention / decision-curve pillars are **cited supporting plumbing**. The v1 spine is **binary-plus-wrapper**; the 0–10 layer is consumed here only for **inspected-not-validated** artifacts (RPS, ClasswiseECE, EBPG). Every validated number in pillars 1, 3, 4 rides on **vet-confirmed labels only** (circularity firewall); QWK-vs-VLM is *never* validation. All pillars run **post-hoc on cached held-out scores** — no backbone forward, M4/MPS-friendly, mostly CPU/sklearn/numpy. Each pillar ends with the **kill criterion** it feeds.
 
 ### 6.0 Setup — environment, inputs, files
 
@@ -1983,9 +1983,11 @@ All wrapper scripts live in `scripts/wrapper/`. Decode helpers (the soft-prob pa
 
 ---
 
-### 6.1 Pillar 1 — VLM-as-AU-rater κ (HEADLINE METHOD #1)
+### 6.1 Pillar 1 — VLM-as-AU-rater κ (GUARDED RELIABILITY CHECK)
 
-**Claim:** *a frozen VLM can weak-label feline FGS action units at human-rater agreement* — a forward-looking, portable method result, not an audit of CAT_01's labels. **Interpretation guard:** this κ measures weak-labeling *capability* only if the vet anchor is independent AND the rubric handed to the VLM is not the same rubric the vet scored from; otherwise it measures rubric-following. State which a given run measures. Per-AU **quadratic-weighted Cohen κ** of VLM-vs-vet, with a **bootstrap CI**, **reported and gated on the LOWER BOUND**.
+> **Rank:** this is the **guarded reliability check**, ranked **below** the confound-attribution headline (§6.5) — inspected-not-validated, result pending an independent vet anchor. It is **not** a co-equal second pillar. Kept as kill-tree insurance: if the confound leg degrades, this becomes the sole-survivor headline. The CI-LB acceptance gate is **textbook clinimetrics** and the rubric-paraphrase guard is **published** — neither is branded as a novel increment.
+
+**Claim:** *a frozen VLM can weak-label feline FGS action units at human-rater agreement* — a forward-looking, portable reliability result, not an audit of CAT_01's labels. **Interpretation guard:** this κ measures weak-labeling *capability* only if the vet anchor is independent AND the rubric handed to the VLM is not the same rubric the vet scored from; otherwise it measures rubric-following. State which a given run measures. Per-AU **quadratic-weighted Cohen κ** of VLM-vs-vet, with a **bootstrap CI**, **reported and gated on the LOWER BOUND**.
 
 **Metric & library.** `sklearn.metrics.cohen_kappa_score(weights="quadratic", labels=[0,1,2])`. The `labels=` arg fixes the class set; `weights="quadratic"` is what makes it **ordinal** — this is the `m-rewardbench` bug-to-avoid (their code is nominal). Bootstrap the CI ourselves (sklearn gives none): paired resample of *images* (not AU-rows) with `n_boot=10000`, percentile 2.5/97.5.
 
@@ -2013,7 +2015,7 @@ Also emit, vet-free, the **ordinal Krippendorff α** over N≥3 repeated VLM run
 
 **Gate / kill (Gate 1-B, fires on CI LOWER BOUND):**
 - Pre-registered, kappaSize-power-backed floors: orbital/ear/head **LB ≥ 0.60**; muzzle/whiskers **LB 0.40–0.60** (caveat band).
-- **orbital OR ear OR head LB < floor → PIVOT to binary spine** (drop the 0–10 layer entirely). The κ-as-method headline *still stands* — the protocol is publishable as a runnable method, its result pending the independent vet anchor.
+- **orbital OR ear OR head LB < floor → PIVOT to binary spine** (drop the 0–10 layer entirely). The κ reliability check *still stands as a runnable protocol* — its result pending the independent vet anchor — and remains kill-tree insurance behind the confound-attribution headline.
 - orbital/ear/head pass, muzzle/whiskers fail → proceed on surviving AUs; state how dropping 2/5 heads shifts the reachable 0–10 range and whether 0.39 (≈4/10) is reachable.
 
 ---
@@ -2077,9 +2079,9 @@ def fit_T(logits, labels):                # logits:[N,2] CORN; labels:[N] in {0,
 
 ---
 
-### 6.3 Pillar 3 — Welfare-asymmetric DECISION CURVE (HEADLINE wrapper artifact)
+### 6.3 Pillar 3 — Welfare-asymmetric DECISION CURVE (cited supporting plumbing)
 
-**This, not ECE, is the headline wrapper artifact.** Net-benefit decision-curve analysis (Vickers) via **`MSKCC-Epi-Bio/dcurves`**, with the **undertreat:overtreat harm ratio swept as a RANGE** across the threshold-probability axis (we have **no** vet-elicited ratio, so we never pin one).
+**This, not ECE, is the wrapper's reported artifact — cited supporting plumbing, not a headline.** Net-benefit decision-curve analysis (Vickers) via **`MSKCC-Epi-Bio/dcurves`**, with the **undertreat:overtreat harm ratio swept as a RANGE** across the threshold-probability axis (we have **no** vet-elicited ratio, so we never pin one).
 
 **Operating point first.** The clinical cutoff is **fixed pain-recall ≥ 0.90** (Evangelista anchor, sens 90.7%) selected **inside train folds (nested)** — **NOT** Youden-J/F1 (a symmetric-cost knee is the wrong loss for a welfare instrument). Report the **specificity it buys** with bootstrap CIs and the cutoff's variance across folds. Benchmark against the validated FGS point (AUC 0.94 / sens 90.7% / spec 86.6%) **as context only** — **never** "we beat 77/79/95%".
 
@@ -2138,7 +2140,9 @@ aurc = m.compute()                                  # max-prob vs learned select
 
 ---
 
-### 6.5 Pillar 5 — Confound-attribution PROTOCOL (HEADLINE METHOD #2, portable)
+### 6.5 Pillar 5 — Confound-attribution PROTOCOL (THE HEADLINE, portable)
+
+> **Rank:** this is **the headline leg** — the strong, one-directional, power-conditioned, per-AU confound-attribution protocol (FGS-BG-Gap counterfactual + per-AU EBPG saliency-as-confound-evidence + VLM judge-bias probe), validated today on planted positive+negative controls (`src/protocols/standalone_test_corpus.py`). Novelty = the **assembly + per-AU EBPG-as-confound-evidence + equivalence-style audit hygiene**; never an individual primitive (bg-swap, saliency) and never the one-directional/power-conditioned/equivalence statistics themselves.
 
 **One-directional by construction:** well-powered to *detect* confounding, underpowered to rule it out. Every sentence says **"no confound detected at this power,"** never "ruled out." The deliverable is the **reusable protocol**, not "CAT_01 is confounded."
 
@@ -2160,8 +2164,8 @@ def ebpg(sal_map, roi_mask):                  # both HxW, sal>=0
 ```
 
 **Gate / kill (Gate 2, one-directional):**
-- Detects confounding as a **transportable protocol → PROCEED and CO-HEADLINE** (publishable even if everything downstream is null).
-- Fires damning but yields **only** "CAT_01 is confounded" (non-portable) → demote to a threat-to-validity paragraph; the κ method (§6.1) carries the headline alone. If Gate 1-B *also* fails, the honest paper is a confound/audit note.
+- Produces the **transportable protocol → PROCEED; this IS the headline** (publishable even if everything downstream is null).
+- Fires damning but yields **only** "CAT_01 is confounded" (non-portable) → demote to a threat-to-validity paragraph; the guarded κ check (§6.1) becomes the sole-survivor headline. If Gate 1-B *also* fails, the honest paper is a confound/audit note.
 
 ---
 
@@ -2183,7 +2187,7 @@ Wrapper pillars run **after** Gates 0–6 in this order; each blocks downstream.
 
 ## 7. Gates, evaluation protocol, end-to-end pipeline & build sequence
 
-This section ties the engine, supervision, and wrapper into one runnable program for a **solo dev on Apple M4 / MPS (no local CUDA), with Colab T4 for detector training and one vet** as the sole annotator. It is deliberately mechanical: run the gates **in order**, each gate writes an immutable artifact, and **no downstream number is believed until its prerequisite gate's artifact exists and passes**. The engine (frozen DINOv2 ViT-S/14 → 5 CORN heads → 0–10 sum → 0.39 decision) is **plumbing, explicitly conceded as not-novel**; the headline deliverables are the two portable methods (VLM-as-AU-rater per-AU κ; capture-condition confound-attribution protocol) plus the welfare wrapper. The **binary-plus-wrapper path is the v1 spine**; the graded 0–10 layer is built, decoded, and **inspected-not-validated** — the word "graded" never appears in a validated-claim sentence.
+This section ties the engine, supervision, and wrapper into one runnable program for a **solo dev on Apple M4 / MPS (no local CUDA), with Colab T4 for detector training and one vet** as the sole annotator. It is deliberately mechanical: run the gates **in order**, each gate writes an immutable artifact, and **no downstream number is believed until its prerequisite gate's artifact exists and passes**. The engine (frozen DINOv2 ViT-S/14 → 5 CORN heads → 0–10 sum → 0.39 decision) is **plumbing, explicitly conceded as not-novel**; the headline deliverable is the capture-condition confound-attribution protocol, with the VLM-as-AU-rater per-AU κ as a guarded reliability check ranked below it and the welfare wrapper as cited supporting plumbing. The **binary-plus-wrapper path is the v1 spine**; the graded 0–10 layer is built, decoded, and **inspected-not-validated** — the word "graded" never appears in a validated-claim sentence.
 
 ### 7.0 Repository layout & conventions
 
@@ -2241,7 +2245,7 @@ Run order is **strict and total**: `G0 → G1 → G2 → G3 → G4 → G5 → G1
 |---|---|---|---|
 | **G0 — Power calcs + vet-budget pre-registration** (blocks ALL quantitative) | Commit the **single integer** vet-label budget to `configs/prereg.yaml` and run 3 zero-data calcs: **(a)** faces for per-AU weighted-κ CI half-width ≤0.15 (`kappaSize` weighted-κ, 3 levels; canonical in `g0_power.R`); **(b)** faces for an LTT/MAPIE-certified NPV≥0.90 band at ≤40% abstention; **(c)** whether the 0.39 sens/spec CI is reportable at budgeted n. Exit: budget integer + κ floors + ρ-band decision all written and committed. | None (CPU, ~1 afternoon) | **(b) fails** → abstention is **exploratory only**; "guaranteed" never appears; the deliverable relocates to the welfare decision curve. **Not a kill.** **(a) fails** → the magnitude claim (§A) is demoted on paper now. |
 | **G1 — Per-CAT merge** (keystone) | Parse `group_id` from filenames, collapse clips to **true individuals validated against `CAT_` IDs** (CLIP/pHash are duplicate detectors, **not** re-ID). Exit: `artifacts/folds/folds.csv` written; assert **no individual straddles any fold**; **distinct-pain-cat denominator printed** and stored. | CPU | If merge cannot be validated against `CAT_` IDs → fall back to per-clip grouping, label it as such, flag re-ID as a known limitation (no kill). |
-| **G2 — Capture-condition confound audit** (one-directional, portable) | Train a **trivial** classifier (brightness/blur/box-aspect/CLIP-embedding) to predict pain; quantify **FGS-BG-Gap + per-AU EBPG**. Exit: result logged as **"no confound detected at this power,"** never "no confound." | CPU, no vet | **Detects confounding as a transportable protocol** → PROCEED; this co-headlines even if everything downstream is null. **Only yields "CAT_01 is confounded" (non-portable)** → demote to threat-to-validity; κ-method must carry the headline alone. If **G1-B also fails** → honest paper is a confound/audit note; pre-register that venue now. |
+| **G2 — Capture-condition confound audit** (one-directional, portable — **THE HEADLINE**) | Train a **trivial** classifier (brightness/blur/box-aspect/CLIP-embedding) to predict pain; quantify **FGS-BG-Gap + per-AU EBPG + VLM judge-bias**. Exit: result logged as **"no confound detected at this power,"** never "no confound." | CPU, no vet | **Produces the transportable protocol** → PROCEED; this IS the headline even if everything downstream is null. **Only yields "CAT_01 is confounded" (non-portable)** → demote to threat-to-validity; the guarded κ check becomes the sole-survivor headline. If **G1-B also fails** → honest paper is a confound/audit note; pre-register that venue now. |
 | **G3 — Frozen hashed cat-disjoint hold-out + CI-abort** | Build a boundary-rich, true-~13%-prevalence test set from merged groups; commit fold CSV + test ids, **hash them** (`test_ids.sha256`), install a CI guard that **aborts any train/sweep/threshold run that can read the test manifest**. Exit: hash committed + guard green on a deliberate violation test. | CPU | Hard blocker: no scoring until the CI guard demonstrably aborts a leaking run. |
 | **G4 — MPS compute-correctness** (BLOCKING) | **(a)** MPS-vs-CPU DINOv2 logit parity (`max|Δ| < 1e-3` after fp32 cast); **(b)** 1-epoch coral-pytorch CORN smoke test on MPS (loss finite, decreasing); **(c)** synthetic **CORN-decode → per-AU 0–2 → 0–10 sum → 0.39** unit test vs known values. Exit: all three assert-pass. | M4 / MPS | **BLOCKING** — a leak-proof PR-AUC from silently-wrong MPS logits is worthless. No number believed until green. |
 | **G5 — Alignment / NME gate** (before Phase B) | On 30–50 project images: CatFLW-landmark **NME inside the RF-DETR crop vs eye-aligned crop**, and median face-pixel resolution after resize to the ViT/14 grid. Exit: NME + resolution both clear the **thresholds pre-set in `prereg.yaml`**; else add a **2-point eye-similarity alignment** and re-measure. | M4 | BLOCKING for Phase B: misaligned crops make "calibration" measure crop quality, not pain. |
@@ -2289,7 +2293,7 @@ Derive the per-image pain decision (max-conf pain box vs the tuned threshold) an
 
 #### 7.2.3 Phase B metrics (engine output + wrapper — graded path inspected-not-validated)
 
-1. **Per-AU VLM-vs-vet Quadratic Weighted Kappa** (headline #1, the only gated Phase-B number). `cohen_kappa_score(y_vet, y_vlm, weights='quadratic')` per AU; **bootstrap the CI and gate/report on the CI LOWER BOUND** (G1-B). MAE, adjacent-accuracy (|pred−true|≤1), and per-AU 3-class macro-F1 are reported as **secondary/descriptive only**, never as the gate.
+1. **Per-AU VLM-vs-vet Quadratic Weighted Kappa** (the guarded reliability check, ranked below the confound-attribution headline; the only gated Phase-B number). `cohen_kappa_score(y_vet, y_vlm, weights='quadratic')` per AU; **bootstrap the CI and gate/report on the CI LOWER BOUND** (G1-B) — a textbook clinimetrics gate, not a novel increment. MAE, adjacent-accuracy (|pred−true|≤1), and per-AU 3-class macro-F1 are reported as **secondary/descriptive only**, never as the gate.
 2. **Distributional calibration of the 0–10 sum** (the DEFAULT path):
    ```python
    # per-AU soft CORN probabilities → pmf over {0,1,2}
@@ -2407,10 +2411,10 @@ Ordered so the **cheapest project-killers fire first** and the **vet's time is s
 
 ### 7.6 Modal-product statement
 
-> **The deliverable is a binary-pain decision-support instrument with a trustworthiness wrapper — calibrated at a fixed pain-recall ≥0.90 operating point, with a welfare-asymmetric decision curve and a one-sided-95%-NPV defer-to-vet abstention curve — accompanied by two portable methods (a per-AU VLM-as-AU-rater quadratic-κ protocol gated on the CI lower bound, and a capture-condition confound-attribution protocol), shipped on an explicitly-conceded DINOv2+CORN engine, with the graded 0–10 FGS layer included as an inspected-not-validated artifact.** This product is solo-deliverable on M4/MPS with one vet, stands even if the graded layer is dropped, and is not another cat-pain detector.
+> **The headline deliverable is a portable, power-aware capture-condition confound-attribution protocol (FGS-BG-Gap counterfactual + per-AU EBPG saliency-as-confound-evidence + VLM judge-bias probe), accompanied by a guarded VLM-as-AU-rater per-AU quadratic-κ reliability check (gated on the CI lower bound, result pending an independent vet anchor) — both shipped on a binary-pain decision-support instrument with a trustworthiness wrapper (calibrated at a fixed pain-recall ≥0.90 operating point, with a welfare-asymmetric decision curve and a one-sided-95%-NPV defer-to-vet abstention curve, cited as supporting plumbing) on an explicitly-conceded DINOv2+CORN engine, with the graded 0–10 FGS layer included as an inspected-not-validated artifact.** This product is solo-deliverable on M4/MPS with one vet, stands even if the graded layer is dropped, and is not another cat-pain detector.
 
 ---
 
 ## Definition of done for v1
 
-v1 is **done** when the modal product ships end-to-end and survives its own gates: Gates G0→G6 + G1-B have each written their `PASS` sentinel (or recorded the pre-registered pivot), and the released bundle contains (1) the calibrated binary pain decision at a fixed pain-recall ≥0.90 operating point with sens/spec estimated on vet-confirmed labels only, (2) the per-AU VLM-as-AU-rater quadratic-κ protocol (gated on the CI lower bound; its result pending the independent vet anchor), (3) the one-directional capture-condition confound-attribution protocol, (4) the welfare-asymmetric decision curve, and (5) the one-sided 95% NPV lower-bound abstention curve (or its documented exploratory demotion) — with the graded 0–10 CORN layer present strictly as an inspected-not-validated artifact, the frozen hashed cat-disjoint test split and `uv.lock` committed, every reported N carrying its distinct-pain-CAT denominator and bootstrap/Clopper-Pearson CIs, and the datasheet filed. The bar is explicitly met **even if Gate 1-B pivots to the binary spine**: the abstract must hold with the word "graded" struck and component 6 dropped, and the engine is never claimed novel.
+v1 is **done** when the modal product ships end-to-end and survives its own gates: Gates G0→G6 + G1-B have each written their `PASS` sentinel (or recorded the pre-registered pivot), and the released bundle contains (1) the calibrated binary pain decision at a fixed pain-recall ≥0.90 operating point with sens/spec estimated on vet-confirmed labels only, (2) the one-directional capture-condition confound-attribution protocol (**the headline**), (3) the per-AU VLM-as-AU-rater quadratic-κ **guarded reliability check** (gated on the CI lower bound; its result pending the independent vet anchor; ranked below the headline), (4) the welfare-asymmetric decision curve (cited supporting plumbing), and (5) the one-sided 95% NPV lower-bound abstention curve (cited supporting plumbing, or its documented exploratory demotion) — with the graded 0–10 CORN layer present strictly as an inspected-not-validated artifact, the frozen hashed cat-disjoint test split and `uv.lock` committed, every reported N carrying its distinct-pain-CAT denominator and bootstrap/Clopper-Pearson CIs, and the datasheet filed. The bar is explicitly met **even if Gate 1-B pivots to the binary spine**: the abstract must hold with the word "graded" struck and component 6 dropped, and the engine is never claimed novel.

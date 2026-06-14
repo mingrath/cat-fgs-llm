@@ -1,6 +1,11 @@
 """Defer-to-vet ABSTENTION — one-sided 95% NPV LOWER-BOUND curve
 (IMPLEMENTATION_PLAN §6.4, §5.5 line 2304).
 
+This module is part of the wrapper, which is CITED SUPPORTING EVIDENCE (cited plumbing),
+not a headline contribution; the headline is the power-aware, per-AU confound-attribution
+protocol in src/protocols/. The Clopper-Pearson one-sided lower bound used here is
+textbook, claimed as standard practice, not as a novel increment.
+
 We report a **one-sided 95% NPV lower-bound curve**: the NPV lower bound at each
 abstention rate, honestly shown to clear >= target only at the abstention rates it
 actually clears. The word **"guaranteed" is BANNED** in this module — say "lower
@@ -61,6 +66,12 @@ def npv_lb_curve(
     fixed 0.39 point (band centred on 0.39), classify the rest by the 0.39 cutoff, and
     report the one-sided 95% NPV LOWER BOUND on the non-abstained predicted-negatives.
     delta is read from config (ltt_delta, default 0.05 -> one-sided 95%).
+
+    The band selector may optionally be extended with pmf_entropy (from decode) and a
+    VLM-consistency vet-free signal for uncertainty+consistency triage; the default
+    keeps the distance-from-0.39 selector. The LTT band (``mapie_ltt_band``) is an
+    alternative risk-controlled framing (BinaryClassificationController with
+    risk=negative_predictive_value, Learn-then-Test), not the shipped path.
     """
     cfg = _load_abstention_cfg(config_path)
     grid = list(cfg["grid"])

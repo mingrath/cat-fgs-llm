@@ -209,6 +209,203 @@
 }
 
 % ------------------------------------------------------------
+% CANONICAL KEYS — added/verified by bibliography agent (2026-06-14)
+% Each verified via web search against arXiv / publisher metadata.
+% ------------------------------------------------------------
+
+@inproceedings{adebayo2022posthoc,
+  author    = {Adebayo, Julius and Muelly, Michael and Abelson, Hal and Kim, Been},
+  title     = {Post hoc Explanations may be Ineffective for Detecting Unknown Spurious Correlation},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022},
+  eprint        = {2212.04629},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi       = {10.48550/arXiv.2212.04629},
+  note      = {Verified: ICLR 2022 (NOT 2023). Post hoc attribution/concept/training-point methods fail to detect unknown spurious signals; supports the one-directional ``no confound detectable at this power'' framing},
+}
+
+% Canonical-named alias for the ImageNet-9 Backgrounds Challenge. The same paper is
+% also keyed xiao2021background above; both keys resolve to the identical reference.
+@inproceedings{xiao2021noise,
+  author    = {Xiao, Kai and Engstrom, Logan and Ilyas, Andrew and Madry, Aleksander},
+  title     = {Noise or Signal: The Role of Image Backgrounds in Object Recognition},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  eprint    = {2006.09994},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  note      = {ImageNet-9 Backgrounds Challenge; background-swap robustness primitive},
+}
+
+@inproceedings{moayeri2022comprehensive,
+  author    = {Moayeri, Mazda and Pope, Phillip and Balaji, Yogesh and Feizi, Soheil},
+  title     = {A Comprehensive Study of Image Classification Model Sensitivity to Foregrounds, Backgrounds, and Visual Attributes},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2022},
+  pages     = {19087--19097},
+  eprint        = {2201.10766},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  note      = {Verified: CVPR 2022. RIVAL10 dataset; fg/bg/attribute sensitivity primitive},
+}
+
+@article{lencioni2025segment,
+  author  = {Boneh-Shitrit, Tali and Finka, Lauren and Mills, Daniel S. and Luna, Stelio P. and Dalla Costa, Emanuella and Zamansky, Anna and Bremhorst, Annika},
+  title   = {A segment-based framework for explainability in animal affective computing},
+  journal = {Scientific Reports},
+  year    = {2025},
+  volume  = {15},
+  number  = {1},
+  pages   = {13670},
+  doi     = {10.1038/s41598-025-96634-y},
+  note    = {Verified: first author is Boneh-Shitrit et al. (Tech4Animals group), NOT Lencioni; bibkey retained per canonical manifest. Owns ONLY the per-AU saliency-alignment leg, positively framed},
+}
+
+% UNVERIFIED AUTHOR LIST — paper/DOI confirmed, authors not resolved; cite numerically (\cite, not \textcite) until the real author list is filled in before submission.
+@article{context2025becki,
+  author  = {{Context-bias mitigation authors, to be confirmed}},
+  title   = {Mitigating Context Bias in Vision--Language Models via Multimodal Emotion Recognition},
+  journal = {Electronics},
+  year    = {2025},
+  volume  = {14},
+  number  = {16},
+  pages   = {3311},
+  doi     = {10.3390/electronics14163311},
+  note    = {BECKI; background-context bias in affect VLMs, human domain. UNVERIFIED author list -- resolve before submission},
+}
+
+@article{chatbotfgs2025,
+  author  = {Steagall, Paulo V. and others},
+  title   = {Agreement of Feline Grimace Scale scores between chatbots and an expert rater},
+  journal = {Scientific Reports},
+  year    = {2025},
+  volume  = {15},
+  number  = {1},
+  pages   = {43461},
+  doi     = {10.1038/s41598-025-27404-z},
+  note    = {Verified: Sci Rep vol 15, article 43461 (2025). Plain Bland--Altman limits-of-agreement, same domain (chatbots vs expert FGS). verify: full author list},
+}
+
+@article{tractenberg2010kappa,
+  author  = {Tractenberg, Rochelle E. and Yumoto, Futoshi and Aisen, Paul S. and Kaye, Jeffrey A. and Mohs, Richard C.},
+  title   = {Sample size requirements for training to a kappa agreement criterion on Clinical Dementia Ratings},
+  journal = {Alzheimer Disease and Associated Disorders},
+  year    = {2010},
+  volume  = {24},
+  number  = {3},
+  pages   = {264--268},
+  doi     = {10.1097/WAD.0b013e3181d489c6},
+  note    = {Verified: PMC2924444, PMID 20473138. kappa CI lower-bound (>=0.60 at 95\% confidence) acceptance gate on CDR; the kappa CI-LB gate is standard. verify: exact author list},
+}
+
+@article{donner2010kappa,
+  author  = {Donner, Allan and Rotondi, Michael A.},
+  title   = {Sample Size Requirements for Interval Estimation of the Kappa Statistic for Interobserver Agreement Studies with a Binary Outcome and Multiple Raters},
+  journal = {The International Journal of Biostatistics},
+  year    = {2010},
+  volume  = {6},
+  number  = {1},
+  pages   = {Article 31},
+  doi     = {10.2202/1557-4679.1275},
+  note    = {Verified: IJB 6(1):31, PMID 21969984. kappa CI lower-bound planning standard},
+}
+
+@article{rotondi2012kappa,
+  author  = {Rotondi, Michael A. and Donner, Allan},
+  title   = {A confidence interval approach to sample size estimation for interobserver agreement studies with multiple raters and outcomes},
+  journal = {Journal of Clinical Epidemiology},
+  year    = {2012},
+  volume  = {65},
+  number  = {7},
+  pages   = {778--784},
+  doi     = {10.1016/j.jclinepi.2011.10.019},
+  note    = {Verified: Journal of Clinical Epidemiology 65(7):778-784, PMID 22560852. NOTE: canonical manifest mis-stated this as Stat Med / PMID 21969984; corrected here},
+}
+
+@misc{rotondi2018kappasize,
+  author  = {Rotondi, Michael A.},
+  title   = {{kappaSize}: Sample Size Estimation Functions for Studies of Interobserver Agreement},
+  year    = {2018},
+  howpublished = {R package, CRAN},
+  note    = {Verified on CRAN; implements the Rotondi \& Donner CI-based sample-size methods (CIBinary, CI3Cats..CI5Cats). Latest update 2018-11-26},
+}
+
+@article{simwright2005kappa,
+  author  = {Sim, Julius and Wright, Chris C.},
+  title   = {The Kappa Statistic in Reliability Studies: Use, Interpretation, and Sample Size Requirements},
+  journal = {Physical Therapy},
+  year    = {2005},
+  volume  = {85},
+  number  = {3},
+  pages   = {257--268},
+  doi     = {10.1093/ptj/85.3.257},
+  note    = {Verified: PT 85(3):257-268, PMID 15733050. Canonical source for 0.60 ``acceptable'' kappa lower bound},
+}
+
+% UNVERIFIED-METADATA caution: 2026 arXiv preprint — existence confirmed via arXiv
+% listing, but published-venue metadata may still change before submission.
+@misc{weng2026policy,
+  author        = {Weng, Shihao and Feng, Yang and Xie, Xiaofei},
+  title         = {Beyond Accuracy: Policy Invariance as a Reliability Test for {LLM} Safety Judges},
+  year          = {2026},
+  eprint        = {2605.06161},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2605.06161},
+  note          = {Verified existence: arXiv:2605.06161 (submitted May 2026). Rubric-semantics + rubric-threshold invariance guard; supports the rubric-paraphrase reliability test},
+}
+
+% UNVERIFIED-METADATA caution: 2026 arXiv preprint — existence confirmed via arXiv
+% listing, but published-venue metadata may still change before submission.
+@misc{huanghooker2026fairness,
+  author        = {Huang, Fei and Hooker, Giles},
+  title         = {Fairness Testing for Algorithmic Pricing},
+  year          = {2026},
+  eprint        = {2605.11614},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.ME},
+  doi           = {10.48550/arXiv.2605.11614},
+  note          = {Verified existence: arXiv:2605.11614 (submitted May 2026). Power-conditioned / equivalence audit idea credited here},
+}
+
+@misc{singh2023samplesize,
+  author        = {Singh, Harvineet and Xia, Fan and Kim, Mi-Ok and Pirracchio, Romain and Chunara, Rumi and Feng, Jean},
+  title         = {A Brief Tutorial on Sample Size Calculations for Fairness Audits},
+  year          = {2023},
+  eprint        = {2312.04745},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.ME},
+  doi           = {10.48550/arXiv.2312.04745},
+  note          = {Verified: NeurIPS 2023 Regulatable ML Workshop. Audit statistical-power hygiene},
+}
+
+% Canonical ``domain anchor'' key for the FGS reliability study. Resolves to the same
+% Sci Rep 2021 paper also keyed evangelista2021agreement above.
+@article{evangelista2021fgs,
+  author  = {Evangelista, Marina C. and Steagall, Paulo V.},
+  title   = {Agreement and reliability of the {Feline Grimace Scale} among cat owners, veterinarians, veterinary students and nurses},
+  journal = {Scientific Reports},
+  year    = {2021},
+  volume  = {11},
+  number  = {1},
+  pages   = {5262},
+  doi     = {10.1038/s41598-021-84696-7},
+  note    = {Verified: Sci Rep 11:5262, PMID 33664387. ICC>0.80 inter-rater; muzzle/whiskers lower (ICC 0.39-0.74). Domain anchor},
+}
+
+@article{cheng2020fgs,
+  author  = {Watanabe, Ryota and Doodnaught, Graeme M. and Evangelista, Marina C. and Monteiro, Beatriz P. and Ruel, H{\'e}l{\`e}ne L. M. and Steagall, Paulo V.},
+  title   = {Inter-Rater Reliability of the {Feline Grimace Scale} in Cats Undergoing Dental Extractions},
+  journal = {Frontiers in Veterinary Science},
+  year    = {2020},
+  volume  = {7},
+  pages   = {302},
+  doi     = {10.3389/fvets.2020.00302},
+  note    = {Verified: Front Vet Sci 7:302. First author is Watanabe et al., NOT Cheng; bibkey retained per canonical manifest. Per-AU ordinal kappa/ICC with 95\% CIs; domain anchor},
+}
+
+% ------------------------------------------------------------
 % TEMPLATE-REUSED REFERENCES (verbatim from source document's
 % bibliography; keyed author+year)
 % ------------------------------------------------------------

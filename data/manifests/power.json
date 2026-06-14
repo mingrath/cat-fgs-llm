@@ -1,0 +1,33 @@
+{
+  "vet_budget_integer": 120,
+  "min_pain_pos": 50,
+  "prevalence_assumed": 0.13,
+  "au_kappa_floors": {
+    "orbital": 0.6,
+    "ear": 0.6,
+    "head": 0.6,
+    "muzzle": 0.4,
+    "whiskers": 0.4
+  },
+  "calc_a_kappa": {
+    "ci_half_width_target": 0.15,
+    "faces_for_high_floor_au": 110,
+    "faces_for_caveat_band_au": 144,
+    "budget_meets_half_width": true,
+    "engine": "statsmodels-present(normal-approx); kappaSize(R) canonical"
+  },
+  "calc_b_npv": {
+    "min_abstained_in_negatives": 29,
+    "total_faces": 84,
+    "budget_certifies_band": true,
+    "abstention_status": "certified"
+  },
+  "calc_c_point_039": {
+    "n_pos": 16,
+    "cp_half_width": 0.2535,
+    "reportable": false,
+    "threshold": 0.39
+  },
+  "rho_band_decision": "underpowered-exploratory",
+  "note": "Zero-data Gate-0 power pre-registration. kappaSize(R) is the canonical weighted-kappa tool; the numbers here are a numpy/scipy fallback. The vet_budget_integer is a clinician/Gate-0 decision echoed from configs/power.yaml; replace the placeholder before any quantitative claim. 'guaranteed' is banned; NPV is reported as a one-sided 95% LOWER BOUND."
+}
