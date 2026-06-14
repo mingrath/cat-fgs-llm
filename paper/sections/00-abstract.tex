@@ -15,7 +15,7 @@ propose a \emph{trustworthiness-first} feline pain scorer that is deliberately
 \emph{not} another cat-pain detector. Automated Feline Grimace Scale (FGS) work
 has established strong in-domain detection numbers --- the FGS itself validates
 at the cited reference level of AUC~$0.94$ with sensitivity~$90.7\%$ and
-specificity~$86.6\%$ above a $\geq 0.39$ threshold~\cite{evangelista2019}, with
+specificity~$86.6\%$ above a $>0.39$ threshold~\cite{evangelista2019}, with
 subsequent landmark-and-geometry pipelines reporting comparable
 accuracy~\cite{steagall2023, feighelstein2023} --- so a further accuracy
 re-implementation would contribute nothing. Those figures are background only,
@@ -23,11 +23,12 @@ attributed to their authors, and are never restated as ours. Instead, the
 \emph{headline} contribution is a single portable method, intended to transfer
 to the next facial-pain corpus rather than to characterize a single dataset: a
 \emph{power-aware, one-directional capture-condition confound-attribution
-protocol} (an FGS-versus-background gap statistic, FGS-BG-Gap, together with a
+protocol} (two legs: an FGS-versus-background gap statistic, FGS-BG-Gap, together with a
 per-AU energy-based pointing-game measure, EBPG read as per-AU
-saliency-as-confound-evidence, and a VLM judge-bias probe) that any future
+saliency-as-confound-evidence; a fully-coded VLM judge-bias axis is exercised on
+synthetic controls only and named as future work, not part of the headline) that any future
 corpus can re-run as a one-directional audit, reporting ``no confound detected
-at this power'' rather than asserting the absence of confounding. This protocol
+at this power'' rather than asserting the absence of confounding~\cite{adebayo2022posthoc}. This protocol
 is validated today on planted positive and negative controls. Supporting it,
 and explicitly subordinate to it, is a \emph{guarded} \emph{VLM-as-AU-rater}
 reliability check: it scores a frozen vision--language model's per-action-unit
@@ -44,18 +45,23 @@ rubric-paraphrase independence guard is published practice; neither is claimed
 as a novel increment. The novelty we do claim is the \emph{assembly}, the
 per-AU EBPG-as-confound-evidence reading, and the instantiation of
 equivalence-style audit hygiene at a pre-registered power --- never any
-individual primitive or the underlying statistics
-themselves~\cite{adebayo2022posthoc}.
+individual primitive nor the underlying power and equivalence statistics
+themselves, which we credit to their
+sources~\cite{huanghooker2026fairness,singh2023samplesize}.
 
-The protocol and the reliability check are released as dataset-agnostic,
-importable, gate-enforced executable embodiments (the ``portable methods
-seam''): surfaced in \texttt{src/protocols/} (re-exports plus thin adapters for
+The headline confound-attribution protocol is released as a dataset-agnostic,
+importable, gate-enforced executable embodiment (the portable protocol surface);
+the subordinate, guarded reliability check ships alongside it as an importable
+module rather than as a co-equal second method: both are surfaced in
+\texttt{src/protocols/} (re-exports plus thin adapters for
 AU override / column mapping / a generic non-FGS ordinal mode with no $0.39$
 assumption; see \texttt{src/protocols/adapters.py} and
 \texttt{src/protocols/\_\_init\_\_.py}), exercised by the deletion-safe
 zero-torch standalone test corpus
-(\texttt{src/protocols/standalone\_test\_corpus.py}, which validates the
-confound protocol on planted positive and negative controls), and enforced by
+(\texttt{src/protocols/standalone\_test\_corpus.py}, which exercises the
+confound protocol end-to-end on synthetic controls, with the planted
+above-threshold positive-recovery assertions held in
+\texttt{tests/test\_confound\_recovery.py}), and enforced by
 the central gate orchestrator (\texttt{src/gates/orchestrator.py}) plus the
 \texttt{Makefile} targets \texttt{test-portable} / \texttt{gate-e2e-synthetic}
 / \texttt{gate-orchestrate} that write immutable artifacts
@@ -83,9 +89,9 @@ welfare-asymmetric operating point fixed to pain-recall~$\geq 0.90$ (rather than
 a symmetric-cost Youden-J or $F_1$ knee), accompanied by a defer-to-vet
 abstention curve reported as a one-sided $95\%$ negative-predictive-value lower
 bound (the word ``guaranteed'' is avoided as unsupportable at the budgeted
-sample size). The headline evaluation artifact of the wrapper is a
-harm-ratio-weighted decision curve that sweeps the undertreat-to-overtreat
-asymmetry as a range. A strict circularity firewall holds throughout: the
+sample size). The wrapper's primary reported artifact --- cited supporting plumbing,
+not a headline contribution --- is a harm-ratio-weighted decision curve that
+sweeps the undertreat-to-overtreat asymmetry as a range. A strict circularity firewall holds throughout: the
 sensitivity and specificity of the $0.39$ decision are estimated only on
 vet-confirmed labels, and the kappa-versus-VLM agreement is never treated as
 validation of that decision.

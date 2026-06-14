@@ -17,25 +17,37 @@ must never be allowed to co-mingle. Two framing rules govern the entire
 chapter and are stated once here so that they need not be re-litigated at every
 table. First, the only source of trustworthy graded (per-action-unit, $0/1/2$)
 labels is a vet anchor that is \emph{produced}, not downloaded
-(Section~\ref{sec:vet-anchor}); every other source is scaffolding and
-\emph{never} produces a headline number. Second, no dataset statistic appears
-below that is not already fixed by the repository's data-hygiene audit: this is
-a methodology document and we have run no experiments, so the chapter reports
-the data \emph{contract} and the audited counts, never invented results.
+(Section~\ref{sec:vet-anchor}); this anchor powers only the subordinate, guarded
+reliability check and the cited welfare-wrapper plumbing, \emph{not} the
+chapter's headline contribution, which is the confound-attribution protocol of
+Chapter~\ref{ch:vlm-wrapper} and is validated on planted synthetic controls
+without any vet labels. Second, this is a methodology document and we have run
+no experiments, so the chapter reports the data \emph{contract} rather than
+results. Crucially, the corpus has not yet been forked: the project's
+\texttt{data/} substrate is empty at the time of writing, so every corpus count
+below --- the $\approx 2040$ records, the $\approx 1547$ distinct images, the
+$493$ duplicate filenames, the $\approx 12.7\%$ prevalence, the $336$ source
+clips, and the $84$ \texttt{CAT\_01} clips --- is a \emph{projected pre-fork
+target} read off the unforked Roboflow source, not a measured or audited
+quantity. The figures fix the data contract and the planning targets; they are
+never invented results, but neither are they yet measurements.
 
 \section{The forked Roboflow cat-pain corpus --- the binary spine}
 \label{sec:roboflow-spine}
 
 \subsection{Purpose and provenance}
 
-The single in-domain corpus is a fork of a public Roboflow detection project
-(\texttt{lia-k4jkv/cat-pain-ul7lu}), re-hosted in the project workspace as
-\texttt{mingraths-workspace/cat-pain-ul7lu-p3rtl}. It is the only set that lives
-in the cat-pain namespace, and it carries the full weight of the binary spine:
-it trains the binary pain detector and supplies the tight head crops that feed
-the frozen image encoder. The corpus comprises roughly $2040$ records that
-resolve to approximately $1547$ distinct images after de-duplication
-(Section~\ref{subsec:hygiene}). Its upstream provenance is the Zhang/Sun/Tang
+The single in-domain corpus is a public Roboflow detection project
+(\texttt{lia-k4jkv/cat-pain-ul7lu}) that the project \emph{plans} to fork and
+re-host in the workspace as
+\texttt{mingraths-workspace/cat-pain-ul7lu-p3rtl}; that fork has not yet been
+executed, so the description here is of the intended binary spine rather than an
+in-hand corpus. Once forked it will be the only set that lives in the cat-pain
+namespace, carrying the full weight of the binary spine: it is to train the
+binary pain detector and supply the tight head crops that feed the frozen image
+encoder. The unforked source is projected to comprise roughly $2040$ records
+that resolve to approximately $1547$ distinct images after de-duplication
+(Section~\ref{subsec:hygiene}); these are pre-fork targets, not measured counts. Its upstream provenance is the Zhang/Sun/Tang
 2008 Flickr cat-head family of photographs; this is an important honesty point,
 because the negative class is therefore a heterogeneous collection of generic
 internet cat photographs rather than a clinically curated control group. The
@@ -63,9 +75,13 @@ chapter treats them as ground truth.
 \subsection{Load-bearing data-hygiene facts}
 \label{subsec:hygiene}
 
-Table~\ref{tab:hygiene} records the audited facts that constrain every
-downstream split, count, and claim. Each is reproduced from the repository's
-fact-check audit and must not regress. The prevalence figure deserves special
+Table~\ref{tab:hygiene} records the projected hygiene facts that will constrain
+every downstream split, count, and claim once the corpus is forked. Each is read
+off the unforked Roboflow source rather than measured against a forked export,
+and is reproduced from the repository's pre-fork data-contract notes; because
+\texttt{data/} is empty at the time of writing, every figure in the table is a
+projected pre-fork target, not a measured or audited count. The prevalence
+figure deserves special
 care: it is pinned to the metadata basis of $264$ pain boxes in $1819$
 dataset-wide \texttt{no\_pain} records ($\approx 12.7\%$), with the
 live-annotation discrepancy of $246/1811$ ($\approx 12.0\%$) logged rather than
@@ -80,16 +96,18 @@ corpus.
 \begin{table}[t]
 \centering
 \caption[Load-bearing data-hygiene facts]{Load-bearing data-hygiene facts for
-the forked Roboflow cat-pain corpus. Every figure is an audited count, not an
-experimental result; each constrains a downstream gate.}
+the Roboflow cat-pain corpus. The corpus has not yet been forked and
+\texttt{data/} is empty, so every figure is a \emph{projected pre-fork target}
+read off the unforked source, not a measured or audited count; each constrains a
+downstream gate once the fork is executed.}
 \label{tab:hygiene}
 \small
 \begin{tabular}{@{}p{0.30\linewidth}p{0.40\linewidth}p{0.22\linewidth}@{}}
 \toprule
 \textbf{Fact} & \textbf{What it means} & \textbf{Consequence} \\
 \midrule
-$2040$ records, $\approx 1547$ distinct &
-$493$ exact-duplicate filenames present in the export &
+$\approx 2040$ records, $\approx 1547$ distinct &
+$493$ exact-duplicate filenames projected in the source export &
 De-duplicate before splitting (no duplicate may straddle the split) \\
 \addlinespace
 Prevalence $\approx 12.7\%$ &
@@ -133,22 +151,57 @@ asserted explicitly during the parse.
 
 \subsection{Role and why it is produced, not downloaded}
 
-The vet anchor is the single source of trustworthy per-action-unit $0/1/2$
-labels, and it is \emph{produced} rather than downloaded because no open graded
-cat-FGS dataset exists. It powers three downstream quantities and nothing else:
-the guarded per-AU quadratic weighted kappa of the VLM-as-AU-rater reliability
-check (measured against this anchor, and reported inspected-not-validated with
-its result pending this independent anchor); the sensitivity and specificity of the binary
-decision at the literature-anchored $0.39$ operating point of the validated FGS
-\citep{evangelista2019}, estimated on \emph{these labels only}; and the
-defer-to-vet abstention curve's one-sided net-predictive-value lower bound. The
-size of the anchor is not a guess and not a fixed quantity in this document: it
-is the \emph{single integer} fixed by the upstream power-calculation gate before
-any veterinary hour is spent. The pre-gate placeholder is on the order of
-$120$--$150$ confirmed images with at least $50$ pain-positive, which is the
-sample the kappa confidence-interval half-width, the abstention net-predictive-
-value band, and the $0.39$ confidence-interval reportability must all certify;
-the committed integer replaces this placeholder.
+It is important to be precise about what the vet anchor does \emph{not} do
+first. The chapter's headline contribution --- the portable, power-aware
+confound-attribution protocol of Chapter~\ref{ch:vlm-wrapper} --- does
+\emph{not} depend on the vet anchor at all: it is exercised today on planted
+positive and negative synthetic controls. A deletion-safe standalone harness
+(\texttt{src/protocols/standalone\_test\_corpus.py}) drives the
+no-confound-at-this-power branch, and a planted-positive recovery test
+(\texttt{tests/test\_confound\_recovery.py}) asserts that a known
+above-threshold capture-condition shift is flagged \texttt{detected}; together
+they are where the protocol's behaviour is validated. The vet anchor powers only
+two subordinate quantities:
+the \emph{demoted, guarded} VLM-as-AU-rater reliability check and the cited
+welfare-wrapper plumbing. It is not on the critical path to the headline.
+
+With that ordering fixed, the vet anchor is the single source of trustworthy
+per-action-unit $0/1/2$ labels, and it is \emph{produced} rather than downloaded
+because no open graded cat-FGS dataset exists. It powers three downstream
+quantities and nothing else: the guarded per-AU quadratic weighted kappa of the
+VLM-as-AU-rater reliability check (measured against this anchor, and reported
+inspected-not-validated with its result pending this independent anchor); the
+sensitivity and specificity of the binary decision at the literature-anchored
+$0.39$ operating point of the validated FGS \citep{evangelista2019}, estimated
+on \emph{these labels only}; and the defer-to-vet abstention curve's one-sided
+net-predictive-value lower bound.
+
+These three quantities are not all on equal statistical footing at the budgeted
+sample size, and the committed Gate-0 power pre-registration records exactly
+which are reportable. The kappa confidence-interval half-width is a budget leg
+that the committed sample can meet (the Gate-0 target half-width is $0.15$),
+and the abstention net-predictive-value \emph{band} is sized as a one-sided
+$95\%$ lower bound and never reported as ``guaranteed''. The $0.39$
+point-decision confidence interval, by contrast, is \emph{not} reportable at the
+budgeted sample: at the pre-registered $n_{\text{pos}}{=}16$ pain-positive faces
+the Clopper--Pearson half-width is $\approx 0.25$, and Gate-0 flags this leg
+\texttt{reportable:false}. The $0.39$ sensitivity/specificity point is therefore
+carried as \emph{exploratory only}, named as a limitation, and never as a
+validation (Chapter~\ref{ch:eval-protocol}). The abstention band itself must be read
+with equal care: its current sizing is \emph{placeholder-illustrative}, not a
+certified result. The inputs are an unconfirmed placeholder vet budget of $120$
+over zero forked data, so the band is reported strictly as an illustrative
+one-sided lower bound and is \emph{not} yet certified --- because the budget is a
+placeholder over an empty corpus, not because the arithmetic forbids a useful
+floor. The size of the anchor is itself not a guess: it is the \emph{single
+integer} fixed by the upstream power-calculation gate before any veterinary hour
+is spent. The committed pre-gate figure is on the order of $120$ confirmed
+images with at least $50$ pain-positive, matching the Gate-0 power
+pre-registration; the larger ``$150$'' often quoted informally is not
+power-backed and is not used here. The committed integer replaces this
+placeholder once a real budget is set over real data, and only a non-placeholder
+budget over measured faces can move the abstention band from illustrative to
+certified.
 
 \subsection{What it carries and how it is produced}
 
@@ -183,9 +236,14 @@ A high kappa would measure weak-labeling \emph{capability} only if the anchor is
 independent of the rater who scored the target \emph{and} the rubric handed to
 the VLM differs from the one the vet scored from; otherwise it measures
 rubric-following, and a run must state which it measures
-(see \texttt{src/eval/kappa.py}). The graded $0$--$10$ layer ships
+(see \texttt{src/eval/kappa.py}). The kappa check is, throughout, a
+\emph{guarded subordinate reliability check} and not the contribution: its
+confidence-interval lower-bound acceptance gate is standard clinimetrics rather
+than anything novel here, and it serves as kill-tree insurance for the headline
+protocol, not as the headline. The graded $0$--$10$ layer ships
 \emph{inspected-not-validated}: the word ``graded'' is struck from every
-validated-claim sentence, and the headline holds with that layer dropped.
+validated-claim sentence, and the headline confound-attribution protocol holds
+with both the kappa check and the graded layer dropped.
 
 \section{Scaffolding-only sources}
 \label{sec:scaffolding}
@@ -330,7 +388,7 @@ namespace.}
 Forked Roboflow cat-pain & Binary spine (detector + crop source) & CC~BY~4.0 &
 No (binary boxes only) \\
 \addlinespace
-Vet anchor (size fixed by power gate) & Only graded source ($\kappa$ pilot, $0.39$ validation) &
+Vet anchor (size fixed by power gate) & Only graded source (guarded $\kappa$ check; $0.39$ sens/spec estimate, non-reportable at $n_{\text{pos}}{=}16$) &
 Project-original (derived) & \textbf{Yes} (per-AU $0/1/2$) \\
 \addlinespace
 Horse-grimace & Decode unit-test fixture & CC~BY~4.0 &

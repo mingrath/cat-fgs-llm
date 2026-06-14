@@ -46,6 +46,14 @@ from src.vlm.aggregate import POINT_DECISION_THRESHOLD  # noqa: E402
 HIGH_FLOOR_AUS = ("orbital", "ear", "head")     # gate on kappa CI-LB >= 0.60
 CAVEAT_BAND_AUS = ("muzzle", "whiskers")        # 0.40-0.60 acceptable-with-caveat
 
+# The unconfirmed placeholder vet budget echoed from configs/power.yaml. A
+# certification computed on this value is sizing arithmetic over ZERO real data,
+# not an evidentiary result (Decision Q1=B: a placeholder over zero data is NOT a
+# certification). While vet_budget equals this exact placeholder we refuse to emit
+# "certified" — see abstention_status / PLACEHOLDER_PENDING_STATUS below.
+PLACEHOLDER_VET_BUDGET = 120
+PLACEHOLDER_PENDING_STATUS = "placeholder_pending_data"
+
 
 def kappa_faces_for_half_width(half_width, kappa0=0.60, n_levels=3, two_raters=2):
     """(a) Approx faces for a weighted-kappa CI half-width target.
@@ -142,7 +150,16 @@ def build_report(cfg, vet_budget, min_pain_pos, au_kappa_floors):
                      and vet_budget >= npv_calc["total_faces"])
     npv_calc["budget_certifies_band"] = bool(npv_budget_ok)
     # FINAL_DIRECTION Gate 0(b): if the budget cannot certify, abstention is EXPLORATORY ONLY.
-    npv_calc["abstention_status"] = "certified" if npv_budget_ok else "exploratory-only"
+    # Decision Q1=B: NEVER emit "certified" while vet_budget is the unconfirmed PLACEHOLDER
+    # (configs/power.yaml ~120). A band "certified" purely by placeholder sizing is arithmetic
+    # over zero real data, not an evidentiary certification — flag it pending real data instead.
+    is_placeholder_budget = (int(vet_budget) == PLACEHOLDER_VET_BUDGET)
+    if npv_budget_ok and is_placeholder_budget:
+        npv_calc["abstention_status"] = PLACEHOLDER_PENDING_STATUS
+    elif npv_budget_ok:
+        npv_calc["abstention_status"] = "certified"
+    else:
+        npv_calc["abstention_status"] = "exploratory-only"
 
     # (c) 0.39 CI reportability
     rho_calc = point_039_reportable(vet_budget, prevalence=prevalence,

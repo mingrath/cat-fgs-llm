@@ -41,7 +41,8 @@ review and, at worst, an unnecessary examination. Because the harms are
 asymmetric, the operating point is fixed at a high pain-recall target
 ($\geq 0.90$, anchored to the FGS validation level reported
 by~\cite{evangelista2019}) rather than at a symmetric-cost Youden-J or $F_1$
-knee, and the headline wrapper artifact is a harm-ratio-weighted decision curve
+knee, and the wrapper's primary reported artifact (cited supporting plumbing, not
+a headline contribution) is a harm-ratio-weighted decision curve
 that sweeps the undertreat-to-overtreat asymmetry as a \emph{range} (we have no
 vet-elicited point ratio, so we report the range and let the reader locate their
 own loss on it). The triage framing is the ethical counterpart of that loss:
@@ -132,7 +133,9 @@ Consequently we make \textbf{no external-cohort or cross-site generalization
 claim} of any kind: every reported number characterizes behaviour on this
 corpus only, and the portability we do claim lives in the \emph{methods} ---
 chiefly the headline confound-attribution protocol, supported by the guarded
-VLM-as-AU-rater kappa reliability check --- which are released as runnable code
+VLM-as-AU-rater kappa reliability check, with the welfare-asymmetric decision
+curve and NPV-lower-bound abstention released alongside as cited supporting
+plumbing rather than a headline contribution --- all of which ship as runnable code
 that the next corpus can re-run --- not in any number
 this corpus produces.
 
@@ -142,22 +145,31 @@ kappa, the $0.39$ sensitivity/specificity, the abstention NPV lower bound, the
 severity cells --- draws on the \emph{same} small veterinary anchor, on the
 order of fifty pain-positive images, whose exact size is fixed by the Gate-0
 power calculation. This single budget is the project's dominant constraint. At
-this $n$ the severity tail is essentially unestimable, a ``guaranteed'' NPV is
-arithmetically undeliverable, and a data-fitted cross-AU error-correlation
-matrix would launder noise as rigor. We respond by budgeting the anchor up front
-and by demoting any claim the budget cannot support \emph{on paper now} rather
-than discovering its weakness later.
+this $n$ the severity tail is essentially unestimable, and a data-fitted cross-AU
+error-correlation matrix would launder noise as rigor. The NPV is reported
+strictly as a one-sided $95\%$ lower bound; the word ``guaranteed'' is banned,
+because a finite-sample lower bound is never a certainty at any $n$. And any band
+the placeholder sizing appears to clear is \emph{not yet certified}, because the
+vet budget ($\mathit{vet\_budget}{=}120$) is an unconfirmed placeholder over zero
+data, not because the arithmetic forbids a useful floor. We respond by budgeting
+the anchor up front and by demoting any claim the budget cannot support
+\emph{on paper now} rather than discovering its weakness later.
 
 \paragraph{Synthetic-and-planted-control validation; no real-cat run yet.}
 At the time of writing the released evidence is the protocol exercised on
-\emph{synthetic data with planted positive and negative controls}
-(\texttt{src/protocols/standalone\_test\_corpus.py}): the confound-attribution
-protocol is validated by showing it fires on a deliberately planted confound and
-stays silent on a deliberately clean control, not yet on real feline imagery. The
+\emph{synthetic data with planted positive and negative controls}, split across
+two harnesses: a standalone harness
+(\texttt{src/protocols/standalone\_test\_corpus.py}) drives the
+no-confound-at-this-power branch, asserting that a deliberately clean control
+reads no confound detected at this power, and a planted-positive recovery test
+(\texttt{tests/test\_confound\_recovery.py}) asserts that a known
+above-threshold capture-condition shift is flagged detected. Together they show
+the confound-attribution protocol both stays silent on a clean control and fires
+on a deliberately planted confound, not yet on real feline imagery. The
 data directory (\texttt{data/}) ships empty, no per-AU veterinary anchor exists, the
-corpus is Roboflow binary-only, and the $0.39$ operating point is currently a
-\texttt{reportable:false} placeholder at $n_{\text{pos}}{=}16$ --- below the
-pre-registered reportability floor. We therefore present this work as a
+corpus is Roboflow binary-only, and the $0.39$ operating point is currently
+flagged \texttt{reportable:false} by the Gate-0 power calculation at
+$n_{\text{pos}}{=}16$ (Clopper--Pearson half-width $\approx 0.25$). We therefore present this work as a
 methods/protocol paper on synthetic and planted controls; \textbf{application to a
 real-cat corpus is named explicitly as future work}, and no real-data number is
 claimed here.
@@ -203,7 +215,15 @@ fairness-audit literature~\cite{huanghooker2026fairness,singh2023samplesize} and
 consistent with the demonstrated limits of post-hoc explanations for ruling out
 unknown spurious correlations~\cite{adebayo2022posthoc}. The protocol can raise an
 alarm; it cannot certify the absence of an alarm, and the released artifact is the
-portable protocol itself rather than any verdict about this specific corpus.
+portable protocol itself rather than any verdict about this specific corpus. The
+novelty we do claim is narrow: it is the \emph{assembly} of these published
+primitives into a power-conditioned audit, together with the use of per-AU EBPG
+saliency as confound evidence; we claim novelty in neither any individual primitive
+nor in the equivalence and power statistics themselves, which are credited to the
+fairness-audit literature~\cite{huanghooker2026fairness,singh2023samplesize}. The
+per-AU saliency leg adapts a region-attributed saliency reading whose feline
+landmark-segmentation lineage is distinct from ours~\cite{lencioni2025segment}: we
+read it as confound evidence rather than as a localization product.
 
 \paragraph{MPS-correctness dependency.}
 All local scoring runs on Apple-silicon MPS, where a silently incorrect kernel
@@ -242,10 +262,13 @@ frames the human-instrument landscape; it does not license a claim about ours.
     Gate-0 power calc fixes $n$ up front; unsupported claims demoted on paper now \\
     \addlinespace
     Synthetic + planted-control evidence only &
-    Empty \texttt{data/}, no vet anchor, Roboflow binary-only; $0.39$ point is
-    \texttt{reportable:false} at $n_{\text{pos}}{=}16$ &
-    Ship as a methods paper validated on planted positive/negative controls;
-    real-cat application named as future work \\
+    Empty \texttt{data/}, no vet anchor, Roboflow binary-only; $0.39$ point
+    flagged \texttt{reportable:false} by the Gate-0 power calc at
+    $n_{\text{pos}}{=}16$ (Clopper--Pearson half-width $\approx 0.25$) &
+    Ship as a methods paper: clean control reads no confound
+    (\texttt{standalone\_test\_corpus.py}), planted-positive shift flagged
+    detected (\texttt{test\_confound\_recovery.py}); real-cat application named as
+    future work \\
     \addlinespace
     Graded $0$--$10$ layer not validated &
     No independent per-AU gold set on the solo timeline &

@@ -70,7 +70,7 @@ sections fill in.
 \node[conc, below=12mm of bb] (heads) {5 per-AU\\CORN heads};
 \node[conc, left=of heads] (pmf) {per-AU\\pmf $\{0,1,2\}$};
 \node[conc, left=of pmf] (conv) {convolve\\$\rightarrow$ 0--10\\sum pmf};
-\node[val, left=of conv] (dec) {$\geq 0.39$\\point\\decision};
+\node[val, left=of conv] (dec) {$>0.39$\\point\\decision};
 
 \draw[arr] (img) -- (det);
 \draw[arr] (det) -- (crop);
@@ -148,11 +148,15 @@ match the real distribution.
 \label{sec:eng-detector-imbalance}
 
 The corpus is heavily imbalanced toward the no-pain class. On the metadata
-basis we report throughout --- $264$ pain boxes against $1{,}819$ no-pain boxes,
-a prevalence of $\approx 12.7\%$ and an imbalance of $\approx 6.9{:}1$ --- we
-note explicitly that these are \emph{box counts, not individual cats}, and that
-the live-annotation basis ($246/1{,}811$, $\approx 12.0\%$) is logged as a
-discrepancy rather than silently reconciled. We address imbalance with data and
+basis read off the unforked Roboflow source --- $264$ pain boxes against
+$1{,}819$ no-pain boxes, a prevalence of $\approx 12.7\%$ and an imbalance of
+$\approx 6.9{:}1$ --- we stress that these are \emph{projected pre-fork targets,
+not measured counts}: \texttt{data/} is empty (the corpus is not yet forked),
+so every figure here is read off the source metadata rather than tallied from a
+local export. They are also \emph{box counts, not individual cats}, and the
+live-annotation basis ($246/1{,}811$, $\approx 12.0\%$) is recorded as a
+projected discrepancy to be reconciled once the fork exists rather than silently
+collapsed. We address imbalance with data and
 loss before architecture, climbing a fixed ladder and changing one lever per
 run, with the decision threshold tuned \emph{last}
 (Table~\ref{tab:eng-imbalance}).
@@ -192,15 +196,29 @@ inside training folds on the validation precision--recall curve --- explicitly
 \emph{not} a Youden-$J$ or $F_1$ knee. A symmetric-cost operating point is the
 wrong loss for a welfare instrument in which undertreatment is far costlier than
 overtreatment; the welfare-asymmetric decision curve that exploits this choice
-is the wrapper's headline artifact and is developed later. The $\geq 0.90$ floor
+is the wrapper's primary reported artifact --- cited supporting plumbing, not a
+headline contribution --- and is developed later. The $\geq 0.90$ floor
 is justified against the $90.7\%$ reference sensitivity of the Feline Grimace
-Scale validation \citep{evangelista2019}, not against prior automated work, and
-the specificity it buys is reported with bootstrap confidence intervals across
-the five cat-grouped folds. Throughout, augmented and oversampled copies never
+Scale validation \citep{evangelista2019}, not against prior automated work.
+The specificity that this floor buys is reported with bootstrap confidence
+intervals across the five cat-grouped folds, but only once an enlarged
+independent vet anchor exists: at the budgeted sample the Gate-0 power
+calculation flags the $0.39$-ratio sens/spec operating point as
+\texttt{reportable:false} (n\textsubscript{pos}$=16$, Clopper--Pearson
+half-width $\approx 0.25$; see the evaluation-protocol chapter and
+Section~\ref{sec:eng-detector-firewall}), so any specificity-with-CI claim at the
+operating point is conditional on that future anchor and is exploratory, not a
+result, at the budgeted $n$. Throughout, augmented and oversampled copies never
 enter any reported $N$; every rate is accompanied by the distinct-pain-cat
 denominator and Clopper--Pearson or bootstrap intervals, and accuracy and
 ROC-AUC are never used as the ranking metric. The primary detection metric is
 the precision--recall AUC (average precision) with pain as the positive class.
+We emphasise that none of these rates can be produced today: the engine's data
+substrate is empty (the corpus is not yet forked), the source corpus carries
+Roboflow binary pain/no-pain labels only and no native $0$--$10$ FGS labels, and
+the independent per-AU vet anchor does not yet exist. These four constraints are
+itemised in the limitations chapter, and the real-cat detector evaluation is
+named there as future work.
 
 \subsection{The circularity firewall at the operating point}
 \label{sec:eng-detector-firewall}
@@ -300,9 +318,11 @@ on the order of $120$--$300$ vet- and VLM-labelled faces, a regime in which
 full fine-tuning of a vision transformer would be malpractice; only the light
 ordinal heads are trained. Patch size and hidden width are derived from the
 loaded model rather than hard-coded in load-bearing code. The default pooled
-representation for the heads is the class token; the mean of the patch tokens is
-cached as a second column so that the class-token-versus-mean-patch comparison
-is a configuration flag rather than a re-cache.
+representation for the heads is the class token; a pooled patch-token
+representation (mean, or mean$+$std per the cache \texttt{patch\_mode} flag,
+whose code default is \texttt{mean\_std}) is cached as additional columns so that
+the class-token-versus-pooled-patch comparison is a configuration flag rather
+than a re-cache.
 
 The single most important engineering decision in this section is
 \emph{feature caching}, and it is the decision that makes the whole engine
@@ -376,7 +396,7 @@ shows the head and its two decode paths.
 \node[soft, left=of conv] (rps) {RPS-on-sum\\+ ClasswiseECE\\\emph{(inspect)}};
 
 \node[hard, above=10mm of cum] (thr) {$>0.5 \Rightarrow$\\level $\in\{0,1,2\}$};
-\node[hard, left=14mm of thr] (sum) {sum 0--10\\$\geq 0.39$};
+\node[hard, left=14mm of thr] (sum) {sum 0--10\\$>0.39$};
 
 \draw[arr] (feat) -- (proj);
 \draw[arr] (proj) -- (split);
@@ -457,7 +477,8 @@ gives too few examples; training naively on all labels bakes in the VLM's
 under-estimation bias. We therefore use \emph{co-teaching with small-loss
 selection}: two heads are trained in parallel, each selecting the small-loss
 subset of each mini-batch for its partner, following the canonical Co-teaching
-schedule $R(T)=1-\tau\cdot\min(T/T_k,1)$~\cite{han2018coteaching}: the keep-rate
+schedule $R(T)=1-\tau\cdot\min((T/T_k)^c,1)$ in its $c=1$ (linear-ramp)
+specialization~\cite{han2018coteaching}: the keep-rate
 ramps from inclusive toward selective over the first $T_k$ epochs, starting at
 $1.0$ (keep all) and descending to $1-\tau$, where $\tau$ is the estimated label
 noise rate --- exploiting the memorization effect, whereby networks fit clean
@@ -569,27 +590,29 @@ is offered as novel, and nothing here is reported as a result.
 
 The portable method surface --- the headline capture-condition
 confound-attribution protocol and the supporting VLM-as-AU-rater $\kappa$
-reliability check --- is dataset-agnostic code in \texttt{src/protocols/}
-(with thin adapters for AU override, column mapping, and generic non-FGS ordinal
-mode; see \texttt{src/protocols/adapters.py} and re-exports in
-\texttt{src/protocols/\_\_init\_\_.py}). The standalone test corpus
-(\texttt{src/protocols/standalone\_test\_corpus.py}) exercises the surface on
-synthetic arbitrary-AU data with zero torch leakage and is deletion-safe
-(imports only the protocols layer); the headline confound leg is additionally
-validated today on planted positive and negative controls. The engine remains
-conceded plumbing. See also the evaluation protocol
-chapter for the gate-enforced usage contract and \texttt{Makefile} targets
-\texttt{test-portable} / \texttt{gate-e2e-synthetic}.
+reliability check --- is implemented as dataset-agnostic code under
+\texttt{src/protocols/}, with thin adapters for action-unit override, column
+mapping, and a generic non-FGS ordinal mode. A standalone test corpus exercises
+the surface on synthetic arbitrary-AU data with no dependency on the torch engine
+and is safe to run with the engine deleted, since it imports only the protocols
+layer. That standalone corpus
+(\texttt{src/protocols/standalone\_test\_corpus.py}) drives the
+no-confound-at-this-power branch, asserting the null verdict on synthetic
+zero-engine data, while a separate planted-positive recovery test
+(\texttt{tests/test\_confound\_recovery.py}) asserts that a known
+above-threshold capture-condition shift is flagged detected; together they
+validate the headline confound leg's detection behaviour on planted positive
+and planted negative controls before any real corpus exists. The engine itself remains conceded plumbing; the
+evaluation-protocol chapter specifies the gate-enforced usage contract.
 
-The protocols seam (portable pmf derives re-exported del-safe from decode for arbitrary AU via adapters/generic_ordinal_mode; N/k from len/shape, no hard 5/11 in portable path), generalized decode (engine path), DINOv3 prep, and cache schema are the
-executable embodiments of portable: use \texttt{src.protocols} adapters +
-\texttt{get\_au\_names(override)} + \texttt{generic\_ordinal\_mode} (no 0.39 assumption) for arbitrary ordinal corpora; point-decision
-0.39 remains FGS-compat only (single-source in constants). The frozen backbone and feature cache
-(\texttt{src/model/backbone.py}, \texttt{src/model/cache\_features.py}) are
-DINOv3-ready (SUPPORTED\_VARIANTS includes dinov3\_*; richer patch\_std pooling
-per fresh MCP context7 /facebookresearch/dinov3 for localized AU cues; explicit
-\_CACHE\_SCHEMA + FEATURE\_SCHEMA with version/n\_aus/k/feature\_dim/patch\_mode
-+ full PROVENANCE.json for portable repro across backbones; dinov commit/device/torch
-captured). These, with the central orchestrator and standalone exerciser, make the
-``portable method'' claim accurate and citable. The engine itself stays
-conceded plumbing.
+Two engineering properties make the portability claim concrete and auditable.
+First, the decode that produces a per-AU pmf is re-exported through the protocols
+layer for an arbitrary number of action units, taking the number of AUs and the
+number of levels from array shapes rather than from hard-coded constants, while
+the $0.39$ point decision is held single-source and is Feline-Grimace-Scale
+specific. Second, the cache carries an explicit, versioned schema together with a
+provenance record (backbone variant, pooling mode, feature dimension, DINOv2
+commit, device, and torch version), so that a reported number can never hide which
+backbone produced it and a different backbone can be substituted reproducibly; the
+backbone loader supports a DINOv3 variant for this purpose. Neither property makes
+the engine a contribution: it stays conceded plumbing.

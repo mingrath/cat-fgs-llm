@@ -164,15 +164,23 @@ The thesis pursues four numbered objectives, ordered from the headline
 
 \begin{enumerate}
   \item \textbf{Build a portable, power-aware confound-attribution protocol.}
-    Construct a reusable, one-directional capture-condition audit (the
-    FGS--BG--Gap, the per-AU energy-based pointing-game read as
-    saliency-as-confound-evidence, EBPG, and a VLM judge-bias probe) that any
-    future facial-pain-scorer corpus can run, at a pre-registered power, to
+    Construct a reusable, one-directional capture-condition audit with two
+    image-side legs---an image-side FGS--BG--Gap and a per-AU energy-based
+    pointing-game read as saliency-as-confound-evidence (EBPG)---that any future
+    facial-pain-scorer corpus can run, at a pre-registered
+    power~\autocite{huanghooker2026fairness,singh2023samplesize}, to
     detect---never to ``rule out''---entanglement between the pain label and
-    acquisition context. Reporting is one-directional at this
-    power~\autocite{adebayo2022posthoc}: the only honest conclusion is ``no
-    confound detected at this power.'' This is the headline contribution, and it
-    is validated today on planted positive and negative controls.
+    acquisition context. The EBPG and Score-CAM saliency primitive is
+    assembled from prior work~\autocite{wang2020scorecam}, the background-swap
+    primitive from~\autocite{xiao2021noise,moayeri2022comprehensive}, and the
+    per-AU saliency leg is distinguished from the segment-based alignment
+    framework of~\autocite{lencioni2025segment}. Reporting is one-directional at
+    this power~\autocite{adebayo2022posthoc}: the only honest conclusion is ``no
+    confound detected at this power.'' This is the headline contribution, and its
+    machinery is validated today on planted positive and negative controls. A
+    fully-coded but synthetic-only third axis, a VLM judge-bias probe, is
+    retained but named as \emph{future work}: it is not yet applied to a real
+    VLM and is excluded from the headline definition.
   \item \textbf{Provide a guarded VLM-as-AU-rater reliability check.} As a
     subordinate, inspected-not-validated reliability check, determine whether
     a frozen vision--language model (VLM) can weak-label the five FGS action units
@@ -224,7 +232,7 @@ Figure~\ref{fig:contribution-map}.
       lbl/.style={font=\scriptsize\itshape, gray},
     ]
     % headline portable method (left) + guarded subordinate check (right)
-    \node[head] (m1) {\textbf{Headline method}\\Power-aware confound-\\attribution protocol\\(FGS-BG-Gap + per-AU\\EBPG + VLM judge-bias)};
+    \node[head] (m1) {\textbf{Headline method}\\Power-aware confound-\\attribution protocol\\(2 legs: FGS-BG-Gap\\+ per-AU EBPG)};
     \node[guard, right=1.0cm of m1] (m2) {\emph{Guarded check}\\VLM-as-AU-rater\\per-AU quadratic $\kappa$\\vs.\ vet (CI-LB-gated;\\inspected-not-validated)};
     \node[lbl, above=0.15cm of m1.north east] {headline portable method (left) + guarded subordinate $\kappa$ check (right)};
     % the wrapper frame underneath
@@ -276,15 +284,27 @@ Several scope boundaries follow from honesty about what the project can and cann
 deliver, and are held as hard constraints throughout:
 
 \begin{itemize}
-  \item \textbf{Single corpus, single anchor.} The empirical substrate is a single
-    forked Roboflow cat-pain corpus (binary pain / no\_pain boxes,
-    $\sim 2040$ records / $\sim 1547$ distinct images, $\sim 12$--$13\%$
-    prevalence, with a leaky shipped split that is discarded) plus one veterinary
-    anchor whose size is fixed by an up-front power calculation. No open, graded
-    cat-FGS dataset exists; CatFLW \autocite{martvel2024catflw} is used for
-    eye-alignment landmarks only, not as a graded anchor, and an open
+  \item \textbf{No data and no vet anchor in hand (a hard limitation).} The
+    intended empirical substrate is a single Roboflow cat-pain corpus (binary
+    pain / no\_pain boxes; the anticipated pre-fork targets are
+    $\sim 2040$ records / $\sim 1547$ distinct images at $\sim 12$--$13\%$
+    prevalence, with a leaky shipped split to be discarded), but at the time of
+    writing that corpus has \emph{not} been forked and \texttt{data/} is empty,
+    so these counts are projected, not measured. The source provides
+    \emph{binary} pain labels only---there are no native $0$--$10$ FGS or per-AU
+    $0/1/2$ annotations---so the corpus cannot yield graded ground truth on its
+    own. The independent per-AU veterinary anchor that would power the
+    reliability $\kappa$ check and the abstention sizing does \emph{not} yet
+    exist; its size is pre-registered by the up-front power calculation, but the
+    scoring has not been commissioned. As a consequence the $>0.39$ operating
+    point is pre-registered as \emph{non-reportable} at the budgeted positive
+    count ($n_{\text{pos}}{=}16$; Gate-0 \texttt{reportable:false}). No open,
+    graded cat-FGS dataset exists; CatFLW \autocite{martvel2024catflw} is used
+    for eye-alignment landmarks only, not as a graded anchor, and an open
     horse-grimace set is used solely as a decode unit-test fixture (no horse
-    number ever appears in a results table).
+    number ever appears in a results table). Acquiring the corpus and the
+    veterinary anchor, and any evaluation on real cats, is named as
+    \emph{future work}.
   \item \textbf{Solo compute.} The work is built by a single developer on an Apple
     M4 / MPS machine (no local CUDA); detector training alone is offloaded to a
     cloud T4, and the frozen encoder plus the ordinal heads run locally on cached
@@ -317,16 +337,25 @@ and depicted in Figure~\ref{fig:gate-flow}.
 \begin{enumerate}
   \item \textbf{G0 --- Power calculations and vet-budget pre-registration.}
     Fix the single integer (how many faces the vet scores) by three zero-data
-    power calculations: the faces needed for a per-AU $\kappa$ half-width
-    $\leq 0.15$; the faces needed to certify a useful negative-predictive-value
-    band at an acceptable abstention rate; and whether the $>0.39$ operating-point
-    interval is reportable at the budgeted $n$. Blocks everything quantitative.
+    power calculations~\autocite{huanghooker2026fairness,singh2023samplesize}:
+    the faces needed for a per-AU $\kappa$ half-width $\leq 0.15$; an
+    illustrative negative-predictive-value sizing at an acceptable abstention
+    rate; and whether the $>0.39$ operating-point interval is reportable at the
+    budgeted $n$. The committed Gate-0 artefact already returns
+    \texttt{reportable:false} for the $>0.39$ leg at the budgeted positive count
+    ($n_{\text{pos}}{=}16$, Clopper--Pearson half-width $\approx 0.25$), so the
+    $>0.39$ sens/spec point is carried as exploratory future work, not a
+    reportable result; the negative-predictive-value leg is sized over a
+    placeholder vet budget ($120$) and zero data and is therefore illustrative,
+    not certified. Blocks everything quantitative.
   \item \textbf{G1 --- Per-cat merge.} Collapse clips to true individuals,
     validated against trusted camera ids, so that no individual straddles a fold
     and the honest distinct-pain-cat denominator can be printed.
   \item \textbf{G2 --- Capture-condition confound audit.} Run the one-directional
-    portable audit (Objective~2) before any spend; it can kill or reframe the
-    corpus, and it publishes either way.
+    portable audit (Objective~1) before any spend; it can kill or reframe the
+    corpus. If the result transports to a future corpus it ships as a portable
+    protocol; if it only characterises this one corpus it is reported as a
+    threat-to-validity note rather than a transportable verdict.
   \item \textbf{G3 --- Frozen, hashed, cat-disjoint hold-out.} Freeze and hash the
     test manifest so that a continuous-integration check aborts any run that can
     read it---structurally defeating post-hoc goalpost moves.
@@ -339,7 +368,7 @@ and depicted in Figure~\ref{fig:gate-flow}.
     a two-point eye-similarity alignment if not, so that ``calibration'' never
     silently measures crop quality.
   \item \textbf{G1-B --- Weak-label reliability $\kappa$ pilot.} Score the per-AU
-    VLM-versus-vet quadratic $\kappa$ on the anchor (Objective~1); the pilot itself
+    VLM-versus-vet quadratic $\kappa$ on the anchor (Objective~2); the pilot itself
     selects the VLM, and the gate fires on the $\kappa$ confidence-interval
     \emph{lower bound}, not the point estimate.
   \item \textbf{G6 --- Severity-cell count gate.} If the anchor yields only
@@ -398,22 +427,33 @@ real fact whether the result is strong or mediocre.
 \label{sec:intro-contributions}
 
 The thesis is designed so that its value does not depend on any single experiment
-firing favourably. Its expected contributions are one headline released,
-dataset-agnostic method, a guarded reliability check below it, and a cited
-supporting wrapper:
+firing favourably. The four objectives map to only three claimed contributions
+by design: the conceded DINOv2$+$CORN engine (Objective~4) is deliberately
+\emph{not} advanced as a contribution---it is plumbing, built for completeness
+and future extension and firewalled out of every validated claim---which is why
+the objective count exceeds the contribution count. The three expected
+contributions are one headline released, dataset-agnostic method, a guarded
+reliability check below it, and a cited supporting wrapper:
 
 \begin{enumerate}
   \item \textbf{A portable, power-aware capture-condition confound-attribution
-    protocol (the headline).} The one-directional FGS--BG--Gap plus per-AU
-    EBPG-as-confound-evidence audit, augmented by a VLM judge-bias probe and run
-    at a pre-registered power, runnable on any future facial-pain-scorer corpus,
-    whose deliverable is the protocol itself rather than a verdict about one
-    dataset. It is validated today on planted positive and negative controls and
-    reports one-directionally at this power~\autocite{adebayo2022posthoc}. The
-    claimed novelty is the assembly, the per-AU
-    EBPG-as-confound-evidence reading, and the instantiation of
-    equivalence-style audit hygiene---never any individual primitive or the
-    underlying statistics.
+    protocol (the headline).} The two-leg, one-directional audit---an image-side
+    FGS--BG--Gap plus per-AU EBPG-as-confound-evidence---run at a pre-registered
+    power~\autocite{huanghooker2026fairness,singh2023samplesize}, runnable on any
+    future facial-pain-scorer corpus, whose deliverable is the protocol itself
+    rather than a verdict about one dataset. Its machinery is validated today on
+    planted positive and negative controls and reports one-directionally at this
+    power~\autocite{adebayo2022posthoc}. The claimed novelty is the
+    assembly and the per-AU EBPG-as-confound-evidence reading
+    only---never any individual primitive (the EBPG/Score-CAM
+    saliency~\autocite{wang2020scorecam} and the background-swap
+    primitives~\autocite{xiao2021noise,moayeri2022comprehensive} are assembled
+    from prior work, and the per-AU saliency leg is distinguished
+    from~\autocite{lencioni2025segment}), and never the underlying
+    equivalence/power statistics, which are credited
+    to~\autocite{huanghooker2026fairness,singh2023samplesize}. A VLM judge-bias
+    probe is fully coded but synthetic-only, and is named as future work rather
+    than folded into this headline.
   \item \textbf{A guarded VLM-as-AU-rater $\kappa$ reliability check (subordinate;
     result pending the independent vet anchor).} Released code that
     scores any face corpus's per-AU VLM labels against a veterinary anchor and

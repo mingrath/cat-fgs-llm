@@ -28,14 +28,32 @@ $0\text{--}10$ Feline Grimace Scale (FGS) sum is reported as an
 \emph{inspected-not-validated} artifact; wherever a metric is computed on the graded sum, it is
 labelled inspection-only and is never advanced as evidence for a validated claim.
 
+Four structural facts bound everything in this chapter and are stated once here so that no later
+section can be read as implying otherwise. (i) The corpus has not been forked: the project's
+\texttt{data/} substrate is empty at the time of writing, so every corpus count below is a
+\emph{projected pre-fork target} read off the unforked Roboflow source, not a measured quantity.
+(ii) No independent per-AU veterinary anchor exists, which blocks the power-conditioned Gate~0
+$\kappa$ feasibility check ($G0$) and the Gate~$1\text{-}B$ $\kappa$ pilot from producing any
+number. (iii) The source is a Roboflow \emph{binary} (pain / no-pain) detection dataset and
+carries no native $0\text{--}10$ FGS labels, so the graded layer can only ever be inspected, not
+validated, against it. (iv) The $0.39$ per-class sensitivity/specificity operating point is
+pre-registered as non-reportable at the budgeted sample size: the committed Gate~0 power calc
+returns \texttt{reportable:false} at $n_{\text{pos}}{=}16$ (Clopper--Pearson half-width
+$\approx 0.25$), so that point is carried as exploratory future work, never as a validation.
+Evaluation on real cats is therefore future work; what ships now is the executable protocol
+itself, exercised on synthetic and planted controls.
+
 \section{Cross-validation and the frozen hold-out}
 \label{sec:cv-holdout}
 
 \subsection{Grouped stratified cross-validation}
 
-The corpus is the forked Roboflow \texttt{cat-pain} binary detection dataset
-($\approx 2040$ records, $\approx 1547$ distinct after collapsing $493$ exact-duplicate
-filenames, $336$ source clips, pain prevalence $\approx 12.7\%$). Because the dataset is
+The corpus is the Roboflow \texttt{cat-pain} binary detection dataset. The counts used for
+planning throughout this chapter are \emph{projected pre-fork targets} read off the unforked
+source rather than measured quantities, because \texttt{data/} is empty at the time of writing
+(see the four structural facts above): an anticipated $\approx 2040$ records, $\approx 1547$
+distinct after collapsing $493$ exact-duplicate filenames, $336$ source clips, and pain
+prevalence $\approx 12.7\%$. Because the dataset is
 small, class-imbalanced, and contains many frames drawn from a handful of source clips and
 individuals, the dominant statistical risk is \emph{subject leakage}: near-identical frames of
 the same animal appearing in both a training and an evaluation partition would inflate every
@@ -48,7 +66,7 @@ and cannot be collapsed to a single label without discarding information. Groupi
 individual---never by clip---is required for leakage safety: letting one individual's frames
 straddle folds is the same-subject leakage that subject-exclusive (leave-one-animal-out)
 validation exists to prevent, the named standard in this subdomain~\cite{feighelstein2023}. The
-one complication is the most prolific known individual (\texttt{CAT\_01}, $84$ clips,
+one complication is the most prolific known individual (\texttt{CAT\_01}, a projected $84$ clips,
 $\approx 605$ images, $\approx 30\%$ of the corpus): grouping it naively into the folds would
 fuse a single degenerate super-group fold (\texttt{StratifiedGroupKFold} degrades to
 \texttt{GroupKFold} for a dominant group). We therefore \emph{carve \texttt{CAT\_01} out as a
@@ -72,7 +90,12 @@ for tr, va in sgkf.split(X=images[m], y=labels[m], groups=cat_id[m]):
 The per-fold disjointness assertion is a hard runtime check, not a comment: a violation aborts
 the run. The per-fold positive counts are recomputed after carving out \texttt{CAT\_01} and
 grouping by individual; the gate requires that no fold falls at zero or one positive, so that
-subject-exclusive cross-validation remains feasible without empty strata. Gate 1 implements early dedup (collapse\_exact\_dups + neardup) + is\_vet\_clean filter from G0 manifests/power.json (pre build\_folds/SGKF/LOIO, following standard medical pre-split hygiene); G0 power manifests are enforced first-class (orchestrator PRECONDS + folds.py strict load from manifests/power ONLY, no fallback). All preprocessing, threshold selection, temperature scaling, and abstention calibration
+subject-exclusive cross-validation remains feasible without empty strata. Following standard
+medical pre-split hygiene, Gate~1 applies exact- and near-duplicate collapse and a
+vet-clean filter \emph{before} the folds are built, and the Gate~0 power manifests are loaded
+as a hard precondition: the fold builder reads them strictly, with no silent fallback, so the
+pipeline refuses to run on an unfrozen power specification. All preprocessing, threshold
+selection, temperature scaling, and abstention calibration
 are fit \emph{inside each training fold only} (nested); the validation fold sees only frozen,
 already-fit transforms. Out-of-fold predictions are pooled, and every reported rate is
 accompanied by its bootstrap $95\%$ confidence interval, with the interval \emph{width} stated
@@ -99,7 +122,11 @@ threshold-tuning run that can read the test manifest}, and the hold-out evaluati
 refuses to run if the working tree's fold CSV was mutated after the freeze. This converts the
 discipline of ``never look at the test set during selection'' from a promise into an enforced
 structural property: the only code path that may read the hold-out is the final evaluation,
-executed once. This is the \emph{CI-abort} contract of Gate~3. Reproducibility contract includes cross-env deletion-safe portable protocols surface (CI matrix ubuntu/macos + py 3.11/3.12 + make test-portable survives rm -rf engine; pre-commit-strict on G0 manifests/power) + MPS G4 correctness (blocking logit parity + CORN decode on conceded DINOv2/CORN engine before any quantitative). A DINOv3 successor seam is prepared for richer localized patch features but is not on the critical path.
+executed once. This is the \emph{CI-abort} contract of Gate~3. Two further reproducibility
+clauses are blocking and are detailed in \S\ref{sec:repro}: the portable protocol surface is
+verified to run cross-platform and to survive deletion of the engine directory, and the Gate~4
+compute-correctness checks (logit parity and CORN decode on the conceded engine) must pass
+before any quantitative result is believed.
 
 \subsection{Honest denominators and confidence intervals}
 
@@ -143,7 +170,8 @@ sensitivity reported for the validated FGS by Evangelista et al.~\cite{evangelis
 ($\approx 0.91$ at AUC~$\approx 0.94$) --- and the specificity that this fixed-recall point buys is then reported
 on the held-out fold with bootstrap intervals.
 
-This fixed-recall choice is deliberate and is itself a contribution of the wrapper: a
+This fixed-recall choice is a deliberate, cited design choice for the wrapper rather than a
+headline contribution (the headline is the confound-attribution protocol): a
 symmetric-cost knee (Youden's $J$ or $F_1$) optimises the wrong loss for a welfare instrument,
 in which a missed painful animal (under-treatment) is far costlier than a false alarm
 (over-treatment). The operating point is not tuned to a balance the data cannot justify; it is
@@ -155,8 +183,19 @@ five cat-grouped folds, plus pooled bootstrap intervals.
 \label{sec:phaseB-metrics}
 
 Phase~B evaluates the AU-level engine output and the trustworthiness wrapper. The headline
-Phase~B contribution is the capture-condition confound-attribution protocol
-(\S\ref{sec:phaseA-metrics} continues into the per-AU EBPG analysis below); the per-AU VLM-vs-vet
+Phase~B contribution is the capture-condition confound-attribution protocol: a two-leg,
+power-conditioned, one-directional audit combining an image-side FGS-BG-Gap counterfactual
+(built on background-swap robustness primitives~\cite{xiao2021noise,moayeri2022comprehensive})
+with a per-AU energy-based pointing-game (EBPG) saliency leg (built on the Score-CAM
+faithfulness primitive~\cite{wang2020scorecam}). Its power-conditioned, equivalence-style audit
+hygiene is credited to prior work~\autocite{huanghooker2026fairness,singh2023samplesize}, and
+the one-directional ``no confound \emph{detectable at this power}'' stance is supported by the
+finding that post-hoc attribution can fail to surface unknown spurious signal~\cite{adebayo2022posthoc};
+novelty is claimed only for the \emph{assembly} and the per-AU EBPG-as-confound-evidence
+instantiation. A separate segment-based per-AU saliency-alignment framework for animal affective
+computing~\cite{lencioni2025segment} is the closest prior per-AU saliency work; our leg differs
+in repurposing per-AU EBPG specifically as one-directional confound evidence rather than as an
+explanation-quality measure. The per-AU VLM-vs-vet
 agreement $\kappa$ is a guarded reliability check whose result is pending --- it yields no number
 until an independent per-AU vet anchor exists ($G0$), so until then it ships as a runnable,
 CI-lower-bound-gated protocol rather than a delivered measurement, and it is held as kill-tree
@@ -169,8 +208,13 @@ This guarded check asks whether a frozen vision-language model can weak-label th
 FGS action units at human-rater agreement. It is a protocol, and its result is pending: no per-AU
 $\kappa$ can be reported until an independent per-AU veterinary anchor exists ($G0$), which the
 current binary corpus does not supply, so what ships today is the runnable protocol rather than a
-number. Neither the CI-lower-bound acceptance gate (standard
-clinimetrics~\cite{tractenberg2010kappa,donner2010kappa,simwright2005kappa}) nor the
+number. The CI-lower-bound machinery is nonetheless exercised today on synthetic and planted
+controls --- the bootstrap CI-lower-bound estimator (\texttt{bootstrap\_qwk\_lb} in
+\texttt{src/eval/kappa.py}) is validated against constructed agreement patterns --- so the gate
+is executable even though no real $\kappa$ number can exist until the vet anchor does. Neither the
+CI-lower-bound acceptance gate (standard
+clinimetrics~\cite{tractenberg2010kappa,donner2010kappa,rotondi2012kappa,rotondi2018kappasize,simwright2005kappa})
+nor the
 rubric-paraphrase independence guard (published as a reliability test for LLM
 judges~\cite{weng2026policy}) is claimed as a novel increment; both are instantiated here as
 audit hygiene. For each AU the protocol computes the quadratic-weighted
@@ -222,12 +266,18 @@ sensitivity and specificity at $0.39$ are estimated \emph{only on vet-confirmed 
 the VLM-vs-vet $\kappa$ is \emph{never} re-used as validation of the decision. The operating
 point is selected inside the training folds at the fixed pain-recall $\geq 0.90$ target above,
 and the specificity it buys is reported with bootstrap intervals and with the cutoff's
-fold-to-fold variance. Evangelista's published operating point is cited solely to \emph{source}
+fold-to-fold variance. Crucially, this $0.39$ sensitivity/specificity point is \emph{not
+reportable at the budgeted sample size}: the committed Gate~0 power calc
+(\S\ref{sec:gates}, $G0$) returns \texttt{reportable:false} at $n_{\text{pos}}{=}16$, with a
+Clopper--Pearson half-width of $0.2535$. The point is therefore carried as exploratory only,
+conditional on a future enlarged vet anchor, and is never advanced as a validation.
+Evangelista's published operating point is cited solely to \emph{source}
 the recall target; it is prior-art context, never a head-to-head comparison.
 
-\subsection{Welfare-asymmetric decision curve (headline wrapper artifact)}
+\subsection{Welfare-asymmetric decision curve (cited wrapper plumbing)}
 
-The headline wrapper artifact is a decision-curve / net-benefit analysis~\cite{vickers2006dca}
+The wrapper's primary reported artifact --- cited supporting plumbing, not a headline
+contribution --- is a decision-curve / net-benefit analysis~\cite{vickers2006dca}
 rather than a calibration plot. Because no veterinarian-elicited under-treat:over-treat harm
 ratio exists, the harm ratio is swept as a \emph{range} across the threshold-probability axis,
 $p_t = \text{over}/(\text{under}+\text{over})$; under-treatment far exceeds over-treatment for a
@@ -236,19 +286,25 @@ net benefit at threshold probability $p_t$,
 \[
 \mathrm{NB}(p_t) \;=\; \frac{\mathrm{TP}}{n} \;-\; \frac{\mathrm{FP}}{n}\cdot\frac{p_t}{1-p_t},
 \]
-makes the welfare asymmetry explicit and is the contribution that distinguishes the wrapper
-from generic calibration hygiene.
+makes the welfare asymmetry explicit; this welfare-asymmetric framing is the cited design choice
+that distinguishes the wrapper from generic calibration hygiene, and is not advanced as a
+headline contribution.
 
 \subsection{Defer-to-vet abstention (one-sided NPV lower bound)}
 
 The abstention curve reports the negative predictive value (NPV) of the ``no pain'' decision
 as a function of the abstention rate, controlled by a Learn-Then-Test risk-control
-procedure~\cite{angelopoulos2021ltt} fit inside the training folds. It is reported as a
+procedure~\cite{angelopoulos2021ltt} fit inside the training folds. It is reported strictly as a
 \emph{one-sided $95\%$ lower bound} at each abstention rate; the word ``guaranteed'' is banned
-from every sentence describing it. The motivation is statistical honesty: certifying
-NPV~$\geq 0.95$ at this sample size would require so many error-free abstained-in negatives that
-the abstention rate would collapse toward zero, yielding a vacuous instrument. The lower-bound
-curve states exactly the NPV the budget can defend, and at what abstention cost.
+from every sentence describing it. The Gate~0 NPV sizing ($G0$) should be read as
+\emph{placeholder-illustrative}, not as a certified result: it is computed over a placeholder vet
+budget ($\texttt{vet\_budget}{=}120$, the unconfirmed default echoed from \texttt{configs/power.yaml})
+against zero forked data ($\texttt{total\_faces}{=}84$, with $\texttt{npv\_target}{=}0.90$). The
+band is therefore \emph{not yet certified}---not because the arithmetic forbids a useful floor,
+but because the budget is a placeholder over zero measured data. The $0.95$ arithmetic is retained
+only to justify two reporting rules: the ban on ``guaranteed,'' and the use of a one-sided $95\%$
+lower bound as the only honest summary the eventual (non-placeholder) budget could defend, and at
+what abstention cost.
 
 Table~\ref{tab:metric-defs} consolidates every metric formula with a shared
 TP/TN/FP/FN legend.
@@ -294,7 +350,7 @@ Phase~B per-AU calib. (insp.) \\
 \addlinespace
 Net benefit \cite{vickers2006dca} &
 $\tfrac{\mathrm{TP}}{n} - \tfrac{\mathrm{FP}}{n}\cdot\tfrac{p_t}{1-p_t}$, $p_t$ swept as a range &
-Phase~B headline wrapper \\
+Phase~B wrapper (cited plumbing) \\
 \addlinespace
 NPV lower bound \cite{angelopoulos2021ltt} &
 one-sided $95\%$ LB on $\tfrac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FN}}$ over abstained-in
@@ -376,11 +432,14 @@ believed.}
 \toprule
 \textbf{Gate} & \textbf{Exit artifact + blocking condition} & \textbf{Compute} & \textbf{Kill / pivot} \\
 \midrule
-$G0$ & Committed single-integer vet budget + $\kappa$ floors + $\rho$-band decision in
-\texttt{prereg.yaml}; three zero-data power calcs ($\kappa$ CI half-width $\leq 0.15$;
-LTT/MAPIE NPV$\geq 0.90$ at $\leq 40\%$ abstention; $0.39$ CI reportability) &
+$G0$ & Committed single-integer vet budget (placeholder $120$, $\geq 50$ positive) + $\kappa$
+floors + $\rho$-band decision; three zero-data power calcs. \emph{Committed outcome:} $\kappa$ CI
+half-width $\leq 0.15$ met; NPV band sized as placeholder-illustrative over a placeholder budget
+(reported as one-sided $95\%$ LB, never ``certified''); $0.39$ CI \texttt{reportable:false} at
+$n_{\text{pos}}{=}16$ (CP half-width $0.25$) &
 CPU ($\tfrac{1}{2}$ day) &
-If the NPV calc fails, abstention is exploratory-only (no ``guaranteed''); not a kill \\
+$0.39$ point ships as exploratory future work, not a result; NPV abstention is
+placeholder-illustrative (no ``guaranteed''); not a kill \\
 \addlinespace
 $G1$ & \texttt{folds.csv}; assert no individual straddles a fold; distinct-pain-cat
 denominator printed and stored &
@@ -523,27 +582,9 @@ contract, and the anti-benchmark rules form a single evaluation contract whose p
 make the eventual results \emph{believable in proportion to what the data can actually
 support} --- and to make any overclaim structurally impossible to ship.
 
-The portable methods surface is implemented in \texttt{src/protocols/} (re-exports
-of the $\kappa$ and confound protocols from \texttt{src/eval/} plus adapters for
-generic reuse; see \texttt{src/protocols/standalone\_test\_corpus.py} for the
-deletion-safe, zero-torch, synthetic arbitrary-AU exerciser that can survive
-removal of the engine). The central gate orchestrator (\texttt{src/gates/orchestrator.py},
-invoked via \texttt{make gate-orchestrate}, \texttt{gate-pipeline}, or
-\texttt{gate-e2e-synthetic --synthetic}) enforces the strict run-order, writes
-immutable per-run artifacts (\texttt{artifacts/gates\_run\_*.json}), aborts on
-first failure, and supports synthetic toy data for CI/repro (G0 power-first,
-cat-disjoint, one-directional G2, CI-LB G1-B, hash G3, blocking G4, etc.).
-\texttt{Makefile} also exposes \texttt{test-portable}. These are the landed
-executable embodiments of the evaluation protocol; the paper's "runnable
-protocol" language is now backed by an importable, standalone, gate-enforced
-surface (see also \texttt{README} quickstart and \texttt{FINAL\_DIRECTION.md}).
-
-Concretely: \texttt{src/gates/orchestrator.py} (and synthetic mode) + e2e tests
-(\texttt{tests/test\_e2e\_gates\_pipeline.py}) + CI manifests (hashed test\_manifest.sha256,
-folds, power/severity) + \texttt{test-portable} (standalone + monkeypatch deletion
-isolation + au\_order) + \texttt{gate-e2e-synthetic} deliver the full strict
-gate-enforced contract as runnable code. This matches the evaluation chapter's
-discipline and makes the confound-attribution protocol (and the guarded $\kappa$ check)
-replication-survivable: the protocol surface imports and runs even if the engine
-directory is deleted. A DINOv3 engine successor seam is wired into the same cache
-boundary for a future A/B, off the critical path.
+The confound-attribution protocol and the guarded $\kappa$ check are released as an importable,
+gate-enforced module that is validated today on synthetic and planted positive/negative controls
+and survives deletion of the engine directory, so the chapter's ``runnable protocol'' language is
+backed by code that runs independently of the conceded backbone. A strict gate orchestrator
+enforces the run-order described above and writes immutable per-run artifacts, aborting on first
+failure.

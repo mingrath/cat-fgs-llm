@@ -10,7 +10,7 @@
 # data/manifests/power.json or placeholder vet_budget; folds/cache STRICT manifests/ load (no fallback);
 # gate0 produces the committed one; dependents/CI fail without. (landed manifests + hard enforcement)
 
-.PHONY: gate0 gate1 gate2 gate3 gate4 gate5 gate6 gate1b test features labels lint gate-pipeline gate-e2e-synthetic gate-orchestrate
+.PHONY: gate0 gate1 gate2 gate3 gate4 gate5 gate6 gate1b test features labels lint checkcites gate-pipeline gate-e2e-synthetic gate-orchestrate
 
 # --- G0: power calcs + vet-budget integer (no data, no GPU; blocks all quantitative work)
 gate0:
@@ -84,6 +84,16 @@ labels:
 # --- lint
 lint:
 	uv run ruff check .
+
+# --- checkcites: detect undefined (\cite to a missing key) and unused (orphan bib
+# entry) citations in the paper. Operates on the .aux/.bcf left behind by a build, so
+# `make paper` (tectonic paper/main.tex) MUST run first; `checkcites paper/main` then
+# reads paper/main.aux against references.bib. checkcites ships with TeX Live (install
+# via tlmgr: `tlmgr install checkcites`); it is NOT a pip package.
+checkcites:
+	@command -v checkcites >/dev/null 2>&1 || { echo "checkcites not found — install via TeX Live: 'tlmgr install checkcites'"; exit 1; }
+	@test -f paper/main.aux || { echo "paper/main.aux missing — run 'make paper' (tectonic paper/main.tex) first"; exit 1; }
+	checkcites --undefined --unused paper/main
 
 # pre-commit skeleton (FreshCI + manifests/power/schema/dedup guards; run after uv sync --dev)
 # uv run pre-commit install ; uv run pre-commit run --all-files

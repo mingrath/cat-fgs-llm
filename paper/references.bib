@@ -14,7 +14,7 @@
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
   year      = {2018},
   volume    = {31},
-  note      = {arXiv:1804.06872; schedule $R(T)=1-\tau\cdot\min((T/T_k)^c,1)$, keep-rate descends from 1.0 to $1-\tau$},
+  note      = {arXiv:1804.06872; schedule $R(T)=1-\tau\cdot\min(T/T_k,1)$ (linear $c=1$ specialization used in the paper), keep-rate descends from 1.0 to $1-\tau$},
 }
 
 @article{evangelista2019,
@@ -30,15 +30,15 @@
 }
 
 @article{steagall2023,
-  author  = {Feighelstein, Marcelo and Henze, Lea and Meller, Sebastian and Shimshoni, Ilan and Hermoni, Ben and Berko, Michael and Twele, Friederike and Sch{\"u}tter, Alexandra and Dorn, Nora and Kästner, Sabine and Finka, Lauren and Luna, Stelio P. L. and Mills, Daniel S. and Volk, Holger A. and Zamansky, Anna},
-  title   = {Automated recognition of pain in cats using fully automated deep learning models with smartphone applicability},
+  author  = {Steagall, P. V. and Monteiro, B. P. and Marangoni, S. and Moussa, M. and Sauti{\'e}, M.},
+  title   = {Fully automated deep learning models with smartphone applicability for prediction of pain using the Feline Grimace Scale},
   journal = {Scientific Reports},
   year    = {2023},
   volume  = {13},
   number  = {1},
-  pages   = {21888},
+  pages   = {21584},
   doi     = {10.1038/s41598-023-49031-2},
-  note    = {Landmark(37)->geometric->XGBoost validated at 95.5\% (Table 2: 95.51\%); Mode aggregation best except whiskers AND head position (Min). verify: page/article-number},
+  note    = {Given-name spellings for authors 3-5 (Marangoni S, Moussa M, Sauti{\'e} M) are initials-only from Crossref/PMC and need eyeballing pre-submission. Smartphone-applicable deep-learning prediction of pain via the Feline Grimace Scale},
 }
 
 @article{feighelstein2023,
@@ -187,16 +187,6 @@
   note    = {Cleanlab / confident learning},
 }
 
-@inproceedings{xiao2021background,
-  author    = {Xiao, Kai and Engstrom, Logan and Ilyas, Andrew and Madry, Aleksander},
-  title     = {Noise or Signal: The Role of Image Backgrounds in Object Recognition},
-  booktitle = {International Conference on Learning Representations (ICLR)},
-  year      = {2021},
-  eprint    = {2006.09994},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CV},
-  note      = {Background/foreground robustness challenge},
-}
 
 @inproceedings{wang2020scorecam,
   author    = {Wang, Haofan and Wang, Zifan and Du, Mengnan and Yang, Fan and Zhang, Zijian and Ding, Sirui and Mardziel, Piotr and Hu, Xia},
@@ -259,7 +249,7 @@
   number  = {1},
   pages   = {13670},
   doi     = {10.1038/s41598-025-96634-y},
-  note    = {Verified: first author is Boneh-Shitrit et al. (Tech4Animals group), NOT Lencioni; bibkey retained per canonical manifest. Owns ONLY the per-AU saliency-alignment leg, positively framed},
+  note    = {Verified: first author is Boneh-Shitrit et al. (Tech4Animals group), NOT Lencioni; legacy bibkey 'lencioni2025segment' retained to avoid breaking existing citations. Owns ONLY the per-AU saliency-alignment leg, positively framed},
 }
 
 % UNVERIFIED AUTHOR LIST — paper/DOI confirmed, authors not resolved; cite numerically (\cite, not \textcite) until the real author list is filled in before submission.
@@ -320,7 +310,7 @@
   number  = {7},
   pages   = {778--784},
   doi     = {10.1016/j.jclinepi.2011.10.019},
-  note    = {Verified: Journal of Clinical Epidemiology 65(7):778-784, PMID 22560852. NOTE: canonical manifest mis-stated this as Stat Med / PMID 21969984; corrected here},
+  note    = {Verified against source: Journal of Clinical Epidemiology 65(7):778-784, PMID 22560852 (an earlier draft of this entry mis-stated it as Stat Med / PMID 21969984; corrected here)},
 }
 
 @misc{rotondi2018kappasize,
@@ -380,8 +370,7 @@
   note          = {Verified: NeurIPS 2023 Regulatable ML Workshop. Audit statistical-power hygiene},
 }
 
-% Canonical ``domain anchor'' key for the FGS reliability study. Resolves to the same
-% Sci Rep 2021 paper also keyed evangelista2021agreement above.
+% Canonical ``domain anchor'' key for the FGS reliability study (Sci Rep 2021).
 @article{evangelista2021fgs,
   author  = {Evangelista, Marina C. and Steagall, Paulo V.},
   title   = {Agreement and reliability of the {Feline Grimace Scale} among cat owners, veterinarians, veterinary students and nurses},
@@ -402,7 +391,7 @@
   volume  = {7},
   pages   = {302},
   doi     = {10.3389/fvets.2020.00302},
-  note    = {Verified: Front Vet Sci 7:302. First author is Watanabe et al., NOT Cheng; bibkey retained per canonical manifest. Per-AU ordinal kappa/ICC with 95\% CIs; domain anchor},
+  note    = {Verified: Front Vet Sci 7:302. First author is Watanabe et al., NOT Cheng; legacy bibkey 'cheng2020fgs' retained to avoid breaking existing citations. Per-AU ordinal kappa/ICC with 95\% CIs; domain anchor},
 }
 
 % ------------------------------------------------------------
@@ -410,127 +399,13 @@
 % bibliography; keyed author+year)
 % ------------------------------------------------------------
 
-@article{caeiro2017catfacs,
-  author  = {Caeiro, Cátia C. and Burrows, Anne M. and Waller, Bridget M.},
-  title   = {Development and application of {CatFACS}: Are human cat adopters influenced by cat facial expressions?},
-  journal = {Applied Animal Behaviour Science},
-  year    = {2017},
-  volume  = {189},
-  pages   = {66--78},
-  month   = apr,
-  doi     = {10.1016/j.applanim.2017.01.005},
-}
 
-@book{ekman1978facs,
-  author    = {Ekman, Paul and Friesen, Wallace V.},
-  title     = {Facial Action Coding System},
-  year      = {1978},
-  publisher = {Consulting Psychologists Press},
-  address   = {Palo Alto, CA},
-  note      = {Environmental Psychology and Nonverbal Behavior},
-}
 
-@article{clark2020facs,
-  author  = {Clark, Elizabeth A. and Kessinger, J'Nai and Duncan, Susan E. and Bell, Martha A. and Lahne, Jacob and Gallagher, Daniel L. and O'Keefe, Sean F.},
-  title   = {The Facial Action Coding System for Characterization of Human Affective Response to Consumer Product-Based Stimuli: A Systematic Review},
-  journal = {Frontiers in Psychology},
-  year    = {2020},
-  volume  = {11},
-  pages   = {920},
-  month   = may,
-  doi     = {10.3389/fpsyg.2020.00920},
-}
 
-@article{brondani2013mcps,
-  author  = {Brondani, Juliana T. and Mama, Khursheed R. and Luna, Stelio P. L. and Wright, Bonnie D. and Niyom, Sirirat and Ambrosio, Jessica and Vogel, Patricia R. and Padovani, Carlos R.},
-  title   = {Validation of the {English} version of the {UNESP-Botucatu} multidimensional composite pain scale for assessing postoperative pain in cats},
-  journal = {BMC Veterinary Research},
-  year    = {2013},
-  volume  = {9},
-  number  = {1},
-  pages   = {143},
-  month   = dec,
-  doi     = {10.1186/1746-6148-9-143},
-}
 
-@article{finka2019morphometrics,
-  author  = {Finka, Lauren R. and Luna, Stelio P. and Brondani, Juliana T. and Tzimiropoulos, Yorgos and McDonagh, John and Farnworth, Mark J. and Ruta, Marcello and Mills, Daniel S.},
-  title   = {Geometric morphometrics for the study of facial expressions in non-human animals, using the domestic cat as an exemplar},
-  journal = {Scientific Reports},
-  year    = {2019},
-  volume  = {9},
-  number  = {1},
-  pages   = {9883},
-  month   = jul,
-  doi     = {10.1038/s41598-019-46330-5},
-}
 
-@article{feighelstein2022,
-  author  = {Feighelstein, Marcelo and Shimshoni, Ilan and Finka, Lauren R. and Luna, Stelio P. L. and Mills, Daniel S. and Zamansky, Anna},
-  title   = {Automated recognition of pain in cats},
-  journal = {Scientific Reports},
-  year    = {2022},
-  volume  = {12},
-  number  = {1},
-  pages   = {9575},
-  month   = jun,
-  doi     = {10.1038/s41598-022-13348-1},
-}
 
-@inproceedings{he2016resnet,
-  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
-  title     = {Deep Residual Learning for Image Recognition},
-  booktitle = {2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year      = {2016},
-  pages     = {770--778},
-  publisher = {IEEE},
-  address   = {Las Vegas, NV, USA},
-  month     = jun,
-  doi       = {10.1109/CVPR.2016.90},
-}
 
-@article{poojary2021augmentation,
-  author  = {Poojary, Ramaprasad and Raina, Roopa and Mondal, Akhilesh Kumar},
-  title   = {Effect of data-augmentation on fine-tuned {CNN} model performance},
-  journal = {IAES International Journal of Artificial Intelligence (IJ-AI)},
-  year    = {2021},
-  volume  = {10},
-  number  = {1},
-  pages   = {84--92},
-  month   = mar,
-  doi     = {10.11591/ijai.v10.i1.pp84-92},
-}
 
-@article{shipley2019csu,
-  author  = {Shipley, Heidi and Guedes, Alonso and Graham, Lynn and Goudie-DeAngelis, Erin and Wendt-Hornickle, Erin},
-  title   = {Preliminary appraisal of the reliability and validity of the {Colorado State University Feline Acute Pain Scale}},
-  journal = {Journal of Feline Medicine and Surgery},
-  year    = {2019},
-  volume  = {21},
-  number  = {4},
-  pages   = {335--339},
-  month   = apr,
-  doi     = {10.1177/1098612X18777506},
-}
 
-@article{evangelista2021agreement,
-  author  = {Evangelista, Marina C. and Steagall, Paulo V.},
-  title   = {Agreement and reliability of the {Feline Grimace Scale} among cat owners, veterinarians, veterinary students and nurses},
-  journal = {Scientific Reports},
-  year    = {2021},
-  volume  = {11},
-  number  = {1},
-  pages   = {5262},
-  month   = mar,
-  doi     = {10.1038/s41598-021-84696-7},
-}
 
-@misc{tan2020efficientnet,
-  author        = {Tan, Mingxing and Le, Quoc V.},
-  title         = {{EfficientNet}: Rethinking Model Scaling for Convolutional Neural Networks},
-  year          = {2020},
-  eprint        = {1905.11946},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.LG},
-  doi           = {10.48550/arXiv.1905.11946},
-}

@@ -20,7 +20,7 @@
     "min_abstained_in_negatives": 29,
     "total_faces": 84,
     "budget_certifies_band": true,
-    "abstention_status": "certified"
+    "abstention_status": "placeholder_pending_data"
   },
   "calc_c_point_039": {
     "n_pos": 16,

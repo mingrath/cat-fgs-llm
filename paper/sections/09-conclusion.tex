@@ -56,12 +56,25 @@ reliability check ---
   \item the headline: a \textbf{capture-condition confound-attribution protocol}
   (FGS-BG-Gap plus per-AU energy-based pointing-game faithfulness), framed
   one-directionally --- well-powered to \emph{detect} a capture-condition confound,
-  explicitly under-powered to \emph{rule one out} --- and reusable on the next
-  dataset rather than a verdict about this one. Its novelty is the \emph{assembly}
-  and the per-AU EBPG-as-confound-evidence instantiation of equivalence-style audit
-  hygiene \cite{huanghooker2026fairness,singh2023samplesize,adebayo2022posthoc}, not
+  explicitly under-powered to \emph{rule one out}~\cite{adebayo2022posthoc} --- and
+  reusable on the next dataset rather than a verdict about this one. Its novelty is
+  the \emph{assembly} and the per-AU EBPG-as-confound-evidence instantiation of
+  equivalence-style audit hygiene
+  \cite{huanghooker2026fairness,singh2023samplesize}, not
   any individual primitive or the one-directional / power-conditioned statistics
-  themselves; and
+  themselves. The per-AU saliency leg is cited-and-distinguished from the
+  segment-based animal-affect explainability framework of
+  Boneh-Shitrit et al.\ \cite{lencioni2025segment}, the EBPG faithfulness measure
+  is the Score-CAM energy-based pointing game \cite{wang2020scorecam}, and the
+  background-swap counterfactual reuses the ImageNet-9 backgrounds challenge and
+  the foreground/background sensitivity study
+  \cite{xiao2021noise,moayeri2022comprehensive}. The protocol is exercised today on
+  planted synthetic controls and requires no veterinary anchor: a deletion-safe
+  standalone harness (\texttt{src/protocols/standalone\_test\_corpus.py}) drives the
+  no-confound-at-this-power branch (an arbitrary perturbation must read \emph{no
+  confound detected at this power}, never ``no bias''), and a planted-positive
+  recovery test (\texttt{tests/test\_confound\_recovery.py}) asserts that a known
+  above-threshold capture-condition shift is flagged \texttt{detected}; and
   \item below it, a guarded \textbf{per-AU \mbox{VLM-as-AU-rater} reliability check}:
   a protocol for measuring whether a frozen vision--language model can weak-label FGS
   action units at human-rater agreement (the result is pending an independent per-AU
@@ -69,8 +82,9 @@ reliability check ---
   independent and the VLM rubric differs from the vet's --- otherwise it measures
   rubric-following), reported as five per-AU quadratic $\kappa$ values
   \emph{gated on the confidence-interval lower bound} against a veterinary anchor.
-  The CI-lower-bound gate is standard clinimetrics and the rubric-paraphrase guard is
-  published \cite{tractenberg2010kappa,donner2010kappa,weng2026policy}; neither is
+  The CI-lower-bound gate is standard clinimetrics
+  \cite{tractenberg2010kappa,donner2010kappa,rotondi2012kappa,rotondi2018kappasize,simwright2005kappa}
+  and the rubric-paraphrase guard is published \cite{weng2026policy}; neither is
   claimed as a novel increment. The check is retained as kill-tree insurance ---
   becoming the sole-survivor headline only if the confound leg degrades --- and runs
   the same comparison on any face corpus ---
@@ -141,6 +155,24 @@ weak-label reliability pilot forces the planned pivot to the binary spine; and n
 sentence in the document asserts a performance number that the project has not yet
 earned the right to assert.
 
+Four structural facts bound that boundary, and they are stated here rather than
+softened. First, the data substrate is \emph{empty}: the candidate corpus has not
+yet been forked, so no image of ours has been loaded and no count in this document
+is a measurement. Second, there is \emph{no independent per-AU veterinary anchor}:
+the weak-label reliability pilot ($G_{1\text{-}B}$) and the demoted $\kappa$ check
+cannot run until one exists. Third, the candidate source is
+\emph{Roboflow-binary-only} (pain / no-pain), carrying no native $0$--$10$ FGS
+labels, which is precisely why the graded layer ships inspected-not-validated.
+Fourth, the $0.39$ sens/spec operating point is \emph{pre-registered as
+non-reportable}: the Gate-0 power calculation returns
+\texttt{reportable:false} at the budgeted positive count ($n_{\text{pos}}{=}16$,
+Clopper--Pearson half-width~$0.2535$), so the $0.39$ point is carried as
+exploratory future work, never as a validation. These mirror the limitations
+enumerated in the abstract, and they are the reason this is shipped \emph{now} as a
+methods / protocol paper --- targeting an ML-evaluation and trustworthiness venue,
+or a clinical-ML-methods track, rather than a veterinary journal --- with the
+real-cat empirical study named explicitly as future work.
+
 %====================================================================
 \section{Future Work and Re-Add Triggers}
 \label{sec:concl-future}
@@ -179,9 +211,11 @@ External request-only FGS dataset as a graded anchor
     treated as a v2 windfall, never a v1 blocker. \\
 \addlinespace
 ``Guaranteed'' NPV language on the abstention curve
-  & A power calculation shows the budgeted veterinary $n$ certifies
-    $\mathrm{NPV} \geq 0.90$ at an abstention rate $\leq 40\%$ (a larger vet
-    account). \\
+  & A \emph{real} (non-placeholder) veterinary budget, set over measured data,
+    powers a calculation certifying $\mathrm{NPV} \geq 0.90$ at an abstention rate
+    $\leq 40\%$. The present band is not yet certified because the budget
+    ($\mathit{vet\_budget}{=}120$) is an unconfirmed placeholder over zero data,
+    not because the arithmetic forbids it. \\
 \addlinespace
 Empirical $5\times 5$ cross-AU error-correlation matrix
   & The vet-labelled $n$ reaches the low hundreds with non-single-digit cells;
@@ -219,15 +253,20 @@ supplies an external cohort for the confound-attribution protocol and a candidat
 graded anchor. It is a re-add trigger, never a blocker.
 
 \paragraph{Certifying the abstention floor.}
-The defer-to-vet boundary currently ships as a one-sided $95\%$ NPV lower-bound
-curve precisely because the budgeted veterinary sample cannot certify a useful
-$\mathrm{NPV}$ floor at a tolerable abstention rate; certifying
-$\mathrm{NPV} \geq 0.95$ would collapse the abstention rate toward zero and yield a
-vacuous instrument. A larger veterinary account --- enough to certify
-$\mathrm{NPV} \geq 0.90$ at an abstention rate of at most $40\%$ --- is the
-re-add trigger that would let the abstention curve be reported as a certified floor
-rather than an exploratory lower bound, and the word ``guaranteed'' remains banned
-until that power calculation succeeds.
+The defer-to-vet boundary ships as a one-sided $95\%$ NPV lower-bound curve, and
+the sizing behind it is reported as illustrative rather than settled. The Gate-0
+artifact does compute an abstention band, but its inputs are pre-registered
+placeholders over zero data: the veterinary budget is an unconfirmed default
+($\mathit{vet\_budget}{=}120$, echoed from \texttt{configs/power.yaml}), the
+face count is a zero-data assumption ($\mathit{total\_faces}{=}84$), and the
+target is a stated input ($\mathit{npv\_target}{=}0.90$). The band is therefore
+\emph{not yet certified} --- not because the arithmetic forbids a useful floor,
+but because no measured datum has entered the calculation. The re-add trigger is a
+\emph{real} (non-placeholder) budget over measured data that powers a calculation
+certifying $\mathrm{NPV} \geq 0.90$ at an abstention rate of at most $40\%$; only
+then would the curve be reported as a certified floor rather than an illustrative
+lower bound, and the word ``guaranteed'' remains banned until that power
+calculation succeeds on real inputs.
 
 \paragraph{An empirical cross-AU correlation matrix.}
 The propagation of per-AU error into the $0$--$10$ sum is currently handled by a
