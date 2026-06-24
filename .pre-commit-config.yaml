@@ -35,7 +35,8 @@ repos:
         name: Check G0 power pre-reg manifest (vet budget + floors non-placeholder)
         entry: python -c "
 import json, sys
-p = json.load(open('data/manifests/power.json'))
+with open('data/manifests/power.json') as f:
+    p = json.load(f)
 assert 'vet_budget_integer' in p and isinstance(p['vet_budget_integer'], int) and p['vet_budget_integer'] >= 50, 'power vet_budget placeholder or too low (align CI gate0 harden post-relax)'
 note = str(p.get('note', '')).lower()
 assert 'placeholder' not in note and 'replace the placeholder' not in note, 'power note must not mention placeholder (G0 committed real per Gate-0; see power.json note)'
@@ -62,7 +63,8 @@ for m in required:
     p = root / m
     assert p.exists() and p.stat().st_size > 10, f'missing or placeholder manifest: {m}'
     try:
-        json.load(open(p))
+        with open(p) as f:
+            json.load(f)
     except Exception as e:
         assert False, f'invalid json in {m}: {e}'
 print('PASS: core manifests present + valid json (no missing for gate-pipeline)')

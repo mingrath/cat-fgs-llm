@@ -69,11 +69,11 @@ def build_requests(manifest_csv, n_runs=1, model=None, prioritize_unc=False, unc
     if prioritize_unc:
         # tiny additive wire (per task verbatim formula): ent=pmf_entropy(sum_pmf or per-au), dist=abs(p-0.39), score=ent+dist+(1-consist); sort high-unc first; trim budget or defer; pre-CORN pool (cache+decode) + G1B tie + hybrid MAPIE LTT/wrapper consistency. Atoms-only preserved.
         try:
-            from src.model.decode import pmf_entropy, sum_pmf
+            from src.model.decode import pmf_entropy
             from src.protocols.adapters import generic_ordinal_mode
             _ = generic_ordinal_mode(use_fgs_threshold=False)
         except Exception:
-            pmf_entropy = sum_pmf = None
+            pmf_entropy = None
         unc_scores = []
         n = len(df)
         for i in range(n):
@@ -87,7 +87,7 @@ def build_requests(manifest_csv, n_runs=1, model=None, prioritize_unc=False, unc
         df = df.assign(unc_score=unc_scores).sort_values("unc_score", ascending=False)
         if unc_budget and unc_budget > 0:
             df = df.head(int(unc_budget))
-        print(f"[batch_submit] prioritize_unc=True: computed unc=pmf_entropy(sum_pmf or au)+|p-0.39|+(1-consist) proxy; high-unc first (G0 vet budget focus/small-N; G1B CI-LB floors only for full; VLM atoms-only; decode portable + generic_ordinal_mode; hybrid MAPIE LTT ready in wrapper).")
+        print("[batch_submit] prioritize_unc=True: computed unc=pmf_entropy(sum_pmf or au)+|p-0.39|+(1-consist) proxy; high-unc first (G0 vet budget focus/small-N; G1B CI-LB floors only for full; VLM atoms-only; decode portable + generic_ordinal_mode; hybrid MAPIE LTT ready in wrapper).")
     reqs = []
     for _, r in df.iterrows():
         for k in range(n_runs):

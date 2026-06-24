@@ -17,17 +17,13 @@ fold-to-fold variance — never a "we beat X%" claim.
 
 from __future__ import annotations
 
-import pathlib
-
 import numpy as np
 import yaml
 
 from src.eval.bootstrap import bootstrap_ci as _grouped_bootstrap_ci
 
-_DEFAULT_CONFIG = pathlib.Path(__file__).resolve().parents[2] / "configs" / "wrapper.yaml"
 
-
-def _load_op_config(config_path: str = _DEFAULT_CONFIG) -> dict:
+def _load_op_config(config_path: str) -> dict:
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
     return cfg["operating_point"]

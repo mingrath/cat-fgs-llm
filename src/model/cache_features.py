@@ -27,12 +27,18 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
+from torchvision import transforms
 
 from src.constants import AU_ORDER
-from src.model.backbone import DEFAULT_VARIANT, extract, load_frozen_dinov2, preprocess, VARIANT_PATCH_SIZES, VARIANT_INPUT_SIZES
+from src.model.backbone import (
+    DEFAULT_VARIANT,
+    IMNET_MEAN,
+    IMNET_STD,
+    VARIANT_INPUT_SIZES,
+    extract,
+    load_frozen_dinov2,
+)
 from src.model.device import DEVICE
-
-import torch.nn.functional as F
 
 # manifest_csv columns (IMPLEMENTATION_PLAN §5.2):
 #   img_path, cat_id, fold,
@@ -155,7 +161,7 @@ def build_cache(manifest_csv, out_npz, device: str = DEVICE, variant: str = DEFA
             pmean = patch.mean(1).squeeze(0).cpu().numpy()
             pstd = patch.std(1).squeeze(0).cpu().numpy() if patch_mode in ("mean_std", "std") else np.zeros_like(pmean)
             # l2 now handled inside extract when patch_l2=True (per DINOv3RicherSub extension + MCP L2 F.normalize p=2)
-            pl2 = patch if patch_mode == "l2" else np.zeros_like(pmean)  # already normalized in extract
+            pl2 = patch.mean(1).squeeze(0).cpu().numpy() if patch_mode == "l2" else np.zeros_like(pmean)
             patch_mean_feats.append(pmean)
             patch_std_feats.append(pstd)
             patch_l2_feats.append(pl2)

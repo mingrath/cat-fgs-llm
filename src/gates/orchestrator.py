@@ -68,25 +68,7 @@ GATE_PRECONDS: dict[str, list[str]] = {
     "gate6": ["data/manifests/power.json", "data/manifests/severity.json"],
 }
 
-def _enforce_g0_manifests(g: str, synthetic: bool = False) -> None:
-    """Hard block: if not synthetic and required G0/committed manifests missing or drift, SystemExit before compute.
-    Enforces 'G0 must precede; committed manifests required'. Called from orch + recommended at tops of real scripts.
-    Preserves all strengths (G0 power first, cat-disjoint etc).
-    """
-    if synthetic:
-        return
-    import pathlib
-    root = pathlib.Path(__file__).resolve().parents[2]
-    for p in GATE_PRECONDS.get(g, []):
-        mp = root / p
-        if not mp.exists() or mp.stat().st_size == 0:
-            raise SystemExit(f"G0 must precede; committed manifests required: missing or empty {p} for {g}. Run gate0 first (and gate1 for folds).")
-        if "manifests" not in str(mp):
-            raise SystemExit(f"Manifests target drift: {p} must be under data/manifests/ (single-source enforcement).")
-    # Also verify power explicitly for G0-tied gates
-    power = root / "data" / "manifests" / "power.json"
-    if g != "gate0" and not power.exists():
-        raise SystemExit("G0 must precede; committed manifests required: data/manifests/power.json missing. Run scripts/gate0_power.py first.")
+from src.gates.manifests import enforce_g0_manifests as _enforce_g0_manifests  # noqa: E402
 
 # Expected side-effect artifacts (for verification + honesty; Gx writes immutable reports)
 EXPECTED_ARTIFACTS: dict[str, list[str]] = {
