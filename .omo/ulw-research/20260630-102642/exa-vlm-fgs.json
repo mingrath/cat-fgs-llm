@@ -1,0 +1,96 @@
+Title: Agreement of Feline Grimace Scale scores between chatbots and an expert rater | Scientific Reports
+URL: https://www.nature.com/articles/s41598-025-27404-z
+Published: 2025-12-09T00:00:00.000Z
+Author: N/A
+Highlights:
+The performance of large language models (LLMs) during acute pain assessment in cats has not been evaluated. This study evaluated the agreement of the Feline Grimace Scale (FGS) scoring between four chatbots (ChatGPT, Gemini, Claude AI, and Perplexity) and an expert veterinarian, including bias and limits of agreement (LoA), and whether bias would be reduced when retested after two months. Fifty cat facial images were scored twice, two months apart, by each chatbot using the FGS (ear position, orbital tightening, muzzle tension, whiskers change and head position). The Bland–Altman method was used to analyze bias and limits of LoA. Chatbots showed positive bias, indicating underestimation of FGS scores. Claude AI presented an acceptable bias (< 0.1) suggesting good agreement after retesting. However, its LoA spanned the FGS threshold for analgesia (0.39). The LoA of ChatGPT did not span the threshold, but presented unacceptable bias (> 0.1). Gemini showed unacceptable bias and LoA spanned the FGS threshold. Perplexity showed unacceptable bias and its LoA spanned the threshold after retesting. Most chatbots showed poor agreement and could have compromised analgesia during testing and/or retesting; pain scoring could be overestimated or underestimated to an extent that would cause overtreatment or undertreatment of pain.
+...
+For Claude AI, the LoA in trial-1 was in the range of − 0.37 to 0.59 with a bias of 0.11, Fig. 2 A. In trial-2, the LoA was in the range of − 0.39 to 0.49 with a bias of 0.05, Fig. 2 B. The bias was < 0.1 in trial-2, suggesting good agreement between Claude AI and the expert rater. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.01; p = 0.91), whereas, in trial-2 model slope was negative (estimates = − 0.03; p = 0.77), indicating proportional bias, Fig. 2.
+...
+For Gemini, the LoA in trial-1 was in the range of − 0.31 to 0.75 with a bias of 0.22, Fig. 3 A. In trial-2, the LoA was in the range of − 0.29 to 0.79 with a bias of 0.25, Fig. 3 B. The bias was > 0.1 in both trials, suggesting poor agreement between Gemini and the expert rater at both time points. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.92; p < 0.001) and trial-2 (estimates = 1.16; p < 0.001), indicating proportional bias, Fig. 3.
+...
+Ngai, S.T., Bukhari, S.S.U.H., Sousa, S.A. et al
+...
+Agreement of Feline Grimace Scale scores between chatbots and an expert rater
+...
+Sci Rep 1
+...
+-27404-z
+
+---
+
+Title: Agreement of Feline Grimace Scale scores between chatbots and an expert rater
+URL: https://doi.org/10.1038/s41598-025-27404-z
+Published: 2025-12-09T00:00:00.000Z
+Author: Shirley P.C. Ngai, Syed S. U. H. Bukhari, Santiago Alonso Sousa, Paulo V. Steagall
+Highlights:
+The performance of large language models (LLMs) during acute pain assessment in cats has not been evaluated. This study evaluated the agreement of the Feline Grimace Scale (FGS) scoring between four chatbots (ChatGPT, Gemini, Claude AI, and Perplexity) and an expert veterinarian, including bias and limits of agreement (LoA), and whether bias would be reduced when retested after two months. Fifty cat facial images were scored twice, two months apart, by each chatbot using the FGS (ear position, orbital tightening, muzzle tension, whiskers change and head position). The Bland-Altman method was used to analyze bias and limits of LoA. Chatbots showed positive bias, indicating underestimation of FGS scores. Claude AI presented an acceptable bias (< 0.1) suggesting good agreement after retesting. However, its LoA spanned the FGS threshold for analgesia (0.39). The LoA of ChatGPT did not span the threshold, but presented unacceptable bias (> 0.1). Gemini showed unacceptable bias and LoA spanned the FGS threshold. Perplexity showed unacceptable bias and its LoA spanned the threshold after retesting. Most chatbots showed poor agreement and could have compromised analgesia during testing and/or retesting; pain scoring could be overestimated or underestimated to an extent that would cause overtreatment or undertreatment of pain.
+...
+For Claude AI, the LoA in trial-1 was in the range of -0.37 to 0.59 with a bias of 0.11, Fig. 2A . In trial-2, the LoA was in the range of -0.39 to 0.49 with a bias of 0.05, Fig. 2B . The bias was < 0.1 in trial-2, suggesting good agreement between Claude AI and the expert rater. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.01; p = 0.91), whereas, in trial-2 model slope was negative (estimates = -0.03; p = 0.77), indicating proportional bias, Fig. 2 .
+...
+For Gemini, the LoA in trial-1 was in the range of -0.31 to 0.75 with a bias of 0.22, Fig. 3A . In trial-2, the LoA was in the range of -0.29 to 0.79 with a bias of 0.25, Fig. 3B . The bias was > 0.1 in both trials, suggesting poor agreement between Gemini and the expert rater at both time points. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.92; p < 0.001) and trial-2 (estimates = 1.16; p < 0.001), indicating proportional bias, Fig. 3 .
+...
+human raters in a
+...
+. This finding implies that as the pain levels in cats increased, the disparity between the expert rater and
+...
+, proportional bias
+...
+bias among the
+...
+the expert rater
+
+---
+
+Title: Agreement of Feline Grimace Scale scores between chatbots and an expert rater - PubMed
+URL: https://pubmed.ncbi.nlm.nih.gov/41366265/
+Published: 2025-12-09T00:00:00.000Z
+Author: N/A
+Highlights:
+The performance of large language models (LLMs) during acute pain assessment in cats has not been evaluated. This study evaluated the agreement of the Feline Grimace Scale (FGS) scoring between four chatbots (ChatGPT, Gemini, Claude AI, and Perplexity) and an expert veterinarian, including bias and limits of agreement (LoA), and whether bias would be reduced when retested after two months. Fifty cat facial images were scored twice, two months apart, by each chatbot using the FGS (ear position, orbital tightening, muzzle tension, whiskers change and head position). The Bland-Altman method was used to analyze bias and limits of LoA. Chatbots showed positive bias, indicating underestimation of FGS scores. Claude AI presented an acceptable bias (< 0.1) suggesting good agreement after retesting. However, its LoA spanned the FGS threshold for analgesia (0.39). The LoA of ChatGPT did not span the threshold, but presented unacceptable bias (> 0.1). Gemini showed unacceptable bias and LoA spanned the FGS threshold. Perplexity showed unacceptable bias and its LoA spanned the threshold after retesting. Most chatbots showed poor agreement and could have compromised analgesia during testing and/or retesting; pain scoring could be overestimated or underestimated to an extent that would cause overtreatment or undertreatment of pain.
+...
+Keywords: Analgesia; Artificial intelligence; Cats; Image analysis; Large language models; Pain assessment.
+...
+Bland–Altman plots showing the agreement of Feline Grimace Scale (FGS) scores between ChatGPT and an expert rater, who is considered the gold standard (GS). (A) Agreement between ChatGPT and the GS in trial-1. (B) Agreement between ChatGPT and the GS in trial-2. Bias (central red dashed line), upper and lower limits of agreement (black dashed lines), and linear regression line (blue continuous lines) are indicated on each respective plot.
+...
+AI and an expert rater, who is considered the gold standard (GS). (A) Agreement between Claude AI and the GS in trial-1. (B) Agreement between Claude
+...
+GS in trial-
+...
+. Bias (central red dashed line), upper and lower limits of agreement (black dashed lines), and linear regression line (blue continuous lines) are indicated on each respective plot.
+...
+Bland–Altman plots showing the agreement of Feline Grimace Scale (FGS) scores between Gemini and an expert rater, who is considered the gold standard (GS). (A) Agreement between Gemini and the GS in trial-1. (B) Agreement between Gemini and the GS in trial-2. Bias (central red dashed line), upper and lower limits of agreement (black dashed lines), and linear regression line (blue continuous lines) are indicated on each respective plot.
+
+---
+
+Title: Agreement of Feline Grimace Scale scores between chatbots and an expert rater | Scientific Reports
+URL: https://preview-www.nature.com/articles/s41598-025-27404-z
+Published: 2025-12-09T00:00:00.000Z
+Author: N/A
+Highlights:
+The performance of large language models (LLMs) during acute pain assessment in cats has not been evaluated. This study evaluated the agreement of the Feline Grimace Scale (FGS) scoring between four chatbots (ChatGPT, Gemini, Claude AI, and Perplexity) and an expert veterinarian, including bias and limits of agreement (LoA), and whether bias would be reduced when retested after two months. Fifty cat facial images were scored twice, two months apart, by each chatbot using the FGS (ear position, orbital tightening, muzzle tension, whiskers change and head position). The Bland–Altman method was used to analyze bias and limits of LoA. Chatbots showed positive bias, indicating underestimation of FGS scores. Claude AI presented an acceptable bias (< 0.1) suggesting good agreement after retesting. However, its LoA spanned the FGS threshold for analgesia (0.39). The LoA of ChatGPT did not span the threshold, but presented unacceptable bias (> 0.1). Gemini showed unacceptable bias and LoA spanned the FGS threshold. Perplexity showed unacceptable bias and its LoA spanned the threshold after retesting. Most chatbots showed poor agreement and could have compromised analgesia during testing and/or retesting; pain scoring could be overestimated or underestimated to an extent that would cause overtreatment or undertreatment of pain.
+...
+For Claude AI, the LoA in trial-1 was in the range of − 0.37 to 0.59 with a bias of 0.11, Fig. 2 A. In trial-2, the LoA was in the range of − 0.39 to 0.49 with a bias of 0.05, Fig. 2 B. The bias was < 0.1 in trial-2, suggesting good agreement between Claude AI and the expert rater. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.01; p = 0.91), whereas, in trial-2 model slope was negative (estimates = − 0.03; p = 0.77), indicating proportional bias, Fig. 2.
+...
+For Gemini, the LoA in trial-1 was in the range of − 0.31 to 0.75 with a bias of 0.22, Fig. 3 A. In trial-2, the LoA was in the range of − 0.29 to 0.79 with a bias of 0.25, Fig. 3 B. The bias was > 0.1 in both trials, suggesting poor agreement between Gemini and the expert rater at both time points. The LoAs spanned the analgesic threshold of 0.39 at both time points. Positive slope of the linear model showed as the mean value increases, the difference also increases in trial-1 (estimates = 0.92; p < 0.001) and trial-2 (estimates = 1.16; p < 0.001), indicating proportional bias, Fig. 3.
+
+---
+
+Title: Agreement of Feline Grimace Scale scores between chatbots and an expert rater
+      -  CityUHK Scholars
+URL: https://scholars.cityu.edu.hk/en/publications/agreement-of-feline-grimace-scale-scores-between-chatbots-and-an-/
+Published: N/A
+Author: N/A
+Highlights:
+Agreement of Feline Grimace Scale scores between chatbots and an expert rater - CityUHK Scholars
+...
+# Agreement of Feline Grimace Scale scores between chatbots and an expert rater
+...
+The performance of large language models (LLMs) during acute pain assessment in cats has not been evaluated. This study evaluated the agreement of the Feline Grimace Scale (FGS) scoring between four chatbots (ChatGPT, Gemini, Claude AI, and Perplexity) and an expert veterinarian, including bias and limits of agreement (LoA), and whether bias would be reduced when retested after two months. Fifty cat facial images were scored twice, two months apart, by each chatbot using the FGS (ear position, orbital tightening, muzzle tension, whiskers change and head position). The Bland–Altman method was used to analyze bias and limits of LoA. Chatbots showed positive bias, indicating underestimation of FGS scores. Claude AI presented an acceptable bias (< 0.1) suggesting good agreement after retesting. However, its LoA spanned the FGS threshold for analgesia (0.39). The LoA of ChatGPT did not span the threshold, but presented unacceptable bias (> 0.1). Gemini showed unacceptable bias and LoA spanned the FGS threshold. Perplexity showed unacceptable bias and its LoA spanned the threshold after retesting. Most chatbots showed poor agreement and could have compromised analgesia during testing and/or retesting; pain scoring could be overestimated or underestimated to an extent that would cause overtreatment or undertreatment of pain.© The Author(s) 2025
+...
+- Pain assessment
+- Large language models
+- Image analysis
+- Cats
+- Artificial intelligence
+- Analgesia

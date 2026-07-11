@@ -1,0 +1,10 @@
+{
+  "backbone_support": [
+    "dinov2_vits14_reg",
+    "dinov2_vits14",
+    "dinov3_vits16"
+  ],
+  "configured_backbone": "dinov2_vits14_reg",
+  "point_decision_threshold": 0.39,
+  "cache_feature_dim_contract": 384
+}

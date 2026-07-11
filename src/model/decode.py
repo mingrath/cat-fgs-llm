@@ -16,7 +16,11 @@ The 0-10 sum is INSPECTED-NOT-VALIDATED; no validated-claim number is emitted he
 import numpy as np
 import torch
 
+from src.constants import AU_ORDER
 from src.model.corn import corn_label_from_logits
+
+
+N_DEFAULT = len(AU_ORDER)
 
 
 def au_pmf_from_cumprobs(cum):          # cum: [B,2] = [P(y>0), P(y>0 & y>1)]
@@ -29,15 +33,17 @@ def au_pmf_from_cumprobs(cum):          # cum: [B,2] = [P(y>0), P(y>0 & y>1)]
 
 
 def sum_pmf(au_pmfs):                    # au_pmfs: list of 5 x [B,3] (numpy)
-    # convolve 5 pmfs -> pmf over 0..10 (length 11)
+    # convolve per-AU pmfs -> pmf over 0..(n_aus * max_au_score)
     B = au_pmfs[0].shape[0]
-    out = np.zeros((B, 11))
+    n_aus = len(au_pmfs)
+    max_sum = sum(int(p.shape[1]) - 1 for p in au_pmfs)
+    out = np.zeros((B, max_sum + 1))
     for b in range(B):
         acc = np.array([1.0])
-        for a in range(5):
+        for a in range(n_aus):
             acc = np.convolve(acc, au_pmfs[a][b])
         out[b] = acc / acc.sum()         # renormalize
-    return out                           # [B,11], sums to 1 over the 0..10 sum
+    return out                           # [B,max_sum+1], sums to 1 over the sum support
 
 
 def point_sum(logits_list):              # hard decode for the decision ONLY

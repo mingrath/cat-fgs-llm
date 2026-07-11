@@ -84,18 +84,18 @@ def probe_separability(
     # Full _CACHE_SCHEMA keys + PROVENANCE cross (FreshDINOv3RicherEnforcer tiny #1; uniform with train_heads). Supports A/B dinov3 richer (patch_std/layer/patch_mode per MCP). Hard on mismatch (no legacy tolerate).
     # PRACTICAL A/B uniform hard enforce: fixed keys exact match to _CACHE_SCHEMA; variable (variant/layer/patch_mode) require presence (actual value from build, cross prov for hash); supports intermed n=list mean+std richer + dinov3_vits16 vs v2_reg
     fixed_keys = ("n_aus", "au_hash", "k", "feature_dim")
-    for k in fixed_keys:
-        if k not in data or data[k] != _CACHE_SCHEMA[k]:
-            raise ValueError(f"_CACHE_SCHEMA key mismatch on {k} (enforce)")
-    for k in ("variant", "layer", "patch_mode"):
-        if k not in data:
-            raise ValueError(f"_CACHE_SCHEMA key missing {k} (uniform enforce no legacy)")
+    for schema_key in fixed_keys:
+        if schema_key not in data or data[schema_key] != _CACHE_SCHEMA[schema_key]:
+            raise ValueError(f"_CACHE_SCHEMA key mismatch on {schema_key} (enforce)")
+    for schema_key in ("variant", "layer", "patch_mode"):
+        if schema_key not in data:
+            raise ValueError(f"_CACHE_SCHEMA key missing {schema_key} (uniform enforce no legacy)")
     # optional prov cross for A/B hash (layer/patch_mode/variant drive from corn.yaml)
     if "provenance" in data:
         prov = data["provenance"] if isinstance(data["provenance"], dict) else {}
-        for k in ("variant", "layer", "patch_mode"):
-            if k in prov and data.get(k) != prov.get(k):
-                raise ValueError(f"PROVENANCE cross mismatch on {k} (full hash enforce)")
+        for schema_key in ("variant", "layer", "patch_mode"):
+            if schema_key in prov and data.get(schema_key) != prov.get(schema_key):
+                raise ValueError(f"PROVENANCE cross mismatch on {schema_key} (full hash enforce)")
     n_au = len(AU_ORDER)
     if "y" in data:
         yarr = np.asarray(data["y"])

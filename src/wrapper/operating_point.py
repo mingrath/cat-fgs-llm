@@ -17,10 +17,22 @@ fold-to-fold variance — never a "we beat X%" claim.
 
 from __future__ import annotations
 
+import pathlib
+
 import numpy as np
 import yaml
 
 from src.eval.bootstrap import bootstrap_ci as _grouped_bootstrap_ci
+
+
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+def _get_default_wrapper_config() -> pathlib.Path:
+    return _REPO_ROOT / "configs" / "wrapper.yaml"
+
+
+_DEFAULT_CONFIG = _get_default_wrapper_config()
 
 
 def _load_op_config(config_path: str) -> dict:

@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Cat FGS pipeline research</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:980px;margin:48px auto;line-height:1.6;color:#17202a;padding:0 24px}h1{font-size:2rem}h2{margin-top:2rem;border-bottom:1px solid #d8dee4;padding-bottom:.25rem}h3{margin-top:1.3rem}code,pre{background:#f6f8fa;border-radius:6px}code{padding:2px 4px}pre{padding:8px;overflow:auto}li{margin:.3rem 0}p{margin:.7rem 0}a{color:#0969da}strong{font-weight:650}</style></head><body><h1>Ultraresearch Synthesis: New cat FGS pain detector pipeline improvement</h1>
+<p>Workers: 8 · Waves: 3 · Sources: 20+ · Verifications: 3 local command artifacts</p>
+<h2>Executive summary</h2>
+<p>If building a new cat FGS pain detector from this project, the highest-value improvement is <strong>not</strong> to market a direct VLM scorer or simply replace the pipeline with landmark-XGBoost. The worthwhile improvement is a <strong>vet-anchor-first, foundation-feature A/B upgrade</strong>: keep the existing gated binary-plus-wrapper spine, then empirically compare <code>dinov2_vits14_reg</code> against the repo’s staged <code>dinov3_vits16</code> path and one simple strong baseline such as ConvNeXt/SigLIP2, while adding a hard <strong>expert-vet AU anchor</strong> and <strong>threshold-safety gate</strong> before any graded-FGS claim. This fits the repo because the current code already supports DINOv3 plumbing and a strict 0.39 decision contract, but lacks empirical proof and independent AU labels. [Local: <code>verify-local-contracts.md</code>; S10; S11]</p>
+<p>The newest external evidence does <strong>not</strong> overturn the repo’s caution. Up to June 30, 2026, no verified 2026 primary cat-pain/FGS method paper surfaced in this search. The latest verified method-adjacent work is 2025: a DINO/ViT segment-level XAI framework reporting strong cat-pain classifier performance but not a dedicated FGS detector, and a chatbot/VLM FGS paper showing direct chatbot scoring remains clinically unsafe. The strongest direct automated FGS paper remains the 2023 smartphone/landmark/geometric pipeline; the strongest fully automated temporal pain pipeline is the 2024 video-landmark model. [S3; S5; S7; S8]</p>
+<p>So the pipeline improvement worth doing is: <strong>DINOv3/DINOv2-reg measured A/B + vet-anchored weak-label reliability + calibration/abstention + optional temporal/crop stabilization</strong>, not “VLM diagnoses pain.” The output should remain <strong>decision-support triage</strong>, not owner-facing diagnosis, until subgroup, breed, ocular-pain, and threshold-safety validation pass. [S1; S8; local <code>claim-ledger.md</code>]</p>
+<h2>Findings by theme</h2>
+<h3>1. Current repo state: strong protocol shell, not validated clinical detector</h3>
+<p>The repo positions itself as a protocol/prototype: portable confound-attribution, guarded VLM-as-AU-rater κ check pending independent vet anchor, and a binary-plus-abstention spine. It explicitly says the current dataset is binary pain/no_pain and cannot yield 0/1/2 AU ground truth. The engine is DINOv2+CORN plumbing, not the contribution. [Local: <code>README.md:3-47</code>, <code>README.md:60-76</code>, <code>wave-1-codebase-docs-decisions.md</code>]</p>
+<p>Executable pipeline: ingest/folds → detector/crop/quality gate → frozen backbone cache → CORN + binary head → VLM labels/κ → wrapper/confound/eval gates. Local tests confirm the shared 0.39 threshold, backbone variant contract, and CORN decode tests pass. [Local: <code>wave-1-codebase-executable-pipeline.md</code>; <code>verify-targeted-tests.md</code>]</p>
+<h3>2. Most recent technique signal: DINO-family features and temporal landmarks, with caveats</h3>
+<p>The field’s arc is: manual landmarks → automated landmarks → smartphone FGS → raw-video temporal landmarks → segment/XAI with DINO/ViT. The 2025 segment-based framework is the newest verified method-adjacent signal supporting DINO/ViT features for cat pain, but it is not a purpose-built clinical FGS detector. [S7]</p>
+<p>DINOv3 is current as a vision foundation model with strong dense features and official Hugging Face/Meta/GitHub support. The repo already includes a <code>dinov3_vits16</code> branch, but local verification shows it remains an A/B candidate behind a 384-d cache contract, not a proven default. [S10; S11; Local: <code>verify-local-contracts.md</code>, <code>wave-2-repo-dinov3-fit.md</code>]</p>
+<h3>3. What not to do: direct VLM scoring as product</h3>
+<p>A 2025 FGS chatbot study tested ChatGPT, Claude AI, Gemini, and Perplexity against an expert rater. Most chatbots had poor agreement; Claude had the best retest bias, but limits of agreement still spanned the 0.39 analgesia threshold. This supports using VLMs only as candidate weak labelers behind local vet κ gates, not as direct clinical scorers. [S8]</p>
+<h3>4. Dataset reality: public geometry assets exist; public graded pain labels do not</h3>
+<p>CatFLW and cat head datasets are useful for geometry/landmarks/pretraining. They are not pain labels. The main automated cat pain/FGS papers keep datasets request-only or unavailable; no public downloadable graded cat-FGS dataset was found across Kaggle/HF/GitHub/Zenodo/figshare/Dataverse searches. [S9; S15; <code>wave-1-datasets-oss.md</code>]</p>
+<h3>5. Detector/crop front-end: improve only if crop quality blocks downstream</h3>
+<p>RF-DETR and YOLO are both plausible. YOLO is simpler and mature; RF-DETR is modern and already in this repo. SAM2 is useful for masks/video/crop stabilization, but overkill for still-image bbox classification. Since the current bottleneck is labels and validation, detector changes are second priority unless Gate 5/NME/crop quality fails. [S12; S13; <code>wave-1-oss-architecture.md</code>]</p>
+<h2>Codebase findings</h2>
+<ul>
+<li><code>src/model/backbone.py</code> supports <code>dinov2_vits14_reg</code>, <code>dinov2_vits14</code>, <code>dinov3_vits16</code>; default remains <code>dinov2_vits14_reg</code>. [Local: <code>wave-2-repo-dinov3-fit.md</code>]</li>
+<li><code>src/model/cache_features.py</code> and downstream loaders enforce 384-d cache schema with <code>variant</code>, <code>layer</code>, and <code>patch_mode</code>. [Local: <code>wave-2-repo-dinov3-fit.md</code>]</li>
+<li><code>src/vlm/aggregate.py</code> and <code>src/model/decode.py</code> share the 0.39 point-decision threshold. [Local: <code>verify-local-contracts.md</code>; <code>verify-targeted-tests.md</code>]</li>
+<li><code>configs/corn.yaml</code> already carries backbone A/B knobs. [Local: <code>wave-2-repo-dinov3-fit.md</code>]</li>
+<li><code>README.md</code> bans validated graded claims until an independent vet anchor exists. [Local: <code>local-line-refs.md</code>]</li>
+</ul>
+<h2>Sources ranked</h2>
+<p>1. [S1] Evangelista et al. 2019 FGS validation — official clinical target and 0.39 threshold: <a href="https://www.nature.com/articles/s41598-019-55693-8">https://www.nature.com/articles/s41598-019-55693-8</a></p>
+<p>2. [S8] Ngai et al. 2025 chatbot/VLM FGS agreement — negative/cautionary VLM evidence: <a href="https://www.nature.com/articles/s41598-025-27404-z">https://www.nature.com/articles/s41598-025-27404-z</a></p>
+<p>3. [S3] 2023 smartphone automated FGS — strongest direct automated FGS method: <a href="https://www.nature.com/articles/s41598-023-49031-2">https://www.nature.com/articles/s41598-023-49031-2</a></p>
+<p>4. [S5] 2024 video landmark cat pain — strongest temporal automation evidence: <a href="https://www.nature.com/articles/s41598-024-78406-2">https://www.nature.com/articles/s41598-024-78406-2</a></p>
+<p>5. [S7] 2025 segment/XAI DINO-ViT framework — newest foundation-feature evidence: <a href="https://www.nature.com/articles/s41598-025-96634-y">https://www.nature.com/articles/s41598-025-96634-y</a></p>
+<p>6. [S10/S11] DINOv3 official GitHub/Meta pages — current foundation backbone: <a href="https://github.com/facebookresearch/dinov3">https://github.com/facebookresearch/dinov3</a> and <a href="https://ai.meta.com/research/dinov3/">https://ai.meta.com/research/dinov3/</a></p>
+<p>7. [S9/S15] CatFLW — geometry asset, not pain labels: <a href="https://arxiv.org/abs/2310.09793">https://arxiv.org/abs/2310.09793</a> and <a href="https://www.kaggle.com/datasets/georgemartvel/catflw">https://www.kaggle.com/datasets/georgemartvel/catflw</a></p>
+<h2>Verified claims</h2>
+<ul>
+<li>Local repo supports DINOv3 candidate path, DINOv2-reg default, shared 0.39 threshold, and 384-d cache contract. Verdict: CONFIRMED by <code>verify-local-contracts.md</code>.</li>
+<li>Local backbone/threshold/decode tests pass. Verdict: CONFIRMED by <code>verify-targeted-tests.md</code> (<code>12 passed</code>).</li>
+<li>Portable protocol suite and synthetic orchestrator dry-runs pass. Verdict: CONFIRMED by <code>verify-portable-suite.md</code>.</li>
+<li>High-risk non-code claims are listed in <code>claim-ledger.md</code>; one claim is intentionally unresolved and phrased as “no verified 2026 method surfaced,” not “none exists.”</li>
+</ul>
+<h2>Contradictions and resolution</h2>
+<ul>
+<li>Prior landmark/geometric methods have stronger direct FGS evidence than foundation backbones; however, their datasets are request-only/closed and their landmark path does not match this repo’s current architecture. Resolution: do not claim superiority; run a measured A/B and keep the protocol framing. [S3; S9; local]</li>
+<li>VLMs are attractive for weak labels but unsafe as direct scorers. Resolution: use VLM only behind independent vet κ and Bland–Altman/threshold gates. [S8]</li>
+<li>DINOv3 is current, but local code support is not empirical proof. Resolution: treat DINOv3 as an alternate backbone experiment, not default. [S10; local]</li>
+</ul>
+<h2>Gaps</h2>
+<ul>
+<li>No independent vet AU anchor in the repo.</li>
+<li>No public downloadable graded cat-FGS pain dataset found.</li>
+<li>No verified 2026 primary method paper surfaced in this search; this is not an absolute nonexistence claim. See <code>recency-search-log.md</code>.</li>
+<li>No local empirical A/B result for DINOv2-reg vs DINOv3/SigLIP2/ConvNeXt.</li>
+<li>Subgroup robustness, especially brachycephalic/ocular-pain/e-collar cases, remains unvalidated.</li>
+</ul>
+<h2>Deployment/product constraints</h2>
+<p>The recommended improvement is not owner-app launch. Product posture remains decision-support triage. Direct VLM scoring is unsafe because chatbot limits of agreement can cross the 0.39 threshold; CatFLW-derived assets may add non-commercial licensing constraints; poor crops, e-collars, ocular pain, and brachycephalic morphology require defer/subgroup gates. See <code>wave-3-deployment-product-constraints.md</code>.</p>
+<h2>Methods matrix closure</h2>
+<p><code>closure-optional-leads.md</code> closes material optional leads: RF-DETR/YOLO are front-end A/B choices only if crop quality fails; validation design requires expert AU agreement plus Bland–Altman/threshold-safety/subgroup gates; allowed model-card wording is prototype/decision-support, while validated diagnosis/owner-app claims are forbidden.</p>
+<h2>Recommended pipeline upgrade</h2>
+<p>1. <strong>Keep v1 spine</strong>: binary pain/no_pain + wrapper + abstention; no validated graded claim.</p>
+<p>2. <strong>Run a frozen-feature A/B</strong>: <code>dinov2_vits14_reg</code> vs <code>dinov3_vits16</code> vs one simple baseline (<code>ConvNeXt</code> or <code>SigLIP2</code>) using same cat-disjoint folds, same cache provenance, same threshold metrics.</p>
+<p>3. <strong>Add/execute vet-anchor Gate 1-B</strong>: expert AU labels; report per-AU κ CI lower bounds and Bland–Altman LoA around 0.39; VLM labels are training aids only if they pass.</p>
+<p>4. <strong>Use DINOv3 only if it wins</strong> on PR-AUC/recall, threshold safety, calibration, and confound audit; otherwise keep DINOv2-reg.</p>
+<p>5. <strong>Add temporal/crop stabilization only if data warrants it</strong>: SAM2/video smoothing for video or poor crops; otherwise not the first ROI.</p>
+<p>6. <strong>Report as research prototype</strong> until external cohort/subgroup validation passes.</p>
+<h2>Expansion trace</h2>
+<ul>
+<li>Wave 1: codebase executable pipeline, codebase docs, literature, datasets, OSS architecture, skeptic risk.</li>
+<li>Wave 2: DINOv3 repo fit; FGS/VLM/vet-anchor expansion.</li>
+<li>Wave 3/closures: malformed EXPAND tails closed; deployment/product constraints added; RF-DETR-vs-YOLO, validation design, model-card wording, and methods matrix closed; recency claim downgraded with search log; unrelated dirty repo diff excluded in <code>worktree-scope.md</code>.</li>
+<li>Convergence: no unchecked core lead changes the recommendation; optional leads are either closed or explicitly report extensions.</li>
+</ul></body></html>

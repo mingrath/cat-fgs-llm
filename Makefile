@@ -65,7 +65,7 @@ test-portable:
 	uv run pytest tests/test_e2e_gates_pipeline.py -q --tb=line -k "schema_fail or dedup_conflict or power_placeholder or manifests_missing or wrapper_config"
 	# orchestrator synthetic variants (deletion-safe)
 	# Non-blocking dry for local smoke only; CI jobs use strict (no || true) paths per FreshGateOrchE2ECI polish + CI honesty
-	# TINY DOC POLISH (repro/CI honesty @FreshChronicVerifDocHandoff): full `make test` may surface 1 known chronic pre-exist F (test_e2e_gates_pipeline.py:194 "DID NOT RAISE" on synth abort mock; synth lenient vs real _enforce in orchestrator.py:76 + side-effect orch synth G3); dedicated portable/core + CI matrix (test-portable, portable-deletion-isolation job, variants -k) stay green always. Explicit chronic doc added in test for matrix honesty (CHRONIC PRE-EXISTING tolerated for deletion-safe harness; portable core + dedicated green; 66P/2F side-effect noted but not breaking portable). Tolerated; no break to portable claim. Preserve ALL.
+	# Missing required artifacts now abort outside dry-run; dry-run smokes remain non-blocking for local developer speed.
 	uv run python -m src.gates.orchestrator --synthetic --include-wrapper --dry-run || true
 	uv run python -m src.gates.orchestrator --synthetic --portable-only --dry-run || true
 

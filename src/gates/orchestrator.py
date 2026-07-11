@@ -287,12 +287,20 @@ def run_pipeline(synthetic: bool = False, include_wrapper: bool = False, dry_run
 
             # Verify expected artifacts (honesty / uniqueness: committed outputs exist post-run)
             verified = []
+            artifact_failed = False
             for art in EXPECTED_ARTIFACTS.get(g, []):
                 ok = _verify_artifact(art)
                 verified.append((art, ok))
-                if not ok and not (synthetic and g in ("gate5", "gate1", "gate3")):  # synthetic stubs for heavy-audit / plumbing covered elsewhere
+                tolerated_synthetic_stub = synthetic and g in ("gate5", "gate1", "gate3")
+                if not ok and not tolerated_synthetic_stub:  # synthetic stubs for heavy-audit / plumbing covered elsewhere
                     print(f"[orchestrator] MISSING ARTIFACT for {g}: {art}")
+                    if not dry_run:
+                        artifact_failed = True
             summary["artifacts_verified"][g] = verified
+
+            if artifact_failed:
+                g_code = g_code or 1
+                summary["results"][g]["exit"] = g_code
 
             if g_code != 0:
                 summary["aborted_at"] = g

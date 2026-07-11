@@ -10,14 +10,13 @@ Enforces gate order, artifact writes, abort semantics, power-first.
 Runnable standalone or in CI (synthetic path always works; full would require manifests + keys).
 Uses pytest; fast on CPU.
 
-TINY DOC POLISH for repro/CI honesty (per @FreshChronicVerifDocHandoff role + LIVING/round handoff-read):
-- See test_orchestrator_aborts_on_missing_manifests_or_power_placeholder (line 194) for explicit chronic pre-exist doc:
-  synth lenient (enforce early-return on synthetic=True; verify !ok does not always abort) vs real _enforce + dedicated test_manifests_enforce.py.
-  Tolerated 1 chronic F in full `make test` (side-effect G3 synth orch paths); portable core + dedicated CI matrix jobs (test-portable, portable-deletion-isolation, variants -k selective) always green.
-  Preserves deletion-safe harness + portable (zero-torch) claim. All strengths verbatim.
+Repro/CI honesty:
+- test_orchestrator_aborts_on_missing_manifests_or_power_placeholder locks the fixed
+  missing-artifact abort contract for synthetic smoke paths.
+- Synthetic still stubs G1/G3/G5 for deletion-safe operation, but missing required
+  G0/G6 manifests now aborts outside dry-run.
 - Companion: test_manifests_enforce.py for real-path enforcement (power floor, schema, dedup/vet, pins 100%).
-- CI/Makefile select via -k / markers (e2e/portable/gate) + || true notes for synth smokes keep matrix honest without masking.
-This makes repro/CI honesty citable (chronic known + tolerated + why synth vs real split); no change to behavior.
+- CI/Makefile select via -k / markers (e2e/portable/gate) + dry-run synth smokes keep matrix honest.
 """
 
 import tempfile
@@ -192,29 +191,16 @@ def test_e2e_gate_block_on_bad_threshold_or_decode_monkey(monkeypatch):
 # (per FreshCIExpanderMatrixDeletion; uses pytest monkeypatch per context7__query-docs MCP research on pytest-dev/pytest monkeypatch delitem/setattr/fixtures for negative cases)
 # Strengthens pipeline uniqueness: explicit negative synthetic paths for VLM schema (enforce), data dedup (leak guard), G0 power (non-placeholder), manifests (gate blocking) now CI'd via variants job + dedicated portable.
 # Deletion-safe: all mocks on synthetic paths or patches; zero real data. Preserves G4 blocking, orchestrator abort, portable protocols, cat-disjoint.
-# TINY DOC POLISH (repro/CI honesty @FreshChronicVerifDocHandoff, recurring): chronic at 197- test_orchestrator_aborts_on_missing... explicitly documented as pre-exist (DID NOT RAISE due to synthetic=True early return in _enforce); tolerated; portable dedicated/CI matrix green (no break); synth lenient vs real _enforce; side-effect 66P/2F noted. Selective -k/markers for CI. See Makefile:68 TINY DOC POLISH.
+# Missing-artifact abort regression: synthetic paths stub only G1/G3/G5; required
+# artifacts such as G0 power and G6 severity must still abort outside dry-run.
 
 
 def test_orchestrator_aborts_on_missing_manifests_or_power_placeholder(monkeypatch):
     """Mock manifests missing or power placeholder -> abort (G0 honesty + gate blocking).
 
-    CHRONIC PRE-EXISTING (known, tolerated explicit doc for CI matrix honesty; portable core green):
-    Line ~194 'with pytest.raises(SystemExit)' + assert code==1 can trigger "DID NOT RAISE <class 'SystemExit'>"
-    (or test reports as F in full `make test` yielding ~66P/2F: this + side-effect on orch synth G3 token paths).
-    Root: run_pipeline(synthetic=True) makes _enforce_g0_manifests(g, synthetic) return early (if synthetic: return)
-    with no SystemExit (real enforce ONLY for !synthetic; see orchestrator.py:71-89 _enforce + GATE_PRECONDS + PRECONDS).
-    Synth paths also stub G1/G3/G5 (SYNTHETIC-STUB continue, no _run_cmd), and _verify_artifact fail for power/manifest
-    only prints MISSING (if not ok and not (synthetic and g in ("gate5","gate1","gate3")) ) but does NOT raise; abort
-    only on g_code!=0 from scripts or final overall not_ok -> sys.exit(1) at end.
-    The patch hits verify but synth wiring is intentionally lenient (deletion-safe toy harness, no real manifests/keys).
-    Real enforcement + abort contract covered by: test_manifests_enforce.py (real manifests/power floor/schema/dedup/vet),
-    gate scripts tops, orchestrator real paths, CI dedicated jobs + pre-commit + power.json committed.
-    NOT a regression from portable seam/landed (P2/P7); synth is for portable e2e smoke + CI matrix deletion-safe.
-    Tolerated: portable core (make test-portable + standalone + -k selected e2e mocks) + dedicated green always;
-    full make test / some CI variants may surface the chronic 1F (side-effect G3 synth noted post-orch).
-    Explicit doc here (no broad xfail to keep contract visible; selective -k or markers for CI matrix).
-    Preserves: G4 blocking, orch abort semantics for real, portable isolation (zero-torch del-safe), all pins.
-    See: Makefile:65 (test-portable -k excludes this), ci.yml:169/235 (variants e2e mocks selective), orchestrator:236/262 (G3 synth stub + enforce early return), test_manifests_enforce.py:1 (companion real-path).
+    Synthetic runs intentionally stub G1/G3/G5 for deletion-safe smoke, but required
+    artifacts still gate success. Missing power/manifests outside dry-run must set
+    aborted_at and exit 1, matching the real-path gate contract.
     """
     from src.gates import orchestrator as orch_mod
 
@@ -372,4 +358,3 @@ def test_orchestrator_synthetic_wrapper_config_mandatory(monkeypatch):
     if "wrapper_smoke" in summary:
         assert "error" in summary["wrapper_smoke"] or "threshold" in summary["wrapper_smoke"]
     print("PASS: e2e wrapper config mandatory mocked (operating_point P3 hygiene)")
-
