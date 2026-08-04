@@ -41,3 +41,7 @@ reports/          # Gate-5 NME audit json/csv (scripts/gate5_nme.py)
 
 # Built paper PDF (tectonic builds paper/main.pdf from the .tex sources)
 paper/*.pdf
+
+# reference PDFs: cite via paper/references.bib, do not commit full texts
+paper/refs/
+.omo/
